@@ -28,15 +28,15 @@
 | 11 | FILTER_LANGUAGE | `/universities/filters/language` | Язык обучения | 361–395* | false | Фаза 3 (батч 1). `stepIndex={3}` | ✅ |
 | 12 | FILTER_COST | `/universities/filters/cost` | Стоимость/стипендия | 361–395* | false | Фаза 3 (батч 1). `stepIndex={4}` → submit + RESULTS | ✅ |
 | 13 | RESULTS | `/universities/results` | Safety/Match/Reach | 396–441 | false | Фаза 3 (батч 1). Таб «Вузы» | ✅ |
-| 14 | UNIVERSITY_DETAILS | `/universities/:id` | Карточка вуза | 443–489 | false | Блок документов — lock-тизер → Paywall | 🔲 |
-| 15 | REQUIRED_DOCUMENTS | `/universities/:id/documents` | Документы для поступления | не выделен отдельно в прототипе | **true** | Собрать по аналогии с VAULT_DETAIL-паттерном | 🔲 |
-| 16 | PORTFOLIO_UPLOAD | `/ai/portfolio` | ИИ-портфолио | 490–525 | false (funnel) | | 🔲 |
-| 17 | ANALYSIS_LOADING | `/ai/analysis/loading` | Анализ идёт | 526–549 | false | | 🔲 |
-| 18 | ANALYSIS_PREVIEW | `/ai/analysis/preview` | Превью стратегии | 550–587 | false | Блюр-градиент + карточка монетизации | 🔲 |
-| 19 | PAYWALL | `/subscription/offer` | AcademicSpace Premium | 588–621 | – | Включает inline PlanCard, см. `CLAUDE.md` §7 | 🔲 |
-| 20 | PLAN_SELECTION | `/subscription/plans` | Неделя / Месяц | нет в дизайне | – | Собрать из `<PlanCard>`, вынесенного из PAYWALL | 🔲 |
-| 21 | PAYMENT_FLOW | `/subscription/payment` | Оплата | 943–995* | – | idle → processing → success (`payState`) | 🔲 |
-| 22 | AI_CHAT | `/ai/chat` | Чат с ИИ-ментором | 623–673 | **true** | Free видит превью (см. ANALYSIS_PREVIEW) | 🔲 |
+| 14 | UNIVERSITY_DETAILS | `/universities/:id` | Карточка вуза | 443–489 | false | Фаза 3 (батч 2). Навy-шапка + блок документов: Premium → VAULT_DETAIL, Free → lock-тизер → Paywall | ✅ |
+| 15 | REQUIRED_DOCUMENTS | `/universities/:id/documents` | Документы для поступления | не выделен отдельно в прототипе | **true** | Фаза 3 (батч 2). Общий `<DocumentVaultScreen>`; Free по deep link → Paywall | ✅ |
+| 16 | PORTFOLIO_UPLOAD | `/ai/portfolio` | ИИ-портфолио | 490–525 | false (funnel) | Фаза 3 (батч 2). `<DocumentCell>` слоты, мок file-picker → ANALYSIS_LOADING | ✅ |
+| 17 | ANALYSIS_LOADING | `/ai/analysis/loading` | Анализ идёт | 526–549 | false | Фаза 3 (батч 2). Навy, авто → ANALYSIS_PREVIEW (2.6s), back disabled | ✅ |
+| 18 | ANALYSIS_PREVIEW | `/ai/analysis/preview` | Превью стратегии | 550–587 | false | Фаза 3 (батч 2). Градиент-фейд (blur — Фаза 5) + карточка монетизации → Paywall | ✅ |
+| 19 | PAYWALL | `/subscription/offer` | AcademicSpace Premium | 588–621 | – | Фаза 3 (батч 2). Маркетинг + inline `<PlanCard>` → PAYMENT_FLOW (§7) | ✅ |
+| 20 | PLAN_SELECTION | `/subscription/plans` | Неделя / Месяц | нет в дизайне | – | Фаза 3 (батч 2). Только `<PlanCard>` без маркетинга (§7) | ✅ |
+| 21 | PAYMENT_FLOW | `/subscription/payment` | Оплата | 943–995* | – | Фаза 3 (батч 2). idle → processing → success (`payState`), success → AI_CHAT | ✅ |
+| 22 | AI_CHAT | `/ai/chat` | Чат с ИИ-ментором | 623–673 | **true** | Фаза 3 (батч 2). Premium-only (Free → Paywall гардом). `<ChatThread>` + `<Composer>`, создание модуля → ACTIVE_TASKS | ✅ |
 | 23 | ACTIVE_TASKS | `/tasks` | Активные задачи | 675–719 | **true** | Таб скрыт целиком для Free (hard-hide) | 🔲 |
 | 24 | MODULE_DETAIL | `/tasks/:moduleId` | Roadmap/Plan/Checklist/Timer/Task | 996–1044* | **true** | 5 вариантов kind, отдельная логика для timer | 🔲 |
 | 25 | VAULTS_LIST | `/documents` | Копилки документов | 720–744 | **true** | | 🔲 |

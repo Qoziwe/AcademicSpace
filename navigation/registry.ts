@@ -335,10 +335,12 @@ export const ROUTES = {
     auth: true,
     premium: false,
     navType: 'modal',
-    destinations: ['PLAN_SELECTION'],
+    // §7: PAYWALL включает inline PlanPicker и ведёт СРАЗУ на PAYMENT_FLOW;
+    // PLAN_SELECTION остаётся отдельным лёгким входом (из PROFILE_SUBSCRIPTION).
+    destinations: ['PLAN_SELECTION', 'PAYMENT_FLOW'],
     back: 'none',
     demoHref: '/subscription/offer',
-    note: 'Модалка. Включает inline PlanPicker (§7). Swipe-down dismiss',
+    note: 'Модалка. Inline PlanPicker (§7) → PAYMENT_FLOW. Swipe-down dismiss',
   }),
   PLAN_SELECTION: R({
     id: 'PLAN_SELECTION',
