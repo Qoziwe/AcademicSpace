@@ -8,10 +8,17 @@
 Перед запуском один раз поставить и авторизовать GitHub CLI:
 
 ```bash
-sudo pacman -S --needed github-cli
+# вариант А — системный пакет (если база пакетов свежая)
+sudo pacman -Syu --needed github-cli
+# вариант Б — без sudo, локально в ~/.local/bin
+bash scripts/install-gh-local.sh
+
 gh auth login          # GitHub.com → HTTPS → Login with a web browser
 bash scripts/setup-github.sh
 ```
+
+`setup-github.sh` сам добавляет `~/.local/bin` в `PATH`, так что вариант Б
+работает без правки `~/.bashrc`.
 
 После этого `gh` остаётся авторизованным — дальнейшие фазы Claude
 проводит через feature-ветку + PR сам.

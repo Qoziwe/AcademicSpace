@@ -22,11 +22,14 @@ P1="feat/phase-1-navigation"
 
 cd "$(git rev-parse --show-toplevel)"
 
+# gh может стоять локально в ~/.local/bin (scripts/install-gh-local.sh)
+export PATH="$HOME/.local/bin:$PATH"
+
 say() { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
 die() { printf '\n\033[1;31m✖ %s\033[0m\n' "$*" >&2; exit 1; }
 
 # ── 0. Предусловия ───────────────────────────────────────────────────────────
-command -v gh >/dev/null 2>&1 || die "Нет gh. Установи: sudo pacman -S --needed github-cli, затем gh auth login"
+command -v gh >/dev/null 2>&1 || die "Нет gh. Поставь: bash scripts/install-gh-local.sh (или sudo pacman -Syu github-cli), затем gh auth login"
 gh auth status >/dev/null 2>&1 || die "gh не авторизован. Выполни: gh auth login"
 
 git diff --quiet && git diff --cached --quiet || die "Есть незакоммиченные изменения — сначала git commit / git stash"
