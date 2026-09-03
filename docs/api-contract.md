@@ -61,8 +61,9 @@
 *** Метод: GET
 *** URL: /api/v1/universities/:id
 *** Отправляем: token
-*** Ожидаем получить: {id, name, city, description, admissionsUrl,
-    requiredDocuments: [...] | null}
+*** Ожидаем получить: {id, name, city, category: "safety"|"match"|"reach",
+    admissionsUrl, stats: [{k, v}], rows: [{k, v}],
+    requiredDocuments: [...] | null}   // null для Free — lock-тизер
 ```
 
 ## AI Mentor
@@ -75,12 +76,21 @@
 *** Метод: GET
 *** URL: /api/v1/ai/analysis/:analysisId
 *** Отправляем: token
-*** Ожидаем получить: {status, previewText, fullText: string | null}
+*** Ожидаем получить: {analysisId, status: "processing"|"ready",
+    previewBlocks: [{title, text}], fullText: string | null}
 
 *** Метод: POST
 *** URL: /api/v1/ai/chat/messages
 *** Отправляем: token, {text}
 *** Ожидаем получить: {reply: {text, module: {kind, title, sub, description} | null}}
+```
+
+Быстрые подсказки чата (`quickPrompts`) — отдельным лёгким запросом:
+```
+*** Метод: GET
+*** URL: /api/v1/ai/chat/meta
+*** Отправляем: token
+*** Ожидаем получить: {quickPrompts: [string]}
 ```
 
 ## Tasks / Modules
