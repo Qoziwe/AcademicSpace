@@ -79,6 +79,9 @@ export function DevMenu() {
               onPress={() => router.push(ROUTES.UPDATE_REQUIRED.demoHref)}
               action="go"
             />
+
+            <Text style={styles.group}>UI-кит</Text>
+            <Row label="Playground" onPress={() => router.push('/playground')} action="go" />
           </ScrollView>
         </View>
       ) : null}
