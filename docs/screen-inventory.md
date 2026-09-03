@@ -3,11 +3,12 @@
 Статус: 🔲 не начато / 🟡 в работе / ✅ готово (критерии готовности —
 `CLAUDE.md` §10). Обновляется по ходу Фазы 3.
 
-> **Фаза 1 (скелет навигации) завершена:** для каждого Route ID ниже создан
-> честный отдельный route-файл в `app/**` (заглушка `<ScreenStub>` +
-> `withGuard` из `navigation/registry.ts`). Навигация по всем
-> Destinations / Back работает. Статусы ниже остаются 🔲 — они про полную
-> вёрстку по DoD §10 (Фаза 3), а не про наличие роута.
+> **Фаза 3 завершена:** все 30 экранов + 2 глобальных компонента собраны по
+> DoD §10 (данные через TanStack Query + мок-адаптер `mocks/`, интерактив
+> через Zustand, навигация 1-в-1 по `docs/source/03-routes.md`, обе темы на
+> theme-aware экранах). Три батча: PR #5 (онбординг+дашборд+подбор),
+> PR #6 (вуз+портфолио+пейвол+чат), PR #7 (задачи+копилки+фокус+профиль+
+> система). Дальше — Фаза 4 (централизация мок-слоя) и Фаза 5 (полировка).
 
 Источник строк — `docs/source/design-reference.html` (маркеры
 `═══ ИМЯ ═══`). Звёздочка (*) — диапазон приблизительный, экран
@@ -37,21 +38,21 @@
 | 20 | PLAN_SELECTION | `/subscription/plans` | Неделя / Месяц | нет в дизайне | – | Фаза 3 (батч 2). Только `<PlanCard>` без маркетинга (§7) | ✅ |
 | 21 | PAYMENT_FLOW | `/subscription/payment` | Оплата | 943–995* | – | Фаза 3 (батч 2). idle → processing → success (`payState`), success → AI_CHAT | ✅ |
 | 22 | AI_CHAT | `/ai/chat` | Чат с ИИ-ментором | 623–673 | **true** | Фаза 3 (батч 2). Premium-only (Free → Paywall гардом). `<ChatThread>` + `<Composer>`, создание модуля → ACTIVE_TASKS | ✅ |
-| 23 | ACTIVE_TASKS | `/tasks` | Активные задачи | 675–719 | **true** | Таб скрыт целиком для Free (hard-hide) | 🔲 |
-| 24 | MODULE_DETAIL | `/tasks/:moduleId` | Roadmap/Plan/Checklist/Timer/Task | 996–1044* | **true** | 5 вариантов kind, отдельная логика для timer | 🔲 |
-| 25 | VAULTS_LIST | `/documents` | Копилки документов | 720–744 | **true** | | 🔲 |
-| 26 | VAULT_DETAIL | `/documents/:vaultId` | Копилка вуза | 745–774 | **true** | Ячейки-слоты (`cells`), мок file-picker | 🔲 |
-| 27 | FOCUS_TOOLS | `/focus` | Фокусировка и продуктивность | 775–824 | **true** | Звуки (bars-анимация) + трекеры-полоски за 7 дней | 🔲 |
-| 28 | PROFILE | `/profile` | Профиль | 825–878 | false | Строки-гейты на Premium-разделы (lock-тизер) | 🔲 |
-| 29 | ACHIEVEMENT_LOG | `/profile/history` | Журнал выполненных заданий | 879–909 | false | Группировка по датам | 🔲 |
-| 30 | PROFILE_SUBSCRIPTION | `/profile/subscription` | Управление подпиской | 910–942* | false | Переиспользует `<PlanCard>` из #20 | 🔲 |
-| 31 | SETTINGS | `/settings` | Настройки | 910–953* | false | 3 группы строк + свитч «Тема оформления» (light/dark, см. `design-tokens.md`) | 🔲 |
-| 32 | ERROR | `/system/error` | Ошибка | 1045–1063 | – | Общий компонент SystemScreen | 🔲 |
-| 33 | OFFLINE | `/system/offline` | Нет соединения | 1045–1063 | – | Общий компонент SystemScreen | 🔲 |
-| 34 | MAINTENANCE | `/system/maintenance` | Технические работы | 1045–1063 | – | Общий компонент SystemScreen | 🔲 |
-| 35 | UPDATE_REQUIRED | `/system/update` | Требуется обновление | 1045–1063 | – | Общий компонент SystemScreen | 🔲 |
-| — | — | — | Offline banner (глобальный оверлей) | 1064–1072 | – | Показывается поверх любого экрана при потере сети | 🔲 |
-| — | — | — | Tab Bar (глобальный) | 1073–1085 | – | Компонент-организм, не отдельный роут | 🔲 |
+| 23 | ACTIVE_TASKS | `/tasks` | Активные задачи | 675–719 | **true** | Фаза 3 (батч 3). Таб скрыт для Free (hard-hide); `<TaskModuleCard variant="full">`; empty-state | ✅ |
+| 24 | MODULE_DETAIL | `/tasks/:moduleId` | Roadmap/Plan/Checklist/Timer/Task | 996–1044* | **true** | Фаза 3 (батч 3). Навy-шапка; `isTimer` → общий `stores/focus`; этапы + «что дальше» | ✅ |
+| 25 | VAULTS_LIST | `/documents` | Копилки документов | 720–744 | **true** | Фаза 3 (батч 3). Карточки с мини-ячейками; `useVaults` | ✅ |
+| 26 | VAULT_DETAIL | `/documents/:vaultId` | Копилка вуза | 745–774 | **true** | Фаза 3 (батч 3). Общий `<DocumentVaultScreen>`, мок file-picker | ✅ |
+| 27 | FOCUS_TOOLS | `/focus` | Фокусировка и продуктивность | 775–824 | **true** | Фаза 3 (батч 3). Навy (вне темы); таймер `stores/focus`, `<FocusSoundTile>`, трекеры | ✅ |
+| 28 | PROFILE | `/profile` | Профиль | 825–878 | false | Фаза 3 (батч 3). `<ProfileHeaderWidget variant="profile">` + строки-гейты (lock-тизер) | ✅ |
+| 29 | ACHIEVEMENT_LOG | `/profile/history` | Журнал выполненных заданий | 879–909 | false | Фаза 3 (батч 3). `useAchievementLog`, группировка по датам | ✅ |
+| 30 | PROFILE_SUBSCRIPTION | `/profile/subscription` | Управление подпиской | 910–942* | false | Фаза 3 (батч 3). Premium → PLAN_SELECTION + отмена; Free → PAYWALL | ✅ |
+| 31 | SETTINGS | `/settings` | Настройки | 910–953* | false | Фаза 3 (батч 3). Карточка подписки + свитч «Тема оформления» (theme store) + 3 группы | ✅ |
+| 32 | ERROR | `/system/error` | Ошибка | 1045–1063 | – | Фаза 3 (батч 3). `<SystemScreenLayout kind="error">` | ✅ |
+| 33 | OFFLINE | `/system/offline` | Нет соединения | 1045–1063 | – | Фаза 3 (батч 3). CTA → офлайн-баннер + дашборд | ✅ |
+| 34 | MAINTENANCE | `/system/maintenance` | Технические работы | 1045–1063 | – | Фаза 3 (батч 3). `<SystemScreenLayout kind="maintenance">`, back disabled | ✅ |
+| 35 | UPDATE_REQUIRED | `/system/update` | Требуется обновление | 1045–1063 | – | Фаза 3 (батч 3). CTA → Store link (`Linking`), back disabled | ✅ |
+| — | — | — | Offline banner (глобальный оверлей) | 1064–1072 | – | Фаза 1/2. `<OfflineBanner>` в root `_layout` поверх любого экрана | ✅ |
+| — | — | — | Tab Bar (глобальный) | 1073–1085 | – | Фаза 1/2. `<TabBarHost>` организм; вкладка «Задачи» hard-hide для Free | ✅ |
 
 Итого: **30 реальных экранов** (24 из исходного счётчика прототипа +
 `PLAN_SELECTION`, которого физически нет в файле, но который требует

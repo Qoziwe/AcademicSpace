@@ -15,4 +15,7 @@ export const qk = {
   chat: () => ['chat'] as const,
   analysis: (id: string) => ['analysis', id] as const,
   plans: () => ['subscription', 'plans'] as const,
+  vaults: () => ['vaults'] as const,
+  vault: (id: string) => ['vaults', id] as const,
+  achievementLog: () => ['achievements', 'log'] as const,
 } as const;

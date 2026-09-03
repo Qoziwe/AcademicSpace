@@ -100,6 +100,11 @@
 *** Отправляем: token
 *** Ожидаем получить: [{id, kind, title, meta, xp, items: [{label, done}], isTimer}]
 
+*** Метод: GET
+*** URL: /api/v1/tasks/:taskId
+*** Отправляем: token
+*** Ожидаем получить: {id, kind, title, meta, xp, items: [{label, done}], isTimer}
+
 *** Метод: PATCH
 *** URL: /api/v1/tasks/:taskId/items/:itemIndex
 *** Отправляем: token, {done}
@@ -111,8 +116,13 @@
 *** Метод: GET
 *** URL: /api/v1/vaults
 *** Отправляем: token
-*** Ожидаем получить: [{id, universityId, universityName,
-    cells: [{documentName, uploaded, fileUrl}]}]
+*** Ожидаем получить: [{id, universityName, deadline, filled, cellsTotal}]
+
+*** Метод: GET
+*** URL: /api/v1/vaults/:vaultId
+*** Отправляем: token
+*** Ожидаем получить: {id, universityName, deadline, filled, cellsTotal,
+    cells: [{title, sub, uploaded}]}
 
 *** Метод: POST
 *** URL: /api/v1/vaults/:vaultId/cells/:cellIndex
@@ -133,7 +143,15 @@
 *** Ожидаем получить: {status: "success"|"failed", subscription: {...}}
 ```
 
-## TBD (добавлять по ходу Фазы 3–4)
-- Achievement Log endpoints
-- Focus tools trackers persistence
-- Settings / notifications preferences
+## Achievement Log
+```
+*** Метод: GET
+*** URL: /api/v1/achievements/log
+*** Отправляем: token
+*** Ожидаем получить: {totalXp, days: [{date,
+    items: [{title, kind, xp, dot: "blue"|"blueLight"|"green"|"gold"|"rose"}]}]}
+```
+
+## TBD (добавлять по ходу Фазы 4)
+- Focus tools: сохранение сессий фокуса и трекеров привычек
+- Settings / notifications preferences (сейчас строки-заглушки)
