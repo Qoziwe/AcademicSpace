@@ -1,30 +1,35 @@
 /**
  * Переходный экран с брендовым навy-фоном (SPLASH / AUTH_LOADING /
- * ANALYSIS_LOADING). По `design-tokens.md` навy-экраны не подчиняются
- * теме — всегда `navy.primary`.
+ * ANALYSIS_LOADING). Навy-экраны не подчиняются теме
+ * (`docs/design-tokens.md`) — всегда `navy.primary`.
  *
- * Фаза 1: статичный ромб + спиннер + подпись. Анимации spin/pulse —
- * Фаза 5 (Reanimated).
+ * Фаза 2: `<BrandLogo>` + шрифты Unbounded/Manrope + токены.
+ * Анимации spin/pulse ромба и кольца — Фаза 5 (Reanimated).
  */
 
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { BrandLogo } from '@/components/atoms';
 import { BRAND } from '@/constants/brand';
-import { fontFamily, navy } from '@/theme';
+import { bodyFont, displayFont, navy, spacing } from '@/theme';
 
 interface Props {
   caption: string;
   sub?: string;
+  /** Показать название приложения под знаком (SPLASH). */
+  showBrandName?: boolean;
 }
 
-export function BrandLoading({ caption, sub }: Props) {
+export function BrandLoading({ caption, sub, showBrandName = true }: Props) {
   return (
     <View style={styles.root}>
-      <View style={styles.diamond} />
-      <Text style={styles.brand}>{BRAND.appName}</Text>
+      <BrandLogo size={48} style={styles.logo} />
+      {showBrandName ? (
+        <Text style={[displayFont('600'), styles.brand]}>{BRAND.appName}</Text>
+      ) : null}
       <ActivityIndicator color="#FFFFFF" style={styles.spinner} />
-      <Text style={styles.caption}>{caption}</Text>
-      {sub ? <Text style={styles.sub}>{sub}</Text> : null}
+      <Text style={[bodyFont('600'), styles.caption]}>{caption}</Text>
+      {sub ? <Text style={[bodyFont('400'), styles.sub]}>{sub}</Text> : null}
     </View>
   );
 }
@@ -35,34 +40,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: navy.primary,
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.xxxl,
   },
-  diamond: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#7C93FF',
-    transform: [{ rotate: '45deg' }],
-    marginBottom: 20,
+  logo: {
+    marginBottom: spacing.xl,
   },
   brand: {
-    fontFamily: fontFamily.display,
     fontSize: 20,
-    fontWeight: '700',
     letterSpacing: -0.4,
     color: '#FFFFFF',
   },
-  spinner: { marginTop: 28 },
+  spinner: { marginTop: spacing.xxl },
   caption: {
-    fontFamily: fontFamily.text,
     fontSize: 13.5,
-    fontWeight: '600',
     color: 'rgba(255,255,255,0.9)',
     marginTop: 14,
     textAlign: 'center',
   },
   sub: {
-    fontFamily: fontFamily.text,
     fontSize: 11.5,
     color: 'rgba(255,255,255,0.5)',
     marginTop: 6,

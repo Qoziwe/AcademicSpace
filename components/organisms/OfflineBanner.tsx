@@ -1,10 +1,10 @@
 /**
- * Глобальный офлайн-баннер (прототип, строки 1064–1072).
- * Показывается поверх любого контентного экрана при `ui.offline`,
- * кроме системных экранов (там своё полноэкранное состояние).
+ * Глобальный офлайн-баннер (`design-reference.html:1074`, `showOfflineBanner`).
+ * Поверх любого контентного экрана при `ui.offline`, кроме системных
+ * (`/system/*` — там своё полноэкранное состояние).
  *
- * Фаза 1: рабочий показ/скрытие через `useUiStore`. Реальное определение
- * сети (NetInfo) и авто-dismiss при реконнекте — Фаза 5.
+ * Фиксированный тёмный фон (как в прототипе) — вне темы. Реальное
+ * определение сети (NetInfo) и авто-dismiss — Фаза 5.
  */
 
 import { usePathname } from 'expo-router';
@@ -12,6 +12,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useUiStore } from '@/stores/ui';
+import { accent, bodyFont, radius } from '@/theme';
 
 const SYSTEM_PREFIX = '/system';
 
@@ -28,11 +29,11 @@ export function OfflineBanner() {
       <View style={styles.banner}>
         <View style={styles.dot} />
         <View style={styles.text}>
-          <Text style={styles.title}>Нет соединения</Text>
-          <Text style={styles.sub}>Данные подтянутся автоматически</Text>
+          <Text style={[bodyFont('700'), styles.title]}>Нет соединения</Text>
+          <Text style={[bodyFont('400'), styles.sub]}>Данные подтянутся автоматически</Text>
         </View>
         <Pressable onPress={() => setOffline(false)} hitSlop={8}>
-          <Text style={styles.hide}>Скрыть</Text>
+          <Text style={[bodyFont('700'), styles.hide]}>Скрыть</Text>
         </Pressable>
       </View>
     </View>
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 11,
-    borderRadius: 16,
+    borderRadius: radius.md,
     paddingVertical: 13,
     paddingHorizontal: 15,
     backgroundColor: 'rgba(21,24,67,0.95)',
@@ -64,10 +65,10 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#F3C24B',
+    backgroundColor: accent.gold,
   },
   text: { flex: 1 },
-  title: { fontSize: 12.5, fontWeight: '700', color: '#FFFFFF' },
+  title: { fontSize: 12.5, color: '#FFFFFF' },
   sub: { fontSize: 10.5, color: 'rgba(255,255,255,0.55)', marginTop: 2 },
-  hide: { fontSize: 11, fontWeight: '700', color: '#8FA6FF' },
+  hide: { fontSize: 11, color: '#8FA6FF' },
 });

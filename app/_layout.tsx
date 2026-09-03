@@ -1,12 +1,17 @@
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { DevMenu } from '@/components/dev/DevMenu';
 import { OfflineBanner } from '@/components/organisms/OfflineBanner';
 import { TabBarHost } from '@/components/organisms/TabBar';
+import { useAppFonts } from '@/hooks/useAppFonts';
+import { useTheme } from '@/hooks/useTheme';
 import { AppProviders } from '@/providers/AppProviders';
-import { lightPalette } from '@/theme';
+import { useSessionStore } from '@/stores/session';
+import { useThemeStore } from '@/stores/theme';
 
 /**
  * Корневой layout — единый Stack на всё приложение (`CLAUDE.md` §7: у каждого
@@ -15,12 +20,39 @@ import { lightPalette } from '@/theme';
  *  - `subscription/*` (PAYWALL / PLAN_SELECTION / PAYMENT_FLOW) — модалки;
  *  - `auth/loading`, `ai/analysis/loading`, `system/maintenance`,
  *    `system/update` — жест «назад» отключён.
+ *
+ * Сплэш держится (native splash) пока не загрузятся шрифты и не
+ * гидратируются сторы сессии/темы (Фаза 2).
  */
+void SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
+  const { fontsLoaded } = useAppFonts();
+  const sessionHydrated = useSessionStore((s) => s.hydrated);
+  const themeHydrated = useThemeStore((s) => s.hydrated);
+
+  const ready = fontsLoaded && sessionHydrated && themeHydrated;
+
+  useEffect(() => {
+    if (ready) void SplashScreen.hideAsync().catch(() => undefined);
+  }, [ready]);
+
+  if (!ready) return null;
+
   return (
     <AppProviders>
-      <StatusBar style="auto" />
-      <View style={styles.root}>
+      <AppShell />
+    </AppProviders>
+  );
+}
+
+function AppShell() {
+  const { palette, isDark } = useTheme();
+
+  return (
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <View style={[styles.root, { backgroundColor: palette.page }]}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="subscription/offer" options={{ presentation: 'modal' }} />
           <Stack.Screen name="subscription/plans" options={{ presentation: 'modal' }} />
@@ -38,13 +70,12 @@ export default function RootLayout() {
         <OfflineBanner />
         {__DEV__ ? <DevMenu /> : null}
       </View>
-    </AppProviders>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: lightPalette.page,
   },
 });

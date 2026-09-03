@@ -1,18 +1,21 @@
 /**
- * Плавающий таб-бар (прототип, строки 1073–1085; `showTabs` / `tabs`).
+ * Плавающий таб-бар (`design-reference.html:1083`, `showTabs` / `tabs`).
  *
- * Фаза 1: рабочая навигация + условный рендер вкладки «Задачи»
- *   (`...(P ? [['Задачи','tasks']] : [])` — hard-hide для Free, `CLAUDE.md` §6).
- * Фаза 2: довести визуал до прототипа (blur, тени, дот-индикатор) как
- *   полноценный организм UI-кита.
+ * `TabBarHost` решает, показывать ли бар на текущем роуте
+ * (`TAB_BAR_ROUTE_PATHS`). Вкладка «Задачи» для Free физически не
+ * рендерится — hard-hide из `CLAUDE.md` §6 (`TabEntry.premium`).
+ *
+ * Фиксированный тёмный фон (`rgba(15,18,48,.95)`) — как в прототипе; blur
+ * (`expo-blur`) — косметика Фазы 5, на функциональность не влияет.
  */
 
 import { Link, usePathname } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TAB_ENTRIES, TAB_BAR_ROUTE_PATHS } from '@/navigation/registry';
+import { TAB_BAR_ROUTE_PATHS, TAB_ENTRIES } from '@/navigation/registry';
 import { selectIsPremium, useSessionStore } from '@/stores/session';
+import { bodyFont, radius } from '@/theme';
 
 /** Хост: решает, показывать ли таб-бар на текущем роуте. */
 export function TabBarHost() {
@@ -21,7 +24,7 @@ export function TabBarHost() {
   return <TabBar activePath={pathname} />;
 }
 
-function TabBar({ activePath }: { activePath: string }) {
+export function TabBar({ activePath }: { activePath: string }) {
   const insets = useSafeAreaInsets();
   const isPremium = useSessionStore(selectIsPremium);
 
@@ -37,9 +40,16 @@ function TabBar({ activePath }: { activePath: string }) {
           const active = entry.routePath === activePath;
           return (
             <Link key={entry.routePath} href={entry.href} asChild>
-              <Pressable style={[styles.tab, active && styles.tabActive]}>
+              <Pressable
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                style={[styles.tab, active && styles.tabActive]}
+              >
                 <View style={[styles.dot, active && styles.dotActive]} />
-                <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
+                <Text
+                  numberOfLines={1}
+                  style={[bodyFont('700'), styles.label, active && styles.labelActive]}
+                >
                   {entry.label}
                 </Text>
               </Pressable>
@@ -63,7 +73,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
     padding: 9,
-    borderRadius: 24,
+    borderRadius: radius.xl,
     backgroundColor: 'rgba(15,18,48,0.95)',
     shadowColor: 'rgba(10,13,40,1)',
     shadowOffset: { width: 0, height: 18 },
@@ -78,7 +88,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
-    backgroundColor: 'transparent',
   },
   tabActive: {
     backgroundColor: 'rgba(255,255,255,0.12)',
@@ -94,7 +103,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 9.5,
-    fontWeight: '700',
     color: 'rgba(255,255,255,0.45)',
   },
   labelActive: {
