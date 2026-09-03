@@ -33,7 +33,10 @@ const config: ExpoConfig = {
     },
   },
   web: {
-    output: 'static',
+    // SPA, а не static: приложение мобайл-фёрст (RN-примитивы, AsyncStorage),
+    // серверный пререндер не нужен и ломается на web-storage. Полноценная
+    // desktop-раскладка — отдельная Фаза 7 (CLAUDE.md §9).
+    output: 'single',
     favicon: './assets/images/favicon.png',
   },
   plugins: [

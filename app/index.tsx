@@ -1,48 +1,26 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Redirect } from 'expo-router';
+import { useEffect, useState } from 'react';
 
-import { BRAND } from '@/constants/brand';
-import { accent, fontFamily, lightPalette, spacing } from '@/theme';
+import { BrandLoading } from '@/components/BrandLoading';
+import { useSessionStore } from '@/stores/session';
 
 /**
- * Экран-заглушка Фазы 0: подтверждает, что Expo Router поднимается пустым,
- * токены и брендинг импортируются. Заменяется на реальный SPLASH (`/`) на Фазе 1.
+ * SPLASH (`/`). App launch → WELCOME или DASHBOARD (если есть мок-сессия).
+ * Ждём гидратацию AsyncStorage + минимальную паузу, чтобы экран был виден.
  */
-export default function BootstrapScreen() {
-  return (
-    <View style={styles.container}>
-      <View style={styles.diamond} />
-      <Text style={styles.title}>{BRAND.appName}</Text>
-      <Text style={styles.subtitle}>Фаза 0 — бутстрап проекта готов</Text>
-    </View>
-  );
-}
+export default function SplashScreen() {
+  const hydrated = useSessionStore((s) => s.hydrated);
+  const isAuthed = useSessionStore((s) => s.isAuthed);
+  const [minElapsed, setMinElapsed] = useState(false);
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: lightPalette.screen,
-    gap: spacing.md,
-  },
-  diamond: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: accent.blue,
-    transform: [{ rotate: '45deg' }],
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: fontFamily.display,
-    fontSize: 24,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-    color: lightPalette.ink,
-  },
-  subtitle: {
-    fontFamily: fontFamily.text,
-    fontSize: 14,
-    color: lightPalette.sub,
-  },
-});
+  useEffect(() => {
+    const t = setTimeout(() => setMinElapsed(true), 900);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (hydrated && minElapsed) {
+    return <Redirect href={isAuthed ? '/dashboard' : '/welcome'} />;
+  }
+
+  return <BrandLoading caption="Запуск навигатора" />;
+}
