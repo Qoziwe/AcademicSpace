@@ -1,0 +1,60 @@
+import type { ExpoConfig } from 'expo/config';
+
+import brand from './constants/brand.json';
+
+/**
+ * Динамический конфиг Expo. Всё, что касается брендинга (имя, scheme,
+ * bundle id / package), берётся из `constants/brand.json` — «UniPath» нигде
+ * не хардкодится (`CLAUDE.md` §4). Тот же JSON читает рантайм в
+ * `constants/brand.ts`.
+ */
+const config: ExpoConfig = {
+  name: brand.appName,
+  slug: 'academicspace',
+  version: '0.1.0',
+  orientation: 'portrait',
+  icon: './assets/images/icon.png',
+  scheme: brand.scheme,
+  userInterfaceStyle: 'automatic',
+  newArchEnabled: true,
+  ios: {
+    supportsTablet: true,
+    bundleIdentifier: brand.iosBundleId,
+  },
+  android: {
+    package: brand.androidPackage,
+    edgeToEdgeEnabled: true,
+    predictiveBackGestureEnabled: false,
+    adaptiveIcon: {
+      backgroundColor: '#EDEDF1',
+      foregroundImage: './assets/images/android-icon-foreground.png',
+      backgroundImage: './assets/images/android-icon-background.png',
+      monochromeImage: './assets/images/android-icon-monochrome.png',
+    },
+  },
+  web: {
+    output: 'static',
+    favicon: './assets/images/favicon.png',
+  },
+  plugins: [
+    'expo-router',
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/images/splash-icon.png',
+        imageWidth: 200,
+        resizeMode: 'contain',
+        backgroundColor: '#2C317A',
+        dark: {
+          backgroundColor: '#0B0D22',
+        },
+      },
+    ],
+  ],
+  experiments: {
+    typedRoutes: true,
+    reactCompiler: true,
+  },
+};
+
+export default config;
