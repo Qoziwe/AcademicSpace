@@ -1,9 +1,9 @@
-import { ScreenStub } from '@/components/dev/ScreenStub';
+import { FilterStepScreen } from '@/components/screens/FilterStepScreen';
 import { withGuard } from '@/navigation/withGuard';
 
-/** FILTER_LANGUAGE — заглушка Фазы 1. Реальная вёрстка — Фаза 3 (см. docs/screen-inventory.md). */
+/** FILTER_LANGUAGE — общий экран шага фильтров (`CLAUDE.md` §7). */
 function FilterLanguageScreen() {
-  return <ScreenStub id="FILTER_LANGUAGE" />;
+  return <FilterStepScreen stepIndex={3} />;
 }
 
 export default withGuard(FilterLanguageScreen, { auth: true });
