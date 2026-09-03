@@ -8,15 +8,15 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { qk } from '@/hooks/api/keys';
-import { getAnalysis, startAnalysis } from '@/mocks/handlers/analysis';
+import { analysisApi } from '@/services/api/analysis';
 
 export function useStartAnalysis() {
-  return useMutation({ mutationFn: startAnalysis });
+  return useMutation({ mutationFn: analysisApi.startAnalysis });
 }
 
 export function useAnalysis(analysisId: string) {
   return useQuery({
     queryKey: qk.analysis(analysisId),
-    queryFn: () => getAnalysis(analysisId),
+    queryFn: () => analysisApi.getAnalysis(analysisId),
   });
 }

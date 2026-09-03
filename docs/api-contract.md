@@ -13,8 +13,25 @@
 Правило: каждый TanStack Query хук в `hooks/api/*`, который сейчас
 смотрит на мок в `mocks/handlers/*`, обязан иметь соответствующую запись
 здесь — даже пока бекенда нет. Так бекендер сможет писать Flask-эндпоинты
-по этому файлу, а замена мока на реальный fetch в Фазе 7 не потребует
+по этому файлу, а замена мока на реальный fetch в Фазе 8 не потребует
 менять форму данных.
+
+## Адаптер-seam (Фаза 4)
+
+Хуки `hooks/api/*` не импортируют `mocks/` напрямую — они ходят в
+`services/api/<resource>.ts`, где по флагу `EXPO_PUBLIC_USE_MOCKS`
+(`constants/env.ts → ENV.useMocks`) выбирается одна из двух реализаций
+одного интерфейса `<Resource>Api`:
+
+- **мок-ветка** — `mocks/handlers/*` (форма ответа = этот файл);
+- **HTTP-ветка** — `services/api/http/*`: GET-чтения уже собраны через
+  `apiFetch()` к `ENV.apiBaseUrl` по URL ниже; мутации с побочными
+  эффектами (`signup/signin`, `POST /questionnaire`, `POST /ai/portfolio`,
+  `POST /ai/chat/messages`, `PATCH /tasks/...`, `POST /subscription/...`)
+  помечены `notImplemented()` — их тело и точный ответ проектирует Фаза 8.
+
+Фаза 8 = дозаполнить `services/api/http/*` по этому контракту; ни хуки,
+ни `mocks/` при этом не меняются.
 
 ## Auth
 ```
@@ -34,9 +51,17 @@
 *** Метод: GET
 *** URL: /api/v1/profile/me
 *** Отправляем: token
-*** Ожидаем получить: {id, name, avatarUrl, level, xp, xpToNextLevel,
-    plan: "free"|"premium", subscription: {period, renewsAt} | null}
+*** Ожидаем получить: {id, name, email, grade, avatarUrl, level, xp,
+    xpToNextLevel, matchesCount, rating,
+    plan: "free"|"premium",
+    subscription: {period, periodLabel, price, renewsAt, summary} | null,
+    subscriptionRowSub: string,          // подпись строки «Подписка» в профиле
+    analysis: {country, sinceLabel},     // подпись зоны анализа на дашборде
+    dashboardStats: [{v, k}]}            // плитки-статы карточки профиля
 ```
+`xp` растёт на бекенде при закрытии интерактивных модулей (см. Tasks).
+`analysis.country` = страна из сохранённой анкеты. `subscription.summary`
+— готовая строка вида «Месяц · 1 900 тг · продлится 12 мая».
 
 ## Questionnaire / Universities
 ```
@@ -63,7 +88,8 @@
 *** Отправляем: token
 *** Ожидаем получить: {id, name, city, category: "safety"|"match"|"reach",
     admissionsUrl, stats: [{k, v}], rows: [{k, v}],
-    requiredDocuments: [...] | null}   // null для Free — lock-тизер
+    requiredDocuments: [...] | null,   // null для Free — lock-тизер
+    documentsNote: string}             // текст блока документов: разбор (Premium) / тизер (Free)
 ```
 
 ## AI Mentor
@@ -108,8 +134,14 @@
 *** Метод: PATCH
 *** URL: /api/v1/tasks/:taskId/items/:itemIndex
 *** Отправляем: token, {done}
-*** Ожидаем получить: {task: {...обновлённая задача}}
+*** Ожидаем получить: {task: {...обновлённая задача} | null,
+    completed: boolean,   // все пункты закрыты этим запросом → модуль ушёл из активных
+    xpAwarded: number}    // начислено XP (0, если модуль ещё в работе)
 ```
+Когда `completed: true`, бекенд: (1) убирает модуль из `GET /tasks`,
+(2) прибавляет его `xp` к `profile.xp`, (3) добавляет запись в
+`GET /achievements/log` за сегодня. Клиент после этого инвалидирует
+профиль и журнал.
 
 ## Document Vaults
 ```
@@ -151,6 +183,9 @@
 *** Ожидаем получить: {totalXp, days: [{date,
     items: [{title, kind, xp, dot: "blue"|"blueLight"|"green"|"gold"|"rose"}]}]}
 ```
+`totalXp` = актуальный `profile.xp`. Модули, закрытые сегодня (см.
+`PATCH /tasks/...`), приходят записями в начале первого дня. Цвет точки
+по виду модуля: КАРТА → `blue`, ЧЕК-ЛИСТ → `green`, ТАЙМЕР → `blueLight`.
 
 ## TBD (добавлять по ходу Фазы 4)
 - Focus tools: сохранение сессий фокуса и трекеров привычек

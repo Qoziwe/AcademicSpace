@@ -37,13 +37,25 @@ export function getTask(taskId: string): Promise<ApiTask | null> {
   return delay(found ? toApi(found) : null);
 }
 
-export function toggleTaskItem(
-  taskId: string,
-  itemIndex: number,
-): Promise<{ task: ApiTask | null }> {
+export interface ToggleTaskItemResponse {
+  task: ApiTask | null;
+  /** Модуль закрыт этим тапом (все пункты отмечены) — ушёл из активных. */
+  completed: boolean;
+  /** Сколько XP начислено (0, если модуль ещё в работе). */
+  xpAwarded: number;
+}
+
+export function toggleTaskItem(taskId: string, itemIndex: number): Promise<ToggleTaskItemResponse> {
+  const before = useMockStore.getState().tasks.find((t) => t.id === taskId);
   useMockStore.getState().toggleTaskItem(taskId, itemIndex);
-  const updated = useMockStore.getState().tasks.find((t) => t.id === taskId);
-  return delay({ task: updated ? toApi(updated) : null });
+  const after = useMockStore.getState().tasks.find((t) => t.id === taskId);
+
+  const completed = Boolean(before) && !after;
+  return delay({
+    task: after ? toApi(after) : null,
+    completed,
+    xpAwarded: completed ? (before?.xp ?? 0) : 0,
+  });
 }
 
 /** Создание модуля из чата (`createModule` прототипа) — добавляет задачу и помечает карточку. */

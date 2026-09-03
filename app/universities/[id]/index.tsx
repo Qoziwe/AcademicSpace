@@ -108,8 +108,7 @@ function UniversityDetailsScreen() {
                 Документы для поступления
               </Text>
               <Text style={[bodyFont('500'), styles.docText, { color: palette.sub }]}>
-                {data.requiredDocuments?.length} документов: аттестат с апостилем, IELTS,
-                мотивационное письмо, рекомендации и др. Копилка уже создана.
+                {data.documentsNote}
               </Text>
               <Button
                 label="Открыть копилку"
@@ -130,10 +129,7 @@ function UniversityDetailsScreen() {
                 <Text style={[bodyFont('800'), styles.lockTitle]}>Документы для поступления</Text>
                 <Badge label="PREMIUM" tone="gold" size="sm" />
               </View>
-              <Text style={[bodyFont('500'), styles.lockText]}>
-                Список документов и копилка для их хранения доступны только в Premium. На базовом
-                уровне вы видите сам список вузов.
-              </Text>
+              <Text style={[bodyFont('500'), styles.lockText]}>{data.documentsNote}</Text>
               <Button
                 label="Разблокировать в Premium"
                 tone="gold"

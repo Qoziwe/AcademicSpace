@@ -2,8 +2,8 @@ import { router } from 'expo-router';
 
 import { SystemScreenLayout } from '@/components/organisms';
 import { SYSTEM_COPY } from '@/mocks/fixtures';
+import { useMockStore } from '@/mocks/store';
 import { withGuard } from '@/navigation/withGuard';
-import { useUiStore } from '@/stores/ui';
 
 /**
  * OFFLINE (`/system/offline`). «Продолжить офлайн» включает глобальный
@@ -11,7 +11,7 @@ import { useUiStore } from '@/stores/ui';
  */
 function OfflineScreen() {
   const c = SYSTEM_COPY.offline;
-  const setOffline = useUiStore((s) => s.setOffline);
+  const setOffline = useMockStore((s) => s.setOffline);
 
   return (
     <SystemScreenLayout

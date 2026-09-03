@@ -7,13 +7,13 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { qk } from '@/hooks/api/keys';
-import { getUniversity } from '@/mocks/handlers/universities';
+import { universitiesApi } from '@/services/api/universities';
 import { useSessionStore } from '@/stores/session';
 
 export function useUniversity(id: string) {
   const plan = useSessionStore((s) => s.plan);
   return useQuery({
     queryKey: [...qk.university(id), plan],
-    queryFn: () => getUniversity(id, plan === 'premium'),
+    queryFn: () => universitiesApi.getUniversity(id, plan === 'premium'),
   });
 }

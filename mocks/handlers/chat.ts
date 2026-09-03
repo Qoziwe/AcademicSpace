@@ -10,7 +10,7 @@
  */
 
 import { delay } from '@/mocks/delay';
-import { CHAT_QUICK_PROMPTS } from '@/mocks/fixtures';
+import { CHAT_ASSISTANT_REPLY, CHAT_QUICK_PROMPTS } from '@/mocks/fixtures';
 import { useMockStore } from '@/mocks/store';
 
 export interface ChatMeta {
@@ -32,6 +32,6 @@ export async function sendMessage(text: string): Promise<void> {
   store.appendMessage({
     id: `ai-${Date.now()}`,
     fromMe: false,
-    text: 'Записал. Разберу это по шагам и предложу оформить модулем, если станет объёмно.',
+    text: CHAT_ASSISTANT_REPLY,
   });
 }

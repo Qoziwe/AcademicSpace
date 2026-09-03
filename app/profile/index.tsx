@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SettingsRow } from '@/components/molecules';
 import { ProfileHeaderWidget } from '@/components/organisms';
 import { useProfile } from '@/hooks/api/useProfile';
+import { useVaults } from '@/hooks/api/useVaults';
 import { usePremiumGate } from '@/hooks/usePremiumGate';
 import { useTheme } from '@/hooks/useTheme';
 import { PROFILE_STATS } from '@/mocks/fixtures';
@@ -20,9 +21,11 @@ function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { palette } = useTheme();
   const profileQ = useProfile();
+  const vaultsQ = useVaults();
   const { isPremium, resolveHref } = usePremiumGate();
 
   const profile = profileQ.data;
+  const vaults = vaultsQ.data ?? [];
 
   const rows = [
     {
@@ -39,7 +42,12 @@ function ProfileScreen() {
     },
     {
       title: 'Копилки документов',
-      sub: isPremium ? '2 копилки · Bologna, Padova' : 'откроется с подпиской',
+      sub:
+        isPremium && vaults.length > 0
+          ? `${vaults.length} копилки · ${vaults.map((v) => v.shortName).join(', ')}`
+          : isPremium
+            ? 'копилки по выбранным вузам'
+            : 'откроется с подпиской',
       lock: !isPremium,
       href: '/documents' as const,
     },
@@ -57,7 +65,7 @@ function ProfileScreen() {
     },
     {
       title: 'Подписка',
-      sub: isPremium ? 'Premium · продлится 12 мая' : 'Базовый доступ · 500 тг / неделя',
+      sub: profile?.subscriptionRowSub ?? '',
       lock: false,
       href: '/profile/subscription' as const,
     },

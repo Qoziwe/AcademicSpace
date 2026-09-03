@@ -1,57 +1,37 @@
 /**
  * Единый мок-стор состояния сессии — эквивалент `state` из `renderVals()`
  * дизайн-референса (анкета / фильтры / задачи / сообщения / тарифы /
- * оплата / копилки). Персистентный через AsyncStorage, чтобы демо
- * переживало перезапуск приложения (роадмап, Фаза 4).
+ * оплата / копилки / XP / журнал / офлайн). Персистентный через
+ * AsyncStorage, чтобы демо переживало перезапуск приложения (роадмап,
+ * Фаза 4).
  *
  * Хендлеры `mocks/handlers/*` читают/пишут сюда и отдают данные в
  * API-форме (`docs/api-contract.md`). Экраны для «стейта в моменте»
- * (выбор в фильтрах, чек-боксы) дёргают сеттеры напрямую (`CLAUDE.md` §5).
- * Фаза 8 меняет адаптер в хендлерах на реальный fetch — форма не меняется.
+ * (выбор в фильтрах, чек-боксы, офлайн-баннер) дёргают сеттеры напрямую
+ * (`CLAUDE.md` §5). Фаза 8 меняет адаптер в `services/api/*` на реальный
+ * fetch — форма не меняется.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { CHAT_MODULE_TASK, TASKS_SEED, type SingleFilterKey, type TaskSeed } from './fixtures';
+import {
+  CHAT_MESSAGES_SEED,
+  CHAT_MODULE_TASK,
+  PROFILE,
+  TASK_KIND_LOG,
+  TASKS_SEED,
+  type ChatMsgSeed,
+  type LogEntry,
+  type SingleFilterKey,
+  type TaskSeed,
+} from './fixtures';
+
+export type { ChatModuleSeed, ChatMsgSeed } from './fixtures';
 
 export type PlanChoice = 'week' | 'month';
 export type PayState = 'idle' | 'processing' | 'success';
-
-export interface ChatModuleSeed {
-  title: string;
-  sub: string;
-  desc: string;
-  created: boolean;
-}
-
-export interface ChatMsgSeed {
-  id: string;
-  fromMe: boolean;
-  text: string;
-  module?: ChatModuleSeed;
-}
-
-const MESSAGES_SEED: ChatMsgSeed[] = [
-  {
-    id: 'm1',
-    fromMe: false,
-    text: 'Ваша стратегия готова. Основной разрыв — язык: IELTS 6.5 открывает 9 из 14 подобранных программ. Предлагаю зафиксировать это как дорожную карту на 8 недель.',
-  },
-  { id: 'm2', fromMe: true, text: 'Давай, и ещё про мотивационное письмо' },
-  {
-    id: 'm3',
-    fromMe: false,
-    text: 'Хорошо. Оформлю подготовку к IELTS дорожной картой, а письмо — чек-листом, чтобы они были на главном экране, а не в переписке.',
-    module: {
-      title: 'Дорожная карта: IELTS 6.5',
-      sub: '8 недель · 6 этапов',
-      desc: 'Модуль появится в блоке «Активные задачи» на главной. Отмечать пункты можно не заходя в чат.',
-      created: false,
-    },
-  },
-];
 
 interface MockState {
   hydrated: boolean;
@@ -70,6 +50,10 @@ interface MockState {
   // задачи / модули
   tasks: TaskSeed[];
 
+  // геймификация: опыт растёт при закрытии модулей, записи копятся в журнал
+  xp: number;
+  journalEntries: LogEntry[];
+
   // чат
   messages: ChatMsgSeed[];
   chatTyping: boolean;
@@ -84,6 +68,9 @@ interface MockState {
 
   // копилка документов
   vaultCells: boolean[];
+
+  // глобальный офлайн-баннер (эфемерный — не персистится)
+  offline: boolean;
 
   // ── сеттеры ────────────────────────────────────────────────
   toggleInterest: (label: string) => void;
@@ -106,6 +93,8 @@ interface MockState {
 
   toggleVaultCell: (index: number) => void;
 
+  setOffline: (offline: boolean) => void;
+
   resetMock: () => void;
 }
 
@@ -120,14 +109,34 @@ const INITIAL = {
   },
   questionnaireFilled: false,
   tasks: TASKS_SEED,
-  messages: MESSAGES_SEED,
+  xp: PROFILE.xp,
+  journalEntries: [] as LogEntry[],
+  messages: CHAT_MESSAGES_SEED,
   chatTyping: false,
   uploadSlots: [true, true, false, false],
   analysisDone: false,
   planChoice: 'month' as PlanChoice,
   payState: 'idle' as PayState,
   vaultCells: [true, true, true, false, false, false, false],
+  offline: false,
 };
+
+/** Поля, которые переживают перезапуск. `offline` намеренно не здесь. */
+type MockPersisted = Pick<
+  MockState,
+  | 'interests'
+  | 'filters'
+  | 'questionnaireFilled'
+  | 'tasks'
+  | 'xp'
+  | 'journalEntries'
+  | 'messages'
+  | 'uploadSlots'
+  | 'analysisDone'
+  | 'planChoice'
+  | 'payState'
+  | 'vaultCells'
+>;
 
 // Глубокая копия сидов, чтобы сеттеры не мутировали фикстуры-константы.
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
@@ -159,17 +168,41 @@ export const useMockStore = create<MockState>()(
 
       setQuestionnaireFilled: (filled) => set({ questionnaireFilled: filled }),
 
+      /**
+       * Переключает пункт чек-листа. Если после этого все пункты модуля
+       * закрыты — модуль завершается: уходит из активных, его XP
+       * начисляется в `xp`, а в журнал (`journalEntries`) добавляется
+       * запись. Прогресс персистится, так что переживает перезапуск.
+       */
       toggleTaskItem: (taskId, itemIndex) =>
-        set((s) => ({
-          tasks: s.tasks.map((t) =>
-            t.id !== taskId
-              ? t
-              : {
-                  ...t,
-                  items: t.items.map((it, i) => (i !== itemIndex ? it : { ...it, done: !it.done })),
-                },
-          ),
-        })),
+        set((s) => {
+          const task = s.tasks.find((t) => t.id === taskId);
+          if (!task) return s;
+
+          const items = task.items.map((it, i) =>
+            i === itemIndex ? { ...it, done: !it.done } : it,
+          );
+          const complete = items.length > 0 && items.every((it) => it.done);
+
+          if (!complete) {
+            return {
+              tasks: s.tasks.map((t) => (t.id === taskId ? { ...t, items } : t)),
+            };
+          }
+
+          const map = TASK_KIND_LOG[task.kind];
+          const entry: LogEntry = {
+            title: task.title,
+            kind: map.kind,
+            xp: task.xp,
+            dot: map.dot,
+          };
+          return {
+            tasks: s.tasks.filter((t) => t.id !== taskId),
+            xp: s.xp + task.xp,
+            journalEntries: [entry, ...s.journalEntries],
+          };
+        }),
 
       addChatModuleTask: () =>
         set((s) =>
@@ -197,17 +230,28 @@ export const useMockStore = create<MockState>()(
       toggleVaultCell: (index) =>
         set((s) => ({ vaultCells: s.vaultCells.map((v, i) => (i === index ? !v : v)) })),
 
+      setOffline: (offline) => set({ offline }),
+
       resetMock: () => set(clone(INITIAL)),
     }),
     {
       name: 'academicspace.mock',
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({
+      migrate: (persisted, from) => {
+        // v1 → v2: добавились xp / journalEntries. Остальной прогресс демо
+        // (задачи, фильтры, чат) сохраняем как есть.
+        if (from >= 2) return persisted as MockPersisted;
+        const p = (persisted ?? {}) as Partial<MockPersisted>;
+        return { ...p, xp: p.xp ?? INITIAL.xp, journalEntries: p.journalEntries ?? [] };
+      },
+      partialize: (s): MockPersisted => ({
         interests: s.interests,
         filters: s.filters,
         questionnaireFilled: s.questionnaireFilled,
         tasks: s.tasks,
+        xp: s.xp,
+        journalEntries: s.journalEntries,
         messages: s.messages,
         uploadSlots: s.uploadSlots,
         analysisDone: s.analysisDone,

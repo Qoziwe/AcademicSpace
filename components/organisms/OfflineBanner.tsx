@@ -11,7 +11,7 @@ import { usePathname } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useUiStore } from '@/stores/ui';
+import { useMockStore } from '@/mocks/store';
 import { accent, bodyFont, radius } from '@/theme';
 
 const SYSTEM_PREFIX = '/system';
@@ -19,8 +19,8 @@ const SYSTEM_PREFIX = '/system';
 export function OfflineBanner() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  const offline = useUiStore((s) => s.offline);
-  const setOffline = useUiStore((s) => s.setOffline);
+  const offline = useMockStore((s) => s.offline);
+  const setOffline = useMockStore((s) => s.setOffline);
 
   if (!offline || pathname.startsWith(SYSTEM_PREFIX)) return null;
 

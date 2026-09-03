@@ -9,19 +9,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { qk } from '@/hooks/api/keys';
-import type { PlanSeed } from '@/mocks/fixtures';
-import { getPlans, subscribe } from '@/mocks/handlers/subscription';
+import { subscriptionApi, type PlanSeed } from '@/services/api/subscription';
 import { useSessionStore } from '@/stores/session';
 
 export function usePlans() {
-  return useQuery({ queryKey: qk.plans(), queryFn: getPlans });
+  return useQuery({ queryKey: qk.plans(), queryFn: subscriptionApi.getPlans });
 }
 
 export function useSubscribe() {
   const qc = useQueryClient();
   const setPlan = useSessionStore((s) => s.setPlan);
   return useMutation({
-    mutationFn: (planId: PlanSeed['id']) => subscribe(planId),
+    mutationFn: (planId: PlanSeed['id']) => subscriptionApi.subscribe(planId),
     onSuccess: () => {
       setPlan('premium');
       void qc.invalidateQueries();

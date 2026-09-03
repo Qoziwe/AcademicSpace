@@ -12,9 +12,9 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useMockStore } from '@/mocks/store';
 import { ROUTES } from '@/navigation/registry';
 import { useSessionStore } from '@/stores/session';
-import { useUiStore } from '@/stores/ui';
 import { accent } from '@/theme';
 
 export function DevMenu() {
@@ -22,7 +22,9 @@ export function DevMenu() {
   const [open, setOpen] = useState(false);
 
   const { isAuthed, plan, signIn, signOut, setPlan, reset } = useSessionStore();
-  const { offline, setOffline } = useUiStore();
+  const offline = useMockStore((s) => s.offline);
+  const setOffline = useMockStore((s) => s.setOffline);
+  const resetMock = useMockStore((s) => s.resetMock);
 
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: insets.bottom + 96 }]}>
@@ -43,6 +45,7 @@ export function DevMenu() {
               action={plan === 'premium' ? '→ free' : '→ premium'}
             />
             <Row label="полный сброс" onPress={reset} action="reset" />
+            <Row label="сброс мок-прогресса" onPress={resetMock} action="reset" />
 
             <Text style={styles.group}>UI</Text>
             <Row

@@ -6,11 +6,11 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { qk } from '@/hooks/api/keys';
-import { searchUniversities } from '@/mocks/handlers/universities';
+import { universitiesApi } from '@/services/api/universities';
 
 export function useUniversitySearch() {
   return useQuery({
     queryKey: qk.universitySearch(),
-    queryFn: searchUniversities,
+    queryFn: universitiesApi.searchUniversities,
   });
 }
