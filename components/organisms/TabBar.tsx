@@ -7,9 +7,13 @@
  *
  * Фиксированный тёмный фон (`rgba(15,18,48,.95)`) — как в прототипе; blur
  * (`expo-blur`) — косметика Фазы 5, на функциональность не влияет.
+ *
+ * Навигация через `router.navigate`, а не `<Link asChild>`: на вебе
+ * expo-router прокидывает массив стилей дочернего `<Pressable>` в
+ * DOM-`<a>` как есть, и react-dom падает на индексном свойстве стиля.
  */
 
-import { Link, usePathname } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -39,21 +43,21 @@ export function TabBar({ activePath }: { activePath: string }) {
         {entries.map((entry) => {
           const active = entry.routePath === activePath;
           return (
-            <Link key={entry.routePath} href={entry.href} asChild>
-              <Pressable
-                accessibilityRole="tab"
-                accessibilityState={{ selected: active }}
-                style={[styles.tab, active && styles.tabActive]}
+            <Pressable
+              key={entry.routePath}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              onPress={() => router.navigate(entry.href)}
+              style={[styles.tab, active && styles.tabActive]}
+            >
+              <View style={[styles.dot, active && styles.dotActive]} />
+              <Text
+                numberOfLines={1}
+                style={[bodyFont('700'), styles.label, active && styles.labelActive]}
               >
-                <View style={[styles.dot, active && styles.dotActive]} />
-                <Text
-                  numberOfLines={1}
-                  style={[bodyFont('700'), styles.label, active && styles.labelActive]}
-                >
-                  {entry.label}
-                </Text>
-              </Pressable>
-            </Link>
+                {entry.label}
+              </Text>
+            </Pressable>
           );
         })}
       </View>

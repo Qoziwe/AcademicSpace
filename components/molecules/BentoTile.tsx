@@ -5,12 +5,15 @@
  * `opacity .55`, иконкой-замком и переходом на PAYWALL вместо цели —
  * через `usePremiumGate().resolveHref`.
  *
- * По умолчанию навигирует через `<Link>`; `onPress` (для Playground/тестов)
- * переопределяет на `<Pressable>` с тем же lock-поведением.
+ * По умолчанию навигирует через `router.push`; `onPress` (для Playground/
+ * тестов) переопределяет с тем же lock-поведением.
+ *
+ * NB: не `<Link asChild>` — на вебе expo-router прокидывает массив стилей
+ * дочернего `<Pressable>` в DOM-`<a>` как есть, и react-dom падает
+ * («Failed to set an indexed property [0] on CSSStyleDeclaration»).
  */
 
-import type { Href } from 'expo-router';
-import { Link } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { IconTile } from '@/components/atoms';
@@ -68,24 +71,15 @@ export function BentoTile({
     </View>
   );
 
-  if (onPress) {
-    return (
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => onPress(locked)}
-        style={[styles.press, style]}
-      >
-        {body}
-      </Pressable>
-    );
-  }
+  const go = () => {
+    if (onPress) onPress(locked);
+    else router.push(resolveHref(href, { locked }));
+  };
 
   return (
-    <Link href={resolveHref(href, { locked })} asChild>
-      <Pressable accessibilityRole="button" style={[styles.press, style]}>
-        {body}
-      </Pressable>
-    </Link>
+    <Pressable accessibilityRole="button" onPress={go} style={[styles.press, style]}>
+      {body}
+    </Pressable>
   );
 }
 
