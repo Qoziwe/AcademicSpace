@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EDEDF1;font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#2E6BFF;text-decoration:none}a:hover{color:#1B4ED1}
+::-webkit-scrollbar{width:0;height:0}
+@keyframes up{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(.9)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+</style>
+</helmet>
+
+<div style="display:flex;gap:36px;padding:40px;align-items:flex-start;min-height:100vh">
+
+  <div style="width:250px;flex:none;position:sticky;top:40px;display:flex;flex-direction:column;gap:18px">
+    <div>
+      <div style="font-family:Unbounded,sans-serif;font-weight:600;font-size:19px;color:#1B1F4B;letter-spacing:-.02em">UniPath</div>
+      <div style="font-size:11.5px;color:#7A7F9E;margin-top:4px;line-height:1.5">Навигатор по поступлению · интерактивный прототип</div>
+    </div>
+
+    <div style="background:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 3px rgba(20,24,60,.07)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#1B1F4B">Premium</div>
+          <div style="font-size:10.5px;color:#8A8FAE">роль пользователя</div>
+        </div>
+        <div onClick="{{ togglePremium }}" style="{{ premiumSwitch }}"><div style="{{ premiumKnob }}"></div></div>
+      </div>
+      <div style="height:1px;background:#EEEFF5"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#1B1F4B">Анкета заполнена</div>
+          <div style="font-size:10.5px;color:#8A8FAE">состояние дашборда</div>
+        </div>
+        <div onClick="{{ toggleFilled }}" style="{{ filledSwitch }}"><div style="{{ filledKnob }}"></div></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{ index }}" as="row" hint-placeholder-count="10">
+        <div onClick="{{ row.go }}" style="{{ row.style }}">
+          <span style="font-size:12.5px;font-weight:600">{{ row.title }}</span>
+          <span style="font-family:ui-monospace,Menlo,monospace;font-size:9px;opacity:.55">{{ row.id }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="flex:none;display:flex;flex-direction:column;gap:14px;align-items:center">
+    <div style="width:414px;height:868px;background:#0B0D22;border-radius:52px;padding:12px;box-shadow:0 34px 70px -20px rgba(16,20,55,.45),0 0 0 1px rgba(255,255,255,.06) inset">
+      <div style="width:390px;height:844px;border-radius:41px;overflow:hidden;position:relative;background:#2C317A">
+
+        <div style="{{ statusStyle }}">
+          <span style="font-weight:700;font-size:13px;letter-spacing:.02em">9:41</span>
+          <div style="display:flex;align-items:center;gap:5px">
+            <div style="width:16px;height:9px;border-radius:2px;border:1.4px solid currentColor;opacity:.85"></div>
+            <div style="width:22px;height:10px;border-radius:3px;border:1.4px solid currentColor;padding:1.4px"><div style="height:100%;width:72%;background:currentColor;border-radius:1px"></div></div>
+          </div>
+        </div>
+
+        <!-- ═══ SPLASH ═══ -->
+        <sc-if value="{{ isSplash }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ goWelcome }}" style="position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 8%,#3C43A8 0%,#2C317A 45%,#1D2159 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;cursor:pointer">
+            <div style="position:relative;width:190px;height:190px;display:flex;align-items:center;justify-content:center">
+              <div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.14)"></div>
+              <div style="position:absolute;inset:26px;border-radius:50%;border:1px solid rgba(255,255,255,.12)"></div>
+              <div style="position:absolute;inset:52px;border-radius:50%;border:1px solid rgba(255,255,255,.1)"></div>
+              <div style="position:absolute;inset:0;border-radius:50%;border-top:2px solid #7C93FF;animation:spin 5s linear infinite"></div>
+              <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(150deg,#8FA6FF,#2E6BFF);transform:rotate(45deg);box-shadow:0 12px 30px rgba(46,107,255,.5)"></div>
+            </div>
+            <div style="text-align:center;padding:0 44px">
+              <div style="font-family:Unbounded,sans-serif;font-weight:600;font-size:27px;color:#fff;letter-spacing:-.03em">UniPath</div>
+              <div style="margin-top:12px;font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.62);text-wrap:pretty">Твой путь к идеальному вузу начинается здесь</div>
+            </div>
+            <div style="position:absolute;bottom:52px;font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.08em;text-transform:uppercase">тап, чтобы продолжить</div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ WELCOME ═══ -->
+        <sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;background:#2C317A;display:flex;flex-direction:column;padding:104px 26px 40px">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:26px">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="width:40px;height:40px;border-radius:13px;background:linear-gradient(150deg,#8FA6FF,#2E6BFF);transform:rotate(45deg);margin-bottom:18px"></div>
+                <div style="font-family:Unbounded,sans-serif;font-weight:600;font-size:29px;line-height:1.2;color:#fff;letter-spacing:-.03em;text-wrap:balance">Спроектируй своё будущее уже сегодня</div>
+                <div style="font-size:14px;line-height:1.6;color:rgba(255,255,255,.6);text-wrap:pretty">Алгоритм оценит твои академические данные, а ИИ соберёт персональную стратегию поступления: Safety, Match и Reach вузы, дорожные карты и копилка документов.</div>
+              </div>
+              <div style="flex:none;display:flex;flex-direction:column;gap:9px">
+                <sc-for list="{{ welcomeBullets }}" as="b" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:13px 15px">
+                    <div style="width:7px;height:7px;border-radius:50%;background:#7C93FF;flex:none"></div>
+                    <span style="font-size:12.5px;color:rgba(255,255,255,.82);font-weight:500">{{ b }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div onClick="{{ goSignUp }}" style="height:56px;border-radius:18px;background:#fff;color:#1B1F4B;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 14px 30px -12px rgba(0,0,0,.5)">Начать путь</div>
+              <div onClick="{{ goSignIn }}" style="height:52px;border-radius:18px;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;cursor:pointer">У меня уже есть аккаунт</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ AUTH ═══ -->
+        <sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:56px 24px 0;display:flex;flex-direction:column;gap:22px">
+              <div onClick="{{ goWelcome }}" style="width:40px;height:40px;border-radius:13px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 3px rgba(20,24,60,.08)">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div>
+                <div style="font-family:Unbounded,sans-serif;font-weight:600;font-size:24px;color:#1B1F4B;letter-spacing:-.03em">{{ authTitle }}</div>
+                <div style="font-size:13px;color:#7A7F9E;margin-top:7px">{{ authSub }}</div>
+              </div>
+              <div style="display:flex;background:#E7E9F2;border-radius:14px;padding:4px">
+                <div onClick="{{ setSignUp }}" style="{{ tabSignUp }}">Регистрация</div>
+                <div onClick="{{ setSignIn }}" style="{{ tabSignIn }}">Вход</div>
+              </div>
+            </div>
+            <div style="flex:1;padding:22px 24px 32px;display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ authFields }}" as="f" hint-placeholder-count="3">
+                <div style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:16px;padding:13px 16px">
+                  <div style="font-size:10.5px;font-weight:700;color:#9297B5;letter-spacing:.04em;text-transform:uppercase">{{ f.label }}</div>
+                  <div style="font-size:14px;color:#1B1F4B;margin-top:5px;font-weight:500">{{ f.value }}</div>
+                </div>
+              </sc-for>
+              <div style="flex:1"></div>
+              <div onClick="{{ goLoading }}" style="height:56px;border-radius:18px;background:#2C317A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 16px 30px -14px rgba(44,49,122,.7)">{{ authCta }}</div>
+              <div style="font-size:10.5px;color:#9297B5;text-align:center;line-height:1.5">Продолжая, вы принимаете <a href="#">условия</a> и <a href="#">политику конфиденциальности</a></div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ AUTH LOADING ═══ -->
+        <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;background:#2C317A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:0 50px">
+            <div style="position:relative;width:96px;height:96px">
+              <div style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.12)"></div>
+              <div style="position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#7C93FF;animation:spin 1.1s linear infinite"></div>
+              <div style="position:absolute;inset:34px;border-radius:9px;background:#7C93FF;transform:rotate(45deg);animation:pulse 1.6s ease-in-out infinite"></div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:16px;font-weight:700;color:#fff">Всё готово</div>
+              <div style="font-size:13.5px;line-height:1.6;color:rgba(255,255,255,.6);margin-top:8px;text-wrap:pretty">Ваш личный навигатор по поступлению активирован</div>
+            </div>
+            <div style="width:150px;height:3px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden"><div style="{{ loadBar }}"></div></div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ DASHBOARD ═══ -->
+        <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;inset:0;background:#2C317A;display:flex;flex-direction:column">
+
+            <div style="padding:54px 20px 0;display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:24px;height:24px;border-radius:8px;background:linear-gradient(150deg,#8FA6FF,#2E6BFF);transform:rotate(45deg)"></div>
+                <span style="font-family:Unbounded,sans-serif;font-weight:600;font-size:15px;color:#fff;letter-spacing:-.02em">UniPath</span>
+              </div>
+              <div onClick="{{ goSettings }}" style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer">
+                <div style="width:15px;height:1.8px;background:#fff;border-radius:2px"></div>
+                <div style="width:15px;height:1.8px;background:#fff;border-radius:2px"></div>
+                <div style="width:9px;height:1.8px;background:rgba(255,255,255,.6);border-radius:2px"></div>
+              </div>
+            </div>
+
+            <div style="padding:18px 20px 0;display:flex;align-items:center;gap:14px">
+              <div onClick="{{ goProfile }}" style="position:relative;width:82px;height:82px;flex:none;cursor:pointer">
+                <div style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,#7C93FF 0% 62%,rgba(255,255,255,.16) 62% 100%)"></div>
+                <div style="position:absolute;inset:4px;border-radius:50%;background:#2C317A"></div>
+                <div style="position:absolute;inset:7px;border-radius:50%;background:linear-gradient(160deg,#D7DEF6,#AAB6E4);overflow:hidden">
+                  <div style="position:absolute;left:50%;top:20%;transform:translateX(-50%);width:34%;height:34%;border-radius:50%;background:#8A93C9"></div>
+                  <div style="position:absolute;left:50%;top:60%;transform:translateX(-50%);width:64%;height:52%;border-radius:50% 50% 0 0;background:#8A93C9"></div>
+                </div>
+                <div style="position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);background:#7C93FF;color:#12153A;font-size:9.5px;font-weight:800;padding:2.5px 8px;border-radius:8px;white-space:nowrap;border:2px solid #2C317A">LVL 4</div>
+              </div>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+                <div style="background:rgba(255,255,255,.1);border-radius:14px;padding:10px 14px">
+                  <div style="font-size:15.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Батыркызы Тінатін</div>
+                  <div style="font-size:11px;color:{{ planColor }};font-weight:600;margin-top:2px">{{ planLabel }}</div>
+                </div>
+                <div style="background:rgba(255,255,255,.1);border-radius:14px;padding:9px 14px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between">
+                    <span style="font-size:10.5px;color:rgba(255,255,255,.55);font-weight:600">Опыт до 5 уровня</span>
+                    <span style="font-family:Unbounded,sans-serif;font-size:11px;color:#fff">620/1000</span>
+                  </div>
+                  <div style="height:5px;border-radius:3px;background:rgba(255,255,255,.16);margin-top:7px;overflow:hidden"><div style="width:62%;height:100%;border-radius:3px;background:linear-gradient(90deg,#7C93FF,#B6C4FF)"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding:16px 20px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+              <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="8">
+                <div onClick="{{ t.go }}" style="{{ t.style }}">
+                  <div style="{{ t.iconWrap }}"><span style="{{ t.glyph }}">{{ t.icon }}</span></div>
+                  <div style="{{ t.labelStyle }}">{{ t.label }}</div>
+                  <sc-if value="{{ t.lock }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:6px;right:6px;width:14px;height:14px;border-radius:5px;background:#2C317A;display:flex;align-items:center;justify-content:center">
+                      <div style="width:5px;height:5px;border-radius:1px;background:#F3C24B"></div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="{{ sheetWrapStyle }}">
+              <div style="display:flex;justify-content:center;padding-bottom:6px"><div style="width:56px;height:5px;border-radius:3px;background:#D3D7E6"></div></div>
+              <div style="flex:1;overflow-y:auto;min-height:0;padding:8px 18px 96px;display:flex;flex-direction:column;gap:12px">
+
+                <sc-if value="{{ showNewbie }}" hint-placeholder-val="{{ true }}">
+                  <div style="flex:none;background:linear-gradient(150deg,#3A41A0,#2C317A);border-radius:24px;padding:20px;position:relative;overflow:hidden">
+                    <div style="position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(124,147,255,.22)"></div>
+                    <div style="position:relative">
+                      <div style="font-size:18px;font-weight:800;color:#fff;line-height:1.25;letter-spacing:-.02em;text-wrap:balance">Заполните профиль и откройте свои перспективы</div>
+                      <div style="font-size:12.5px;line-height:1.55;color:rgba(255,255,255,.62);margin-top:9px;text-wrap:pretty">Анкета — 12 полей об оценках, экзаменах и интересах. На их основе алгоритм скоринга посчитает ваш рейтинг и подберёт вузы.</div>
+                      <div onClick="{{ goQuest }}" style="margin-top:16px;height:48px;border-radius:15px;background:#fff;color:#1B1F4B;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:700;cursor:pointer">Заполнить анкету
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h9M8 4l4.5 4L8 12" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      </div>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ showFilledForm }}" hint-placeholder-val="{{ false }}">
+                  <div style="{{ filledCardStyle }}">
+                    <div onClick="{{ goQuest }}" style="height:52px;border-radius:16px;background:#2C317A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:700;cursor:pointer">Редактировать профиль</div>
+                    <div style="font-size:12px;line-height:1.55;color:#7A7F9E;margin-top:12px;text-wrap:pretty">Ваши цели меняются? Убедитесь, что данные актуальны, чтобы подборка была максимально точной.</div>
+                    <div style="display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid #F0F1F7">
+                      <div><div style="{{ statNumStyle }}">78</div><div style="font-size:10.5px;color:#9297B5;margin-top:2px">рейтинг</div></div>
+                      <div><div style="{{ statNumStyle }}">12/12</div><div style="font-size:10.5px;color:#9297B5;margin-top:2px">полей</div></div>
+                      <div><div style="{{ statNumStyle }}">Италия</div><div style="font-size:10.5px;color:#9297B5;margin-top:2px">страна подбора</div></div>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ showTasks }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex:none;display:flex;flex-direction:column;gap:9px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px">
+                      <div style="display:flex;align-items:center;gap:7px">
+                        <div style="width:6px;height:6px;border-radius:50%;background:#1FB574"></div>
+                        <span style="{{ taskHeaderTextStyle }}">Активные задачи</span>
+                      </div>
+                      <span onClick="{{ goTasks }}" style="font-size:11.5px;font-weight:600;color:#2E6BFF;cursor:pointer">{{ tasksCount }}</span>
+                    </div>
+                    <sc-for list="{{ activeTasks }}" as="t" hint-placeholder-count="2">
+                      <div style="{{ taskCardWrapStyle }}">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                          <div style="display:flex;align-items:center;gap:9px;min-width:0">
+                            <div style="{{ t.kindStyle }}">{{ t.kind }}</div>
+                            <span style="{{ taskTitleStyle }}">{{ t.title }}</span>
+                          </div>
+                          <span onClick="{{ t.open }}" style="font-size:11px;font-weight:600;color:#9297B5;cursor:pointer;flex:none">открыть</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:2px;margin-top:10px">
+                          <sc-for list="{{ t.items }}" as="it" hint-placeholder-count="2">
+                            <div onClick="{{ it.toggle }}" style="display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer">
+                              <div style="{{ it.box }}"><sc-if value="{{ it.done }}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.3l2.4 2.4L9.5 3.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if></div>
+                              <span style="{{ it.text }}">{{ it.label }}</span>
+                            </div>
+                          </sc-for>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:9px;margin-top:8px">
+                          <div style="flex:1;height:4px;border-radius:2px;background:#EDEFF6;overflow:hidden"><div style="{{ t.barStyle }}"></div></div>
+                          <span style="font-size:10.5px;font-weight:700;color:#7A7F9E">{{ t.progress }}</span>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+                <div style="{{ filledCardStyle }}">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <div>
+                      <div style="{{ analysisTitleStyle }}">Зона анализа</div>
+                      <div style="font-size:11.5px;color:#9297B5;margin-top:3px">{{ analysisSub }}</div>
+                    </div>
+                    <div onClick="{{ goResults }}" style="height:40px;padding:0 16px;border-radius:13px;background:#2E6BFF;color:#fff;display:flex;align-items:center;font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 10px 22px -10px rgba(46,107,255,.8)">{{ analysisCta }}</div>
+                  </div>
+                  <div style="display:flex;gap:8px;margin-top:15px">
+                    <sc-for list="{{ buckets }}" as="b" hint-placeholder-count="3">
+                      <div onClick="{{ goResults }}" style="{{ b.style }}">
+                        <div style="font-family:Unbounded,sans-serif;font-size:17px;color:{{ b.color }}">{{ b.n }}</div>
+                        <div style="font-size:10.5px;font-weight:600;color:#7A7F9E;margin-top:3px">{{ b.label }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <sc-if value="{{ showUpsell }}" hint-placeholder-val="{{ true }}">
+                  <div style="flex:none;background:linear-gradient(150deg,#151843,#2A2F73);border-radius:24px;padding:18px;position:relative;overflow:hidden">
+                    <div style="position:absolute;left:-20px;bottom:-40px;width:130px;height:130px;border-radius:50%;background:rgba(243,194,75,.14)"></div>
+                    <div style="position:relative">
+                      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(243,194,75,.16);border-radius:8px;padding:4px 9px">
+                        <div style="width:5px;height:5px;border-radius:1px;background:#F3C24B"></div>
+                        <span style="font-size:10px;font-weight:800;color:#F3C24B;letter-spacing:.06em">PREMIUM</span>
+                      </div>
+                      <div style="font-size:16px;font-weight:800;color:#fff;margin-top:11px;line-height:1.3;text-wrap:balance">Базовый подбор готов. Хотите большего?</div>
+                      <div style="font-size:12px;line-height:1.55;color:rgba(255,255,255,.6);margin-top:8px;text-wrap:pretty">Загрузите резюме и мотивационные письма — ИИ составит персональную стратегию поступления в топовые вузы.</div>
+                      <div onClick="{{ goPortfolio }}" style="margin-top:15px;height:46px;border-radius:15px;background:#F3C24B;color:#221A00;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:800;cursor:pointer">Создать ИИ-портфолио</div>
+                    </div>
+                  </div>
+                </sc-if>
+
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ QUESTIONNAIRE ═══ -->
+        <sc-if value="{{ isQuest }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:52px 20px 14px;background:#fff;border-bottom:1px solid #EDEFF6">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div onClick="{{ goDash }}" style="width:38px;height:38px;border-radius:12px;background:#F2F3F9;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div><div style="font-size:15.5px;font-weight:800;color:#1B1F4B">Базовая анкета</div><div style="font-size:11px;color:#9297B5">шаг 1 из 6 · академические данные</div></div>
+              </div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 18px 120px;display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ questGroups }}" as="g" hint-placeholder-count="3">
+                <div style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:22px;padding:16px">
+                  <div style="font-size:12.5px;font-weight:800;color:#1B1F4B">{{ g.title }}</div>
+                  <div style="display:flex;flex-direction:column;gap:9px;margin-top:12px">
+                    <sc-for list="{{ g.fields }}" as="f" hint-placeholder-count="3">
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:#F7F8FC;border-radius:13px;padding:11px 13px">
+                        <span style="font-size:12px;color:#6E739B;font-weight:500">{{ f.label }}</span>
+                        <span style="font-size:12.5px;color:#1B1F4B;font-weight:700">{{ f.value }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+              <div style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:22px;padding:16px">
+                <div style="font-size:12.5px;font-weight:800;color:#1B1F4B">Интересы</div>
+                <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:12px">
+                  <sc-for list="{{ interests }}" as="i" hint-placeholder-count="6">
+                    <div onClick="{{ i.toggle }}" style="{{ i.style }}">{{ i.label }}</div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 18px 26px;background:linear-gradient(180deg,rgba(246,247,251,0),#F6F7FB 40%)">
+              <div onClick="{{ goFilters }}" style="height:54px;border-radius:18px;background:#2C317A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:700;cursor:pointer;box-shadow:0 16px 30px -14px rgba(44,49,122,.7)">Далее: настроить фильтры</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ FILTERS ═══ -->
+        <sc-if value="{{ isFilters }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:52px 20px 16px;background:#fff;border-bottom:1px solid #EDEFF6">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div onClick="{{ filterBack }}" style="width:38px;height:38px;border-radius:12px;background:#F2F3F9;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div><div style="font-size:15.5px;font-weight:800;color:#1B1F4B">{{ filterTitle }}</div><div style="font-size:11px;color:#9297B5">{{ filterStepLabel }}</div></div>
+              </div>
+              <div style="display:flex;gap:5px;margin-top:14px">
+                <sc-for list="{{ filterDots }}" as="d" hint-placeholder-count="5"><div style="{{ d }}"></div></sc-for>
+              </div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:18px 18px 120px;display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:12px;line-height:1.55;color:#7A7F9E;padding:0 2px;text-wrap:pretty">{{ filterHint }}</div>
+              <sc-for list="{{ filterOptions }}" as="o" hint-placeholder-count="5">
+                <div onClick="{{ o.pick }}" style="{{ o.style }}">
+                  <div style="display:flex;align-items:center;gap:12px;min-width:0">
+                    <div style="{{ o.mark }}"><sc-if value="{{ o.on }}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.3l2.4 2.4L9.5 3.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if></div>
+                    <div style="min-width:0">
+                      <div style="font-size:13.5px;font-weight:700;color:#1B1F4B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ o.title }}</div>
+                      <div style="font-size:11px;color:#9297B5;margin-top:2px">{{ o.sub }}</div>
+                    </div>
+                  </div>
+                  <sc-if value="{{ o.badge }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;font-weight:700;color:#2E6BFF;background:#EAF1FF;border-radius:8px;padding:4px 8px;flex:none">{{ o.badge }}</div></sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 18px 26px;background:linear-gradient(180deg,rgba(246,247,251,0),#F6F7FB 40%)">
+              <div onClick="{{ filterNext }}" style="height:54px;border-radius:18px;background:#2C317A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:700;cursor:pointer;box-shadow:0 16px 30px -14px rgba(44,49,122,.7)">{{ filterCta }}</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ RESULTS ═══ -->
+        <sc-if value="{{ isResults }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:52px 20px 14px;background:#fff;border-bottom:1px solid #EDEFF6">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div onClick="{{ goDash }}" style="width:38px;height:38px;border-radius:12px;background:#F2F3F9;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <div><div style="font-size:15.5px;font-weight:800;color:#1B1F4B">Мои университеты</div><div style="font-size:11px;color:#9297B5">Италия · 14 совпадений · рейтинг 78</div></div>
+                </div>
+                <div onClick="{{ goFilters }}" style="font-size:11px;font-weight:700;color:#2E6BFF;cursor:pointer;flex:none">Сменить<br>страну</div>
+              </div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:14px 18px 110px;display:flex;flex-direction:column;gap:18px">
+              <sc-for list="{{ resultGroups }}" as="g" hint-placeholder-count="3">
+                <div style="flex:none;display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:0 2px">
+                    <div style="{{ g.dot }}"></div>
+                    <span style="font-size:13.5px;font-weight:800;color:#1B1F4B">{{ g.title }}</span>
+                    <span style="font-size:11px;color:#9297B5">{{ g.sub }}</span>
+                  </div>
+                  <sc-for list="{{ g.items }}" as="u" hint-placeholder-count="2">
+                    <div onClick="{{ u.open }}" style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:20px;padding:15px;cursor:pointer;box-shadow:0 1px 2px rgba(20,24,60,.04)">
+                      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                        <div style="min-width:0">
+                          <div style="font-size:14px;font-weight:800;color:#1B1F4B;line-height:1.25;text-wrap:pretty">{{ u.name }}</div>
+                          <div style="font-size:11.5px;color:#9297B5;margin-top:4px">{{ u.city }}</div>
+                        </div>
+                        <div style="text-align:right;flex:none">
+                          <div style="font-family:Unbounded,sans-serif;font-size:15px;color:{{ g.color }}">{{ u.chance }}</div>
+                          <div style="font-size:9.5px;color:#9297B5;margin-top:2px">вероятность</div>
+                        </div>
+                      </div>
+                      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">
+                        <sc-for list="{{ u.tags }}" as="tag" hint-placeholder-count="3">
+                          <div style="font-size:10.5px;font-weight:600;color:#6E739B;background:#F4F5FA;border-radius:8px;padding:5px 9px">{{ tag }}</div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ UNIVERSITY DETAILS ═══ -->
+        <sc-if value="{{ isUni }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="background:#2C317A;padding:52px 20px 26px">
+              <div onClick="{{ goResults }}" style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(46,107,255,.28);border-radius:8px;padding:4px 9px;margin-top:18px">
+                <div style="width:5px;height:5px;border-radius:50%;background:#8FA6FF"></div>
+                <span style="font-size:10px;font-weight:800;color:#C3D0FF;letter-spacing:.06em">MATCH</span>
+              </div>
+              <div style="font-family:Unbounded,sans-serif;font-weight:600;font-size:22px;line-height:1.25;color:#fff;letter-spacing:-.03em;margin-top:10px">Università di Bologna</div>
+              <div style="font-size:12.5px;color:rgba(255,255,255,.6);margin-top:7px">Болонья, Италия · основан в 1088</div>
+              <div style="display:flex;gap:8px;margin-top:18px">
+                <sc-for list="{{ uniStats }}" as="s" hint-placeholder-count="3">
+                  <div style="flex:1;background:rgba(255,255,255,.09);border-radius:14px;padding:11px 12px">
+                    <div style="font-family:Unbounded,sans-serif;font-size:14px;color:#fff">{{ s.v }}</div>
+                    <div style="font-size:10px;color:rgba(255,255,255,.55);margin-top:3px">{{ s.k }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 18px 110px;display:flex;flex-direction:column;gap:11px">
+              <div style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:12.5px;font-weight:800;color:#1B1F4B">Программа</div>
+                <sc-for list="{{ uniRows }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                    <span style="font-size:12px;color:#7A7F9E">{{ r.k }}</span>
+                    <span style="font-size:12.5px;font-weight:700;color:#1B1F4B;text-align:right">{{ r.v }}</span>
+                  </div>
+                </sc-for>
+                <a href="https://www.unibo.it" target="_blank" style="height:46px;border-radius:15px;background:#EAF1FF;color:#2E6BFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;margin-top:4px">Сайт приёмной комиссии ↗</a>
+              </div>
+              <div style="{{ docCardStyle }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                  <div style="font-size:13.5px;font-weight:800;color:{{ docTitleColor }}">Документы для поступления</div>
+                  <sc-if value="{{ notPremium }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-size:9.5px;font-weight:800;color:#F3C24B;background:rgba(243,194,75,.16);border-radius:7px;padding:4px 8px;flex:none">PREMIUM</div>
+                  </sc-if>
+                </div>
+                <div style="font-size:12px;line-height:1.55;color:{{ docSubColor }};margin-top:8px;text-wrap:pretty">{{ docText }}</div>
+                <div onClick="{{ openDocs }}" style="{{ docBtnStyle }}">{{ docCta }}</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ PORTFOLIO UPLOAD ═══ -->
+        <sc-if value="{{ isPortfolio }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:52px 20px 14px;background:#fff;border-bottom:1px solid #EDEFF6;display:flex;align-items:center;gap:12px">
+              <div onClick="{{ goDash }}" style="width:38px;height:38px;border-radius:12px;background:#F2F3F9;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div><div style="font-size:15.5px;font-weight:800;color:#1B1F4B">ИИ-портфолио</div><div style="font-size:11px;color:#9297B5">свободные данные · чем больше, тем точнее</div></div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 18px 120px;display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ uploadSlots }}" as="s" hint-placeholder-count="4">
+                <div onClick="{{ s.toggle }}" style="{{ s.style }}">
+                  <div style="display:flex;align-items:center;gap:12px;min-width:0">
+                    <div style="{{ s.icon }}">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="1.5" width="10" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5.6 5.5h4.8M5.6 8h4.8M5.6 10.5h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </div>
+                    <div style="min-width:0">
+                      <div style="font-size:13.5px;font-weight:700;color:#1B1F4B">{{ s.title }}</div>
+                      <div style="font-size:11px;color:#9297B5;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.sub }}</div>
+                    </div>
+                  </div>
+                  <div style="{{ s.action }}">{{ s.actionLabel }}</div>
+                </div>
+              </sc-for>
+              <div style="background:#fff;flex:none;border:1px dashed #C9CEE4;border-radius:22px;padding:18px;text-align:center">
+                <div style="font-size:12.5px;font-weight:700;color:#1B1F4B">Достижения в свободной форме</div>
+                <div style="font-size:11.5px;line-height:1.5;color:#9297B5;margin-top:6px;text-wrap:pretty">Олимпиады, проекты, работа, волонтёрство — текстом или файлами</div>
+              </div>
+            </div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 18px 26px;background:linear-gradient(180deg,rgba(246,247,251,0),#F6F7FB 40%)">
+              <div onClick="{{ goAnalysis }}" style="height:56px;border-radius:18px;background:linear-gradient(120deg,#151843,#2E6BFF);color:#fff;display:flex;align-items:center;justify-content:center;gap:9px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 18px 34px -14px rgba(46,107,255,.75)">
+                <div style="width:8px;height:8px;border-radius:2px;background:#F3C24B;transform:rotate(45deg)"></div>Запустить ИИ-анализ</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ ANALYSIS LOADING ═══ -->
+        <sc-if value="{{ isAnalysis }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;background:#151843;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:0 44px">
+            <div style="position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center">
+              <div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.1)"></div>
+              <div style="position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#2E6BFF;animation:spin 1.4s linear infinite"></div>
+              <div style="position:absolute;inset:22px;border-radius:50%;border:2px solid transparent;border-bottom-color:#F3C24B;animation:spin 2.1s linear infinite reverse"></div>
+              <div style="width:16px;height:16px;border-radius:5px;background:#fff;transform:rotate(45deg)"></div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:15.5px;font-weight:700;color:#fff">ИИ анализирует ваш профиль</div>
+              <div style="font-size:13px;color:rgba(255,255,255,.55);margin-top:8px">и составляет рекомендации…</div>
+            </div>
+            <div style="width:100%;display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ analysisSteps }}" as="s" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:13px;padding:11px 14px">
+                  <div style="{{ s.dot }}"></div>
+                  <span style="font-size:12px;color:{{ s.color }};font-weight:500">{{ s.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ ANALYSIS PREVIEW ═══ -->
+        <sc-if value="{{ isPreview }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:52px 20px 14px;background:#fff;border-bottom:1px solid #EDEFF6;display:flex;align-items:center;gap:12px">
+              <div onClick="{{ goDash }}" style="width:38px;height:38px;border-radius:12px;background:#F2F3F9;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div><div style="font-size:15.5px;font-weight:800;color:#1B1F4B">Стратегия поступления</div><div style="font-size:11px;color:#9297B5">превью · сгенерировано ИИ</div></div>
+            </div>
+            <div style="flex:1;position:relative;overflow:hidden">
+              <div style="padding:16px 18px;display:flex;flex-direction:column;gap:11px">
+                <div style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:22px;padding:16px">
+                  <div style="font-size:12.5px;font-weight:800;color:#1B1F4B">Сильные стороны профиля</div>
+                  <div style="font-size:12.5px;line-height:1.65;color:#5C6188;margin-top:9px;text-wrap:pretty">Ваш профиль выигрышно смотрится в инженерных направлениях: стабильно высокие оценки по математике и физике, участие в двух региональных олимпиадах и собственный проект. Мотивационное письмо структурировано, но опирается на общие формулировки — там есть быстрый прирост.</div>
+                </div>
+                <div style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:22px;padding:16px">
+                  <div style="font-size:12.5px;font-weight:800;color:#1B1F4B">План на 6 месяцев</div>
+                  <div style="font-size:12.5px;line-height:1.65;color:#5C6188;margin-top:9px">Первые два месяца сфокусируйтесь на IELTS: целевой балл 6.5 открывает 9 из 14 подобранных программ. Параллельно перепишите мотивационное письмо под Politecnico di Milano, где приёмная комиссия ценит проектный опыт…</div>
+                </div>
+                <div style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:22px;padding:16px">
+                  <div style="font-size:12.5px;font-weight:800;color:#1B1F4B">Что делать с Reach-вузами</div>
+                  <div style="font-size:12.5px;line-height:1.65;color:#5C6188;margin-top:9px">Bocconi и Politecnico di Milano требуют дополнительного портфолио и подтверждённого уровня языка. Разрыв составляет примерно 9 баллов рейтинга, что реально закрыть за один семестр при условии…</div>
+                </div>
+              </div>
+              <div style="position:absolute;left:0;right:0;bottom:0;height:62%;background:linear-gradient(180deg,rgba(246,247,251,0) 0%,rgba(246,247,251,.86) 34%,#F1F2F8 60%);backdrop-filter:blur(3px)"></div>
+              <div style="position:absolute;left:16px;right:16px;bottom:22px;background:linear-gradient(150deg,#151843,#2A2F73);border-radius:26px;padding:20px;box-shadow:0 24px 50px -18px rgba(16,20,55,.6)">
+                <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(243,194,75,.16);border-radius:8px;padding:4px 9px">
+                  <div style="width:5px;height:5px;border-radius:1px;background:#F3C24B"></div>
+                  <span style="font-size:10px;font-weight:800;color:#F3C24B;letter-spacing:.06em">UNIPATH PREMIUM</span>
+                </div>
+                <div style="font-size:17px;font-weight:800;color:#fff;margin-top:12px;line-height:1.3;text-wrap:balance">Готово! Осталось разблокировать полную стратегию</div>
+                <div style="font-size:12px;line-height:1.55;color:rgba(255,255,255,.6);margin-top:9px;text-wrap:pretty">Полный разбор, список рекомендаций и безлимитный чат с ИИ-ментором.</div>
+                <div onClick="{{ goPaywall }}" style="margin-top:16px;height:50px;border-radius:16px;background:#F3C24B;color:#221A00;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;cursor:pointer">Оформить подписку</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ PAYWALL ═══ -->
+        <sc-if value="{{ isPaywall }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;background:#151843;display:flex;flex-direction:column;padding:24px 22px 30px">
+            <div style="display:flex;justify-content:center;padding-top:18px"><div onClick="{{ back }}" style="width:52px;height:5px;border-radius:3px;background:rgba(255,255,255,.25);cursor:pointer"></div></div>
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px">
+              <div>
+                <div style="font-family:Unbounded,sans-serif;font-weight:600;font-size:25px;color:#fff;letter-spacing:-.03em;line-height:1.2">UniPath<br>Premium</div>
+                <div style="font-size:13px;line-height:1.6;color:rgba(255,255,255,.6);margin-top:10px;text-wrap:pretty">Полный ИИ-разбор, интерактивные модули, копилки документов и инструменты фокусировки.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ premiumPerks }}" as="p" hint-placeholder-count="4">
+                  <div style="display:flex;gap:11px;align-items:flex-start;background:rgba(255,255,255,.06);border-radius:15px;padding:13px 14px">
+                    <div style="width:18px;height:18px;border-radius:6px;background:rgba(243,194,75,.18);display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px">
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.3l2.4 2.4L9.5 3.6" stroke="#F3C24B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <span style="font-size:12.5px;line-height:1.5;color:rgba(255,255,255,.85);font-weight:500">{{ p }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:10px">
+                <sc-for list="{{ plans }}" as="pl" hint-placeholder-count="2">
+                  <div onClick="{{ pl.pick }}" style="{{ pl.style }}">
+                    <sc-if value="{{ pl.best }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:-9px;left:14px;background:#F3C24B;color:#221A00;font-size:9px;font-weight:800;padding:3px 8px;border-radius:7px;letter-spacing:.04em">ВЫГОДНЕЕ</div></sc-if>
+                    <div style="font-size:11.5px;font-weight:700;color:{{ pl.labelColor }}">{{ pl.period }}</div>
+                    <div style="font-family:Unbounded,sans-serif;font-size:20px;color:{{ pl.priceColor }};margin-top:6px">{{ pl.price }}</div>
+                    <div style="font-size:10.5px;color:{{ pl.subColor }};margin-top:4px">{{ pl.sub }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div onClick="{{ subscribe }}" style="height:58px;border-radius:19px;background:#F3C24B;color:#221A00;display:flex;align-items:center;justify-content:center;font-size:15.5px;font-weight:800;cursor:pointer;box-shadow:0 18px 36px -14px rgba(243,194,75,.6)">Оформить · {{ chosenPrice }}</div>
+            <div style="font-size:10.5px;color:rgba(255,255,255,.4);text-align:center;margin-top:12px">Отмена в любой момент · оплата картой</div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ AI CHAT ═══ -->
+        <sc-if value="{{ isChat }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:52px 18px 13px;background:#fff;border-bottom:1px solid #EDEFF6;display:flex;align-items:center;gap:11px">
+              <div onClick="{{ goDash }}" style="width:38px;height:38px;border-radius:12px;background:#F2F3F9;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div style="width:36px;height:36px;border-radius:12px;background:#151843;display:flex;align-items:center;justify-content:center;flex:none">
+                <div style="display:flex;gap:4px"><div style="width:5px;height:5px;border-radius:50%;background:#8FA6FF"></div><div style="width:5px;height:5px;border-radius:50%;background:#8FA6FF"></div></div>
+              </div>
+              <div style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:800;color:#1B1F4B">ИИ-ментор</div><div style="font-size:11px;color:{{ chatStatusColor }}">{{ chatStatus }}</div></div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 16px 20px;display:flex;flex-direction:column;gap:11px">
+              <sc-for list="{{ messages }}" as="m" hint-placeholder-count="3">
+                <div style="{{ m.wrap }}">
+                  <div style="{{ m.bubble }}">{{ m.text }}</div>
+                  <sc-if value="{{ m.module }}" hint-placeholder-val="{{ false }}">
+                    <div style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:20px;padding:15px;margin-top:8px;width:270px;animation:up .3s ease both">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <div style="width:26px;height:26px;border-radius:9px;background:#EAF1FF;display:flex;align-items:center;justify-content:center"><div style="width:8px;height:8px;border-radius:2px;background:#2E6BFF;transform:rotate(45deg)"></div></div>
+                        <div><div style="font-size:12.5px;font-weight:800;color:#1B1F4B">{{ m.module.title }}</div><div style="font-size:10.5px;color:#9297B5">{{ m.module.sub }}</div></div>
+                      </div>
+                      <div style="font-size:11.5px;line-height:1.5;color:#7A7F9E;margin-top:10px;text-wrap:pretty">{{ m.module.desc }}</div>
+                      <div onClick="{{ m.module.create }}" style="{{ m.module.btn }}">{{ m.module.cta }}</div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+              <sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}">
+                <div style="align-self:flex-start;background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:18px 18px 18px 6px;padding:14px 16px;display:flex;gap:5px">
+                  <div style="width:6px;height:6px;border-radius:50%;background:#9297B5;animation:blink 1s infinite"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:#9297B5;animation:blink 1s .2s infinite"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:#9297B5;animation:blink 1s .4s infinite"></div>
+                </div>
+              </sc-if>
+            </div>
+            <div style="padding:10px 16px 26px;background:#fff;border-top:1px solid #EDEFF6">
+              <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:9px">
+                <sc-for list="{{ quickPrompts }}" as="q" hint-placeholder-count="3">
+                  <div onClick="{{ q.send }}" style="flex:none;font-size:11.5px;font-weight:600;color:#2E6BFF;background:#EAF1FF;border-radius:11px;padding:8px 12px;cursor:pointer">{{ q.label }}</div>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="flex:1;background:#F4F5FA;border-radius:16px;padding:14px 16px;font-size:13px;color:#9297B5">{{ inputPlaceholder }}</div>
+                <div onClick="{{ sendDefault }}" style="width:48px;height:48px;border-radius:16px;background:#2C317A;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none">
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 13V3M4 6.5L8 2.5l4 4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ ACTIVE TASKS ═══ -->
+        <sc-if value="{{ isTasks }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:52px 20px 14px;background:#fff;border-bottom:1px solid #EDEFF6;display:flex;align-items:center;gap:12px">
+              <div onClick="{{ goDash }}" style="width:38px;height:38px;border-radius:12px;background:#F2F3F9;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div><div style="font-size:15.5px;font-weight:800;color:#1B1F4B">Активные задачи</div><div style="font-size:11px;color:#9297B5">{{ tasksSub }}</div></div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 18px 110px;display:flex;flex-direction:column;gap:11px">
+              <sc-for list="{{ activeTasks }}" as="t" hint-placeholder-count="2">
+                <div style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:22px;padding:16px">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                    <div style="display:flex;align-items:center;gap:9px;min-width:0">
+                      <div style="{{ t.kindStyle }}">{{ t.kind }}</div>
+                      <span style="font-size:14px;font-weight:800;color:#1B1F4B">{{ t.title }}</span>
+                    </div>
+                    <span style="font-size:10.5px;font-weight:700;color:#7A7F9E;flex:none">{{ t.progress }}</span>
+                  </div>
+                  <div style="font-size:11.5px;color:#9297B5;margin-top:7px">{{ t.meta }}</div>
+                  <div style="display:flex;flex-direction:column;gap:1px;margin-top:10px">
+                    <sc-for list="{{ t.items }}" as="it" hint-placeholder-count="3">
+                      <div onClick="{{ it.toggle }}" style="display:flex;align-items:center;gap:11px;padding:9px 0;cursor:pointer;border-bottom:1px solid #F4F5FA">
+                        <div style="{{ it.box }}"><sc-if value="{{ it.done }}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.3l2.4 2.4L9.5 3.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if></div>
+                        <span style="{{ it.text }}">{{ it.label }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+                    <span style="font-size:10.5px;color:#9297B5">Завершение принесёт {{ t.xp }} XP</span>
+                    <span onClick="{{ t.open }}" style="font-size:11px;font-weight:700;color:#2E6BFF;cursor:pointer">{{ t.state }} · открыть ›</span>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ tasksEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#fff;flex:none;border:1px dashed #C9CEE4;border-radius:22px;padding:26px 20px;text-align:center">
+                  <div style="font-size:13.5px;font-weight:700;color:#1B1F4B">Активных модулей нет</div>
+                  <div style="font-size:12px;line-height:1.55;color:#9297B5;margin-top:7px;text-wrap:pretty">Всё выполненное переехало в «Журнал» в профиле. Попросите ИИ-ментора собрать новый чек-лист или дорожную карту.</div>
+                  <div onClick="{{ goChat }}" style="margin-top:14px;height:44px;border-radius:14px;background:#EAF1FF;color:#2E6BFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer">Открыть чат</div>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ DOCUMENT VAULTS ═══ -->
+        <sc-if value="{{ isVaults }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:52px 20px 14px;background:#fff;border-bottom:1px solid #EDEFF6;display:flex;align-items:center;gap:12px">
+              <div onClick="{{ goProfile }}" style="width:38px;height:38px;border-radius:12px;background:#F2F3F9;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div><div style="font-size:15.5px;font-weight:800;color:#1B1F4B">Копилка документов</div><div style="font-size:11px;color:#9297B5">по одной на каждый выбранный вуз</div></div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 18px 110px;display:flex;flex-direction:column;gap:11px">
+              <sc-for list="{{ vaults }}" as="v" hint-placeholder-count="2">
+                <div onClick="{{ v.open }}" style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:22px;padding:16px;cursor:pointer">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                    <div><div style="font-size:14px;font-weight:800;color:#1B1F4B">{{ v.name }}</div><div style="font-size:11px;color:#9297B5;margin-top:4px">{{ v.deadline }}</div></div>
+                    <div style="font-family:Unbounded,sans-serif;font-size:13px;color:#2E6BFF;flex:none">{{ v.count }}</div>
+                  </div>
+                  <div style="display:flex;gap:5px;margin-top:13px">
+                    <sc-for list="{{ v.cells }}" as="c" hint-placeholder-count="6"><div style="{{ c }}"></div></sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ VAULT DETAIL ═══ -->
+        <sc-if value="{{ isVault }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="background:#2C317A;padding:52px 20px 22px">
+              <div onClick="{{ goVaults }}" style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div style="font-size:19px;font-weight:800;color:#fff;margin-top:16px;letter-spacing:-.02em">Università di Bologna</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:6px">Копилка · дедлайн 12 мая · заполнено {{ vaultFilled }}</div>
+              <div style="height:6px;border-radius:3px;background:rgba(255,255,255,.16);margin-top:14px;overflow:hidden"><div style="{{ vaultBar }}"></div></div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 18px 110px;display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ vaultCells }}" as="c" hint-placeholder-count="6">
+                <div onClick="{{ c.toggle }}" style="{{ c.style }}">
+                  <div style="display:flex;align-items:center;gap:12px;min-width:0">
+                    <div style="{{ c.icon }}">
+                      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="3" y="1.5" width="10" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5.6 6h4.8M5.6 8.6h4.8M5.6 11.2h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </div>
+                    <div style="min-width:0">
+                      <div style="font-size:13px;font-weight:700;color:#1B1F4B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.title }}</div>
+                      <div style="font-size:10.5px;color:#9297B5;margin-top:2px">{{ c.sub }}</div>
+                    </div>
+                  </div>
+                  <div style="{{ c.action }}">{{ c.actionLabel }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ FOCUS ═══ -->
+        <sc-if value="{{ isFocus }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;background:#151843;display:flex;flex-direction:column">
+            <div style="padding:52px 20px 10px;display:flex;align-items:center;gap:12px">
+              <div onClick="{{ goProfile }}" style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div><div style="font-size:15.5px;font-weight:800;color:#fff">Фокус и продуктивность</div><div style="font-size:11px;color:rgba(255,255,255,.5)">фоновые звуки и трекеры привычек</div></div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:14px 18px 110px;display:flex;flex-direction:column;gap:16px">
+              <div style="flex:none;background:rgba(255,255,255,.06);border-radius:26px;padding:20px;text-align:center">
+                <div style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.06em;text-transform:uppercase">Сессия фокуса</div>
+                <div style="font-family:Unbounded,sans-serif;font-size:44px;color:#fff;margin-top:10px;letter-spacing:-.02em">{{ timerText }}</div>
+                <div style="display:flex;gap:9px;margin-top:16px">
+                  <div onClick="{{ toggleTimer }}" style="flex:1;height:48px;border-radius:16px;background:#fff;color:#151843;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:800;cursor:pointer">{{ timerCta }}</div>
+                  <div onClick="{{ resetTimer }}" style="width:48px;height:48px;border-radius:16px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer"><div style="width:11px;height:11px;border-radius:2px;background:rgba(255,255,255,.7)"></div></div>
+                </div>
+              </div>
+              <div style="flex:none;display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:12.5px;font-weight:800;color:rgba(255,255,255,.85);padding:0 2px">Фоновые звуки</div>
+                <div style="flex:none;display:grid;grid-template-columns:1fr 1fr;gap:9px">
+                  <sc-for list="{{ sounds }}" as="s" hint-placeholder-count="4">
+                    <div onClick="{{ s.toggle }}" style="{{ s.style }}">
+                      <div style="display:flex;gap:2.5px;align-items:flex-end;height:18px">
+                        <sc-for list="{{ s.bars }}" as="b" hint-placeholder-count="4"><div style="{{ b }}"></div></sc-for>
+                      </div>
+                      <div style="font-size:12.5px;font-weight:700;color:{{ s.color }};margin-top:11px">{{ s.name }}</div>
+                      <div style="font-size:10.5px;color:rgba(255,255,255,.4);margin-top:2px">{{ s.sub }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="flex:none;display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:12.5px;font-weight:800;color:rgba(255,255,255,.85);padding:0 2px">Трекеры недели</div>
+                <sc-for list="{{ trackers }}" as="t" hint-placeholder-count="3">
+                  <div style="flex:none;background:rgba(255,255,255,.06);border-radius:18px;padding:14px 15px">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                      <span style="font-size:12.5px;font-weight:700;color:#fff">{{ t.name }}</span>
+                      <span style="font-size:11px;color:rgba(255,255,255,.5)">{{ t.value }}</span>
+                    </div>
+                    <div style="display:flex;gap:5px;margin-top:11px">
+                      <sc-for list="{{ t.days }}" as="d" hint-placeholder-count="7"><div style="{{ d }}"></div></sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ PROFILE ═══ -->
+        <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="background:#2C317A;padding:52px 20px 24px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div onClick="{{ goDash }}" style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div onClick="{{ goSettings }}" style="font-size:12px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">Настройки</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:18px">
+                <div style="position:relative;width:72px;height:72px;flex:none">
+                  <div style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,#7C93FF 0% 62%,rgba(255,255,255,.16) 62% 100%)"></div>
+                  <div style="position:absolute;inset:4px;border-radius:50%;background:#2C317A"></div>
+                  <div style="position:absolute;inset:7px;border-radius:50%;background:linear-gradient(160deg,#D7DEF6,#AAB6E4);overflow:hidden">
+                    <div style="position:absolute;left:50%;top:20%;transform:translateX(-50%);width:34%;height:34%;border-radius:50%;background:#8A93C9"></div>
+                    <div style="position:absolute;left:50%;top:60%;transform:translateX(-50%);width:64%;height:52%;border-radius:50% 50% 0 0;background:#8A93C9"></div>
+                  </div>
+                </div>
+                <div style="min-width:0">
+                  <div style="font-size:18px;font-weight:800;color:#fff">Батыркызы Тінатін</div>
+                  <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">11 класс · {{ planLabel }}</div>
+                  <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border-radius:9px;padding:5px 10px;margin-top:9px">
+                    <span style="font-family:Unbounded,sans-serif;font-size:11px;color:#fff">Уровень 4</span>
+                    <span style="font-size:10.5px;color:rgba(255,255,255,.5)">620 / 1000 XP</span>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:18px">
+                <sc-for list="{{ profileStats }}" as="s" hint-placeholder-count="3">
+                  <div style="flex:1;background:rgba(255,255,255,.09);border-radius:15px;padding:12px">
+                    <div style="font-family:Unbounded,sans-serif;font-size:15px;color:#fff">{{ s.v }}</div>
+                    <div style="font-size:10px;color:rgba(255,255,255,.55);margin-top:4px">{{ s.k }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 18px 110px;display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ profileRows }}" as="r" hint-placeholder-count="6">
+                <div onClick="{{ r.go }}" style="{{ profileRowCardStyle }}">
+                  <div style="min-width:0">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span style="{{ profileRowTitleStyle }}">{{ r.title }}</span>
+                      <sc-if value="{{ r.lock }}" hint-placeholder-val="{{ false }}"><span style="font-size:9px;font-weight:800;color:#B08A12;background:#FDF3D8;border-radius:6px;padding:3px 6px">PREMIUM</span></sc-if>
+                    </div>
+                    <div style="font-size:11px;color:#9297B5;margin-top:4px">{{ r.sub }}</div>
+                  </div>
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style="flex:none"><path d="M6 3l5 5-5 5" stroke="#C2C7DC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ ACHIEVEMENT LOG ═══ -->
+        <sc-if value="{{ isLog }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:52px 20px 14px;background:#fff;border-bottom:1px solid #EDEFF6;display:flex;align-items:center;gap:12px">
+              <div onClick="{{ goProfile }}" style="width:38px;height:38px;border-radius:12px;background:#F2F3F9;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div><div style="font-size:15.5px;font-weight:800;color:#1B1F4B">Журнал выполненных заданий</div><div style="font-size:11px;color:#9297B5">полный архив · 620 XP всего</div></div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 18px 110px">
+              <sc-for list="{{ logDays }}" as="d" hint-placeholder-count="2">
+                <div style="flex:none;margin-bottom:18px">
+                  <div style="font-size:11px;font-weight:700;color:#9297B5;letter-spacing:.05em;text-transform:uppercase;padding:0 2px 9px">{{ d.date }}</div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <sc-for list="{{ d.items }}" as="e" hint-placeholder-count="3">
+                      <div style="background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:18px;padding:13px 15px;display:flex;align-items:center;gap:12px">
+                        <div style="{{ e.dot }}"></div>
+                        <div style="flex:1;min-width:0">
+                          <div style="font-size:12.5px;font-weight:700;color:#1B1F4B">{{ e.title }}</div>
+                          <div style="font-size:10.5px;color:#9297B5;margin-top:2px">{{ e.kind }}</div>
+                        </div>
+                        <div style="font-size:11px;font-weight:800;color:#1FB574;flex:none">+{{ e.xp }} XP</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ SETTINGS ═══ -->
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="padding:52px 20px 14px;background:#fff;border-bottom:1px solid #EDEFF6;display:flex;align-items:center;gap:12px">
+              <div onClick="{{ goDash }}" style="width:38px;height:38px;border-radius:12px;background:#F2F3F9;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#1B1F4B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div><div style="font-size:15.5px;font-weight:800;color:#1B1F4B">Настройки</div><div style="font-size:11px;color:#9297B5">аккаунт, подписка, о нас</div></div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 18px 110px;display:flex;flex-direction:column;gap:16px">
+              <div style="{{ subCardStyle }}">
+                <div style="font-size:10px;font-weight:800;letter-spacing:.06em;color:{{ subTagColor }}">{{ subTag }}</div>
+                <div style="font-size:16px;font-weight:800;color:{{ subTitleColor }};margin-top:9px">{{ subTitle }}</div>
+                <div style="font-size:11.5px;line-height:1.5;color:{{ subSubColor }};margin-top:7px">{{ subSub }}</div>
+                <div onClick="{{ subAction }}" style="{{ subBtnStyle }}">{{ subCta }}</div>
+              </div>
+              <div style="{{ themeCardStyle }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                  <div>
+                    <div style="{{ settingsRowTitleStyle }}">Тема оформления</div>
+                    <div style="font-size:11px;color:#9297B5;margin-top:3px">{{ themeLabel }}</div>
+                  </div>
+                  <div onClick="{{ toggleTheme }}" style="{{ themeSwitch }}"><div style="{{ themeKnob }}"></div></div>
+                </div>
+              </div>
+              <sc-for list="{{ settingsGroups }}" as="g" hint-placeholder-count="3">
+                <div>
+                  <div style="font-size:11px;font-weight:700;color:#9297B5;letter-spacing:.05em;text-transform:uppercase;padding:0 4px 9px">{{ g.title }}</div>
+                  <div style="{{ settingsCardStyle }}">
+                    <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+                      <div onClick="{{ r.go }}" style="{{ settingsRowStyle }}">
+                        <span style="{{ settingsRowTitleStyle }}">{{ r.title }}</span>
+                        <span style="font-size:11.5px;color:#9297B5">{{ r.value }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ PAYMENT ═══ -->
+        <sc-if value="{{ isPayment }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;background:#151843;display:flex;flex-direction:column;padding:24px 22px 30px">
+            <div style="display:flex;justify-content:center;padding-top:18px"><div style="width:52px;height:5px;border-radius:3px;background:rgba(255,255,255,.16)"></div></div>
+            <sc-if value="{{ payIdle }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:1;display:flex;flex-direction:column;gap:16px;padding-top:26px">
+                <div>
+                  <div style="font-family:Unbounded,sans-serif;font-weight:600;font-size:22px;color:#fff;letter-spacing:-.03em">Оплата</div>
+                  <div style="font-size:12.5px;color:rgba(255,255,255,.55);margin-top:8px">Шаг назад недоступен во время обработки платежа</div>
+                </div>
+                <div style="flex:none;background:rgba(255,255,255,.07);border-radius:22px;padding:16px">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <div><div style="font-size:13.5px;font-weight:700;color:#fff">UniPath Premium</div><div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:3px">{{ payPeriod }} · автопродление</div></div>
+                    <div style="font-family:Unbounded,sans-serif;font-size:18px;color:#fff">{{ chosenPrice }}</div>
+                  </div>
+                </div>
+                <div style="flex:none;display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ payFields }}" as="f" hint-placeholder-count="3">
+                    <div style="flex:none;background:rgba(255,255,255,.07);border-radius:16px;padding:13px 15px">
+                      <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.05em;text-transform:uppercase">{{ f.label }}</div>
+                      <div style="font-size:14px;color:#fff;margin-top:5px;font-weight:600;letter-spacing:.02em">{{ f.value }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="flex:1"></div>
+                <div style="font-size:10.5px;line-height:1.5;color:rgba(255,255,255,.4);text-align:center">Платёж защищён · списание {{ chosenPrice }} сегодня</div>
+              </div>
+              <div onClick="{{ pay }}" style="height:58px;border-radius:19px;background:#F3C24B;color:#221A00;display:flex;align-items:center;justify-content:center;font-size:15.5px;font-weight:800;cursor:pointer">Оплатить {{ chosenPrice }}</div>
+            </sc-if>
+            <sc-if value="{{ payProcessing }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px">
+                <div style="position:relative;width:88px;height:88px">
+                  <div style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.12)"></div>
+                  <div style="position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#F3C24B;animation:spin 1s linear infinite"></div>
+                </div>
+                <div style="text-align:center"><div style="font-size:15px;font-weight:700;color:#fff">Обрабатываем платёж</div><div style="font-size:12.5px;color:rgba(255,255,255,.5);margin-top:7px">Не закрывайте экран</div></div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ paySuccess }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center">
+                <div style="width:78px;height:78px;border-radius:50%;background:rgba(31,181,116,.16);display:flex;align-items:center;justify-content:center">
+                  <svg width="34" height="34" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.3l2.4 2.4L9.5 3.6" stroke="#1FB574" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div>
+                  <div style="font-family:Unbounded,sans-serif;font-weight:600;font-size:20px;color:#fff;letter-spacing:-.02em">Premium активирован</div>
+                  <div style="font-size:12.5px;line-height:1.6;color:rgba(255,255,255,.55);margin-top:10px;padding:0 20px;text-wrap:pretty">Чат с ИИ-ментором разблокирован, копилки и инструменты фокусировки доступны.</div>
+                </div>
+              </div>
+              <div onClick="{{ goChat }}" style="height:58px;border-radius:19px;background:#fff;color:#151843;display:flex;align-items:center;justify-content:center;font-size:15.5px;font-weight:800;cursor:pointer">Перейти в чат</div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ═══ MODULE DETAIL ═══ -->
+        <sc-if value="{{ isModule }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ screenBgStyle }}">
+            <div style="background:#2C317A;padding:52px 20px 22px">
+              <div onClick="{{ goTasks }}" style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:8px;padding:4px 9px;margin-top:16px">
+                <span style="font-size:9.5px;font-weight:800;color:#C3D0FF;letter-spacing:.06em">{{ mdKind }}</span>
+              </div>
+              <div style="font-size:20px;font-weight:800;color:#fff;margin-top:11px;line-height:1.25;letter-spacing:-.02em">{{ mdTitle }}</div>
+              <div style="font-size:11.5px;color:rgba(255,255,255,.55);margin-top:7px">{{ mdMeta }}</div>
+              <div style="display:flex;align-items:center;gap:11px;margin-top:16px">
+                <div style="flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.16);overflow:hidden"><div style="{{ mdBar }}"></div></div>
+                <span style="font-family:Unbounded,sans-serif;font-size:12px;color:#fff">{{ mdProgress }}</span>
+              </div>
+            </div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:16px 18px 110px;display:flex;flex-direction:column;gap:11px">
+              <sc-if value="{{ mdIsTimer }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:none;background:#151843;border-radius:24px;padding:22px;text-align:center">
+                  <div style="font-size:10.5px;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.06em;text-transform:uppercase">Таймер модуля</div>
+                  <div style="font-family:Unbounded,sans-serif;font-size:42px;color:#fff;margin-top:10px;letter-spacing:-.02em">{{ timerText }}</div>
+                  <div onClick="{{ toggleTimer }}" style="margin-top:16px;height:46px;border-radius:15px;background:#fff;color:#151843;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:800;cursor:pointer">{{ timerCta }}</div>
+                </div>
+              </sc-if>
+              <div style="flex:none;background:#fff;border:1px solid #E7E9F2;border-radius:22px;padding:16px">
+                <div style="font-size:12.5px;font-weight:800;color:#1B1F4B">Этапы</div>
+                <div style="display:flex;flex-direction:column;gap:1px;margin-top:8px">
+                  <sc-for list="{{ mdItems }}" as="it" hint-placeholder-count="3">
+                    <div onClick="{{ it.toggle }}" style="display:flex;align-items:center;gap:11px;padding:11px 0;cursor:pointer;border-bottom:1px solid #F4F5FA">
+                      <div style="{{ it.box }}"><sc-if value="{{ it.done }}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.3l2.4 2.4L9.5 3.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if></div>
+                      <span style="{{ it.text }}">{{ it.label }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="flex:none;background:#fff;border:1px solid #E7E9F2;border-radius:22px;padding:16px">
+                <div style="font-size:12.5px;font-weight:800;color:#1B1F4B">Что дальше</div>
+                <div style="font-size:12px;line-height:1.6;color:#7A7F9E;margin-top:9px;text-wrap:pretty">{{ mdOutcome }}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:13px;padding-top:13px;border-top:1px solid #F0F1F7">
+                  <span style="font-size:11.5px;color:#9297B5">Награда за завершение</span>
+                  <span style="font-size:12.5px;font-weight:800;color:#1FB574">+{{ mdXp }} XP</span>
+                </div>
+              </div>
+              <div onClick="{{ goChat }}" style="flex:none;height:46px;border-radius:15px;background:#EAF1FF;color:#2E6BFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer">Обсудить с ИИ-ментором</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ SYSTEM SCREENS ═══ -->
+        <sc-if value="{{ isSystem }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ sysWrap }}">
+            <div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center">
+              <div style="{{ sysIconWrap }}"><div style="{{ sysIcon }}"></div></div>
+              <div>
+                <div style="font-family:Unbounded,sans-serif;font-weight:600;font-size:21px;letter-spacing:-.03em;color:{{ sysTitleColor }}">{{ sysTitle }}</div>
+                <div style="font-size:13px;line-height:1.6;color:{{ sysTextColor }};margin-top:11px;text-wrap:pretty">{{ sysText }}</div>
+              </div>
+              <sc-if value="{{ sysDetail }}" hint-placeholder-val="{{ false }}">
+                <div style="width:100%;background:{{ sysDetailBg }};border-radius:16px;padding:13px 15px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:{{ sysTextColor }};text-align:left">{{ sysDetail }}</div>
+              </sc-if>
+              <sc-if value="{{ sysCta }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ sysAction }}" style="{{ sysBtn }}">{{ sysCta }}</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ OFFLINE BANNER ═══ -->
+        <sc-if value="{{ showOfflineBanner }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:52px;left:16px;right:16px;background:rgba(21,24,67,.95);backdrop-filter:blur(10px);border-radius:16px;padding:13px 15px;display:flex;align-items:center;gap:11px;z-index:40;animation:up .3s ease both;box-shadow:0 14px 30px -12px rgba(10,13,40,.6)">
+            <div style="width:8px;height:8px;border-radius:50%;background:#F3C24B;flex:none;animation:blink 1.4s infinite"></div>
+            <div style="flex:1"><div style="font-size:12.5px;font-weight:700;color:#fff">Нет соединения</div><div style="font-size:10.5px;color:rgba(255,255,255,.55);margin-top:2px">Данные подтянутся автоматически</div></div>
+            <div onClick="{{ hideOffline }}" style="font-size:11px;font-weight:700;color:#8FA6FF;cursor:pointer">Скрыть</div>
+          </div>
+        </sc-if>
+
+        <!-- ═══ TAB BAR ═══ -->
+        <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:0 16px 24px;pointer-events:none">
+            <div style="pointer-events:auto;background:rgba(15,18,48,.92);backdrop-filter:blur(14px);border-radius:24px;padding:9px;display:flex;gap:4px;box-shadow:0 18px 40px -14px rgba(10,13,40,.7)">
+              <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+                <div onClick="{{ t.go }}" style="{{ t.style }}">
+                  <div style="{{ t.dot }}"></div>
+                  <span style="font-size:9.5px;font-weight:700;color:{{ t.color }};white-space:nowrap">{{ t.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:132px;height:5px;border-radius:3px;background:{{ homeBarColor }};pointer-events:none"></div>
+
+      </div>
+    </div>
+    <div style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#8A8FAE;letter-spacing:.04em">{{ routeLabel }}</div>
+  </div>
+
+  <div style="width:280px;flex:none;position:sticky;top:40px;display:flex;flex-direction:column;gap:12px">
+    <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 1px 3px rgba(20,24,60,.07)">
+      <div style="font-size:12.5px;font-weight:800;color:#1B1F4B">{{ noteTitle }}</div>
+      <div style="font-size:11.5px;line-height:1.6;color:#7A7F9E;margin-top:8px;text-wrap:pretty">{{ noteText }}</div>
+      <div style="height:1px;background:#EEEFF5;margin:13px 0"></div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <sc-for list="{{ noteMeta }}" as="m" hint-placeholder-count="3">
+          <div style="display:flex;justify-content:space-between;gap:10px">
+            <span style="font-size:10.5px;color:#9297B5">{{ m.k }}</span>
+            <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#1B1F4B;text-align:right">{{ m.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 1px 3px rgba(20,24,60,.07)">
+      <div style="font-size:12.5px;font-weight:800;color:#1B1F4B">Система</div>
+      <div style="display:flex;flex-direction:column;gap:9px;margin-top:11px">
+        <div><div style="font-size:10.5px;color:#9297B5">Шрифты</div><div style="font-size:11.5px;color:#1B1F4B;font-weight:600;margin-top:2px">Unbounded · Manrope</div></div>
+        <div><div style="font-size:10.5px;color:#9297B5">Палитра</div>
+          <div style="display:flex;gap:5px;margin-top:6px">
+            <div style="width:26px;height:26px;border-radius:8px;background:#2C317A"></div>
+            <div style="width:26px;height:26px;border-radius:8px;background:#151843"></div>
+            <div style="width:26px;height:26px;border-radius:8px;background:#2E6BFF"></div>
+            <div style="width:26px;height:26px;border-radius:8px;background:#E2EAFB"></div>
+            <div style="width:26px;height:26px;border-radius:8px;background:#F3C24B"></div>
+          </div>
+        </div>
+        <div><div style="font-size:10.5px;color:#9297B5">Скругления</div><div style="font-size:11.5px;color:#1B1F4B;font-weight:600;margin-top:2px">14 / 20 / 24 / 32 px</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:960}}">
+const NAVY='#2C317A', INK='#1B1F4B', BLUE='#2E6BFF', GOLD='#F3C24B';
+
+class Component extends DCLogic {
+  state = {
+    screen: 'dash', stack: [], authMode: 'up',
+    premium: false, filled: false,
+    fstep: 0, country: 'Италия', unis: ['Bologna','Padova'], faculty: 'Инженерия', lang: 'Английский', cost: 'до 3 000 € + стипендия',
+    interests: ['Инженерия','Технологии'],
+    plan: 'month',
+    tasks: [
+      { id:'r1', kind:'КАРТА', title:'Дорожная карта: IELTS 6.5', meta:'создано ИИ-ментором · дедлайн 20 марта', xp:120,
+        items:[{l:'Пробный тест Listening',d:true},{l:'20 слов академической лексики',d:false},{l:'Разбор Writing Task 2',d:false}] },
+      { id:'c1', kind:'ЧЕК-ЛИСТ', title:'Мотивационное письмо', meta:'создано ИИ-ментором · 3 из 4 шагов', xp:80,
+        items:[{l:'Черновик первого абзаца',d:true},{l:'Убрать общие формулировки',d:true},{l:'Проверка у ментора',d:false}] },
+      { id:'t1', kind:'ТАЙМЕР', title:'25 минут на Writing Task 2', meta:'создано ИИ-ментором · сессия фокуса', xp:40, timer:true,
+        items:[{l:'Разобрать структуру эссе',d:false},{l:'Написать введение',d:false}] },
+    ],
+    msgs: [
+      { me:false, t:'Ваша стратегия готова. Основной разрыв — язык: IELTS 6.5 открывает 9 из 14 подобранных программ. Предлагаю зафиксировать это как дорожную карту на 8 недель.' },
+      { me:true, t:'Давай, и ещё про мотивационное письмо' },
+      { me:false, t:'Хорошо. Оформлю подготовку к IELTS дорожной картой, а письмо — чек-листом, чтобы они были на главном экране, а не в переписке.', module:{ title:'Дорожная карта: IELTS 6.5', sub:'8 недель · 6 этапов', desc:'Модуль появится в блоке «Активные задачи» на главной. Отмечать пункты можно не заходя в чат.', created:false } },
+    ],
+    typing: false,
+    slots: [true, true, false, false],
+    cells: [true, true, true, false, false, false, false],
+    sound: null, timer: 1500, running: false,
+    moduleId: 'r1', payState: 'idle', offline: false,
+    dark: false,
+  };
+
+  componentDidMount() {
+    this.iv = setInterval(() => {
+      if (this.state.running && this.state.timer > 0) this.setState(s => ({ timer: s.timer - 1 }));
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+
+  go = (screen) => this.setState(s => ({ screen, stack: [...s.stack, s.screen] }));
+  back = () => this.setState(s => ({ screen: s.stack[s.stack.length-1] || 'dash', stack: s.stack.slice(0,-1) }));
+
+  toggleItem = (ti, ii) => this.setState(s => ({
+    tasks: s.tasks.map((t,i) => i!==ti ? t : { ...t, items: t.items.map((x,j) => j!==ii ? x : { ...x, d: !x.d }) })
+  }));
+
+  createModule = (mi) => this.setState(s => ({
+    msgs: s.msgs.map((m,i) => i!==mi || !m.module ? m : { ...m, module: { ...m.module, created: true } }),
+    tasks: s.tasks.some(t => t.id==='new') ? s.tasks : [...s.tasks, { id:'new', kind:'КАРТА', title:'Дорожная карта: IELTS 6.5', meta:'только что создано в чате', xp:120, items:[{l:'Пробный тест Listening',d:false},{l:'Расписание на 8 недель',d:false}] }],
+  }));
+
+  send = (text) => {
+    this.setState(s => ({ msgs: [...s.msgs, { me:true, t:text }], typing:true }));
+    setTimeout(() => this.setState(s => ({ typing:false, msgs: [...s.msgs, { me:false, t:'Записал. Разберу это по шагам и предложу оформить модулем, если станет объёмно.' } ] })), 1300);
+  };
+
+  // ── style helpers ────────────────────────────────────────────────
+  sw(on) { return `width:44px;height:26px;border-radius:14px;background:${on?BLUE:'#DDE0EC'};padding:3px;cursor:pointer;transition:background .18s;flex:none`; }
+  knob(on) { return `width:20px;height:20px;border-radius:50%;background:#fff;transform:translateX(${on?18:0}px);transition:transform .18s;box-shadow:0 1px 2px rgba(0,0,0,.2)`; }
+  box(done) { return `width:20px;height:20px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;background:${done?'#1FB574':'#fff'};border:1.6px solid ${done?'#1FB574':'#D3D7E6'};transition:all .15s`; }
+  chip(on) { return `font-size:11.5px;font-weight:600;padding:9px 13px;border-radius:12px;cursor:pointer;background:${on?INK:'#F4F5FA'};color:${on?'#fff':'#6E739B'};transition:all .15s`; }
+  row(on) { return `flex:none;background:#fff;border:1.5px solid ${on?BLUE:'#E7E9F2'};border-radius:18px;padding:14px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;transition:border-color .15s`; }
+  mark(on) { return `width:22px;height:22px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:${on?BLUE:'#fff'};border:1.6px solid ${on?BLUE:'#D3D7E6'}`; }
+
+  renderVals() {
+    const s = this.state, S = s.screen, P = s.premium;
+    const T = s.dark
+      ? { page:'#0B0D22', screen:'#12142E', card:'#1B1E45', border:'rgba(255,255,255,.08)', ink:'#EDEFFA', sub:'rgba(255,255,255,.55)', chip:'rgba(255,255,255,.07)' }
+      : { page:'#EDEDF1', screen:'#F6F7FB', card:'#ffffff', border:'#E7E9F2', ink:'#1B1F4B', sub:'#7A7F9E', chip:'#F4F5FA' };
+    const routes = {
+      splash:['SPLASH','/'], welcome:['WELCOME','/welcome'], auth:['AUTH_SIGNUP','/auth/signup'], loading:['AUTH_LOADING','/auth/loading'],
+      dash:['DASHBOARD','/dashboard'], quest:['QUESTIONNAIRE','/universities/questionnaire'], filters:['FILTER_*','/universities/filters'],
+      results:['RESULTS','/universities/results'], uni:['UNIVERSITY_DETAILS','/universities/:id'], portfolio:['PORTFOLIO_UPLOAD','/ai/portfolio'],
+      analysis:['ANALYSIS_LOADING','/ai/analysis/loading'], preview:['ANALYSIS_PREVIEW','/ai/analysis/preview'], paywall:['PAYWALL','/subscription/offer'],
+      chat:['AI_CHAT','/ai/chat'], tasks:['ACTIVE_TASKS','/tasks'], vaults:['VAULTS_LIST','/documents'], vault:['VAULT_DETAIL','/documents/:id'],
+      focus:['FOCUS_TOOLS','/focus'], profile:['PROFILE','/profile'], log:['ACHIEVEMENT_LOG','/profile/history'], settings:['SETTINGS','/settings'],
+      payment:['PAYMENT_FLOW','/subscription/payment'], module:['MODULE_DETAIL','/tasks/:moduleId'],
+      error:['ERROR','/system/error'], offline:['OFFLINE','/system/offline'], maintenance:['MAINTENANCE','/system/maintenance'], update:['UPDATE_REQUIRED','/system/update'],
+    };
+    const SYS = ['error','offline','maintenance','update'];
+    const dark = ['splash','welcome','loading','paywall','focus','payment','error','maintenance','update','dash','uni','vault','profile','module'].includes(S);
+    const notes = {
+      dash:['Дашборд — по вашему вайрфрейму','Профиль-виджет с круговой XP-шкалой, 8 bento-плиток быстрого доступа, ниже — белый sheet с динамическим блоком формы, «Активными задачами» (только Premium) и зоной анализа.'],
+      results:['Safety / Match / Reach','Три стратегические категории из концепта. Одна страна за раз; кнопка «Сменить страну» возвращает на FILTER_COUNTRY.'],
+      uni:['Карточка вуза','Ссылка на приёмную комиссию доступна всем. Блок документов на Free — заглушка с редиректом на PAYWALL (route guard).'],
+      preview:['Первая монетизация','Вторая половина ответа скрыта под градиентом, поверх — карточка подписки.'],
+      chat:['Чат и конструкторы модулей','Ассистент предлагает оформить рекомендацию модулем: карточка-подтверждение остаётся в чате, сам модуль выносится на главную.'],
+      tasks:['Временные карточки','Выполненный модуль исчезает из активного блока и навсегда оседает в «Журнале» в профиле, принося XP.'],
+      focus:['Инструменты фокусировки','Белый шум, дождь и простые трекеры привычек. Premium-раздел, вход из бургер-меню или профиля.'],
+    };
+    const note = notes[S] || ['Экран прототипа','Экран собран по реестру роутов и IA. Слева — переключатели роли и состояния анкеты: дашборд, плитки и гейты меняются вместе с ними.'];
+
+    const idx = [
+      ['Splash','SPLASH','splash'],['Welcome','WELCOME','welcome'],['Регистрация / вход','AUTH','auth'],['Активация','LOADING','loading'],
+      ['Дашборд','DASHBOARD','dash'],['Анкета','QUESTIONNAIRE','quest'],['Фильтры подбора','FILTER_*','filters'],['Результаты','RESULTS','results'],
+      ['Карточка вуза','UNI_DETAILS','uni'],['ИИ-портфолио','PORTFOLIO','portfolio'],['Анализ идёт','ANALYSIS','analysis'],['Превью стратегии','PREVIEW','preview'],
+      ['Подписка','PAYWALL','paywall'],['Чат с ИИ','AI_CHAT','chat'],['Активные задачи','TASKS','tasks'],['Копилки','VAULTS','vaults'],
+      ['Копилка вуза','VAULT_DETAIL','vault'],['Фокус','FOCUS','focus'],['Профиль','PROFILE','profile'],['Журнал','ACHIEVEMENT_LOG','log'],['Настройки','SETTINGS','settings'],
+      ['Оплата','PAYMENT_FLOW','payment'],['Модуль','MODULE_DETAIL','module'],
+      ['Ошибка','ERROR','error'],['Нет сети','OFFLINE','offline'],['Тех. работы','MAINTENANCE','maintenance'],['Обновление','UPDATE_REQUIRED','update'],
+    ].map(([title,id,key]) => ({ title, id, go: () => this.setState({ screen:key, stack:[] }),
+      style:`display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border-radius:11px;cursor:pointer;transition:all .15s;background:${S===key?INK:'#fff'};color:${S===key?'#fff':'#4A4F72'};box-shadow:${S===key?'0 6px 16px -8px rgba(27,31,75,.8)':'0 1px 2px rgba(20,24,60,.05)'}` }));
+
+    const tileDefs = [
+      ['Профиль','person','profile',false],['Копилка','doc','vaults',true],['Вузы','target','results',false],['Анкета','cal','quest',false],
+      ['Журнал','list','log',false],['Фокус','wave','focus',true],['Задачи','check','tasks',true],['ИИ-ментор','bot','chat',true],
+    ];
+    const glyphs = { person:'◉', doc:'▤', target:'◎', cal:'▦', list:'≡', wave:'∿', check:'✓', bot:'●●' };
+    const tiles = tileDefs.map(([label, icon, key, prem]) => {
+      const locked = prem && !P;
+      const isBot = icon === 'bot';
+      return { label, icon: glyphs[icon], lock: locked, go: () => this.go(locked ? 'paywall' : key),
+        style:`position:relative;height:74px;border-radius:20px;padding:9px 8px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:transform .12s;background:${isBot?'#fff':'#E2EAFB'};opacity:${locked?.55:1}`,
+        iconWrap:`width:26px;height:26px;border-radius:9px;background:${isBot?'#151843':'rgba(21,24,67,.07)'};display:flex;align-items:center;justify-content:center`,
+        glyph:`font-size:${isBot?9:13}px;letter-spacing:${isBot?'1px':'0'};color:${isBot?'#8FA6FF':'#232A6B'};line-height:1`,
+        labelStyle:`font-size:9.5px;font-weight:700;color:#3A4180;line-height:1.15` };
+    });
+
+    const tasks = s.tasks.map((t, ti) => {
+      const done = t.items.filter(x => x.d).length;
+      return { kind:t.kind, title:t.title, meta:t.meta, xp:t.xp, progress:`${done}/${t.items.length}`,
+        state: done===t.items.length ? 'готово → в журнал' : 'в работе',
+        open: () => this.setState(st => ({ moduleId: t.id, screen:'module', stack:[...st.stack, st.screen] })),
+        kindStyle:`font-size:8.5px;font-weight:800;letter-spacing:.06em;color:${t.kind==='КАРТА'?BLUE:'#1FB574'};background:${t.kind==='КАРТА'?'#EAF1FF':'#E4F7EF'};border-radius:7px;padding:4px 7px;flex:none`,
+        barStyle:`width:${Math.round(done/t.items.length*100)}%;height:100%;border-radius:2px;background:${BLUE};transition:width .25s`,
+        items: t.items.map((x, ii) => ({ label:x.l, done:x.d, toggle: () => this.toggleItem(ti, ii),
+          box: this.box(x.d),
+          text:`font-size:12.5px;font-weight:500;color:${x.d?'#A7ABC4':'#3A3F63'};text-decoration:${x.d?'line-through':'none'}` })) };
+    });
+
+    const fsteps = [
+      ['Страна обучения','шаг 2 из 6','За один подбор — одна страна, чтобы результаты не размешивались.',
+        [['Италия','щедрые государственные стипендии','14 вузов'],['Германия','обучение почти без платы','21 вуз'],['Чехия','бесплатно на чешском','9 вузов'],['Казахстан','гранты МОН','32 вуза']], s.country],
+      ['Университеты','шаг 3 из 6','Отметьте вузы, которые вам интересны в выбранной стране.',
+        [['Università di Bologna','Болонья · #154 QS',''],['Politecnico di Milano','Милан · #123 QS',''],['Università di Padova','Падова · #219 QS',''],['Bocconi','Милан · бизнес','']], s.unis],
+      ['Факультет','шаг 4 из 6','Показываем только те направления, которые есть в отмеченных вузах.',
+        [['Инженерия','есть в 3 из 4 вузов',''],['Информатика','есть в 4 из 4',''],['Экономика','есть в 2 из 4',''],['Архитектура','есть в 2 из 4','']], s.faculty],
+      ['Язык обучения','шаг 5 из 6','Проверяем, доступно ли выбранное направление на этом языке.',
+        [['Английский','9 программ из 14',''],['Итальянский','14 программ',''],['Смешанный','4 программы','']], s.lang],
+      ['Стоимость и стипендия','шаг 6 из 6','Условия сильно различаются от страны к стране: в Италии стипендии преимущественно государственные и весьма щедрые.',
+        [['до 1 000 € в год','+ полная стипендия',''],['до 3 000 € + стипендия','покрытие до 100 %',''],['до 8 000 €','частичные гранты',''],['без ограничений','все программы','']], s.cost],
+    ];
+    const fs = fsteps[s.fstep];
+    const pick = (title) => {
+      if (s.fstep === 1) this.setState(st => ({ unis: st.unis.includes(title) ? st.unis.filter(x=>x!==title) : [...st.unis, title] }));
+      else this.setState({ [['country','','faculty','lang','cost'][s.fstep]]: title });
+    };
+
+    const money = { week:'500 тг', month:'1 900 тг' };
+    const setPlan = (p) => this.setState({ plan:p });
+
+    const soundDefs = [['Белый шум','ровный фон'],['Дождь','мягкий, без грома'],['Кафе','негромкие голоса'],['Лес','птицы и ветер']];
+    const mm = String(Math.floor(s.timer/60)).padStart(2,'0'), ss = String(s.timer%60).padStart(2,'0');
+
+    const vaultFilledN = s.cells.filter(Boolean).length;
+
+    let mdIdx = s.tasks.findIndex(t => t.id === s.moduleId); if (mdIdx < 0) mdIdx = 0;
+    const mdTask = s.tasks[mdIdx] || { kind:'', title:'', meta:'', xp:0, items:[] };
+    const mdDone = mdTask.items.filter(x => x.d).length;
+
+    const sysDark = ['error','maintenance','update'].includes(S);
+    const sysCopyMap = {
+      error: ['Что-то пошло не так','Не удалось загрузить данные подбора. Попробуйте ещё раз — прогресс и загруженные документы сохранены.','Повторить','request_id: 7f3a19 · /universities/results'],
+      offline: ['Нет соединения','Приложение работает офлайн: доступны сохранённые вузы, копилки и активные задачи. Остальное подтянется при возврате сети.','Продолжить офлайн', null],
+      maintenance: ['Технические работы','Обновляем сервис подбора. Обычно это занимает меньше часа — попробуйте зайти чуть позже.','Обновить статус','503 · backend'],
+      update: ['Требуется обновление','Версия приложения устарела: алгоритм скоринга и ИИ-анализ работают только на 1.1 и выше.','Обновить в магазине','установлено 1.0.0 (24) · минимум 1.1.0'],
+    };
+    const sysCopy = sysCopyMap[S] || ['','',null,null];
+
+    return {
+      // shell
+      statusStyle:`position:absolute;top:0;left:0;right:0;height:50px;padding:16px 26px 0;display:flex;align-items:center;justify-content:space-between;color:${dark?'#fff':INK};z-index:30;pointer-events:none`,
+      homeBarColor: ['dash','quest','filters','results','portfolio','preview','chat','tasks','vaults','log','settings','auth'].includes(S) ? 'rgba(27,31,75,.25)' : 'rgba(255,255,255,.4)',
+      routeLabel: `${(routes[S]||['',''])[0]}   ${(routes[S]||['',''])[1]}`,
+      noteTitle: note[0], noteText: note[1],
+      noteMeta: [ {k:'Auth',v:['splash','welcome','auth','loading'].includes(S)?'guest':'required'},
+                  {k:'Premium',v:['chat','tasks','vaults','vault','focus'].includes(S)?'true':'false'},
+                  {k:'Роль',v:P?'Premium':'Free'} ],
+      index: idx,
+      premiumSwitch: this.sw(P), premiumKnob: this.knob(P), togglePremium: () => this.setState({ premium: !P }),
+      filledSwitch: this.sw(s.filled), filledKnob: this.knob(s.filled), toggleFilled: () => this.setState({ filled: !s.filled }),
+
+      // theme
+      themeLabel: s.dark ? 'Тёмная' : 'Светлая',
+      toggleTheme: () => this.setState(st => ({ dark: !st.dark })),
+      themeSwitch: this.sw(s.dark), themeKnob: this.knob(s.dark),
+      screenBgStyle: `position:absolute;inset:0;background:${T.screen};display:flex;flex-direction:column`,
+      sheetWrapStyle: `flex:1;background:${T.screen};border-radius:32px 32px 0 0;padding:10px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -14px 40px rgba(10,13,40,.3)`,
+      filledCardStyle: `background:${T.card};flex:none;border:1px solid ${T.border};border-radius:24px;padding:18px`,
+      statNumStyle: `font-family:Unbounded,sans-serif;font-size:15px;color:${T.ink}`,
+      taskHeaderTextStyle: `font-size:13px;font-weight:800;color:${T.ink}`,
+      taskCardWrapStyle: `background:${T.card};flex:none;border:1px solid ${T.border};border-radius:20px;padding:14px 15px;animation:up .3s ease both`,
+      taskTitleStyle: `font-size:13.5px;font-weight:700;color:${T.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis`,
+      analysisTitleStyle: `font-size:14px;font-weight:800;color:${T.ink}`,
+      settingsCardStyle: `background:${T.card};flex:none;border:1px solid ${T.border};border-radius:20px;overflow:hidden`,
+      settingsRowStyle: `padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid ${T.border};cursor:pointer`,
+      settingsRowTitleStyle: `font-size:13px;font-weight:600;color:${T.ink}`,
+      profileRowCardStyle: `background:${T.card};flex:none;border:1px solid ${T.border};border-radius:20px;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer`,
+      profileRowTitleStyle: `font-size:13.5px;font-weight:700;color:${T.ink}`,
+      themeCardStyle: `background:${T.card};border:1px solid ${T.border};border-radius:20px;padding:16px`,
+
+      // flags
+      isSplash:S==='splash', isWelcome:S==='welcome', isAuth:S==='auth', isLoading:S==='loading', isDash:S==='dash',
+      isQuest:S==='quest', isFilters:S==='filters', isResults:S==='results', isUni:S==='uni', isPortfolio:S==='portfolio',
+      isAnalysis:S==='analysis', isPreview:S==='preview', isPaywall:S==='paywall', isChat:S==='chat', isTasks:S==='tasks',
+      isVaults:S==='vaults', isVault:S==='vault', isFocus:S==='focus', isProfile:S==='profile', isLog:S==='log', isSettings:S==='settings',
+
+      // nav
+      back:this.back, goWelcome:()=>this.go('welcome'), goSignUp:()=>this.setState({screen:'auth',authMode:'up'}), goSignIn:()=>this.setState({screen:'auth',authMode:'in'}),
+      goLoading:()=>{ this.go('loading'); setTimeout(()=>this.setState({screen:'dash',stack:[]}), 2500); },
+      goDash:()=>this.setState({screen:'dash',stack:[]}), goQuest:()=>this.go('quest'), goFilters:()=>this.setState({screen:'filters',fstep:0}),
+      goResults:()=>this.go('results'), goProfile:()=>this.go('profile'), goSettings:()=>this.go('settings'),
+      goPortfolio:()=>this.go('portfolio'), goAnalysis:()=>{ this.go('analysis'); setTimeout(()=>this.setState({screen:'preview'}), 2600); },
+      goPaywall:()=>this.go('paywall'), goChat:()=>this.go(P?'chat':'paywall'), goTasks:()=>this.go('tasks'), goVaults:()=>this.go('vaults'),
+      goLog:()=>this.go('log'),
+
+      // auth
+      authTitle: s.authMode==='up' ? 'Создать аккаунт' : 'С возвращением',
+      authSub: s.authMode==='up' ? 'Займёт меньше минуты — данные анкеты добавите позже' : 'Войдите, чтобы вернуться к своему подбору',
+      authCta: s.authMode==='up' ? 'Создать аккаунт' : 'Войти',
+      tabSignUp:`flex:1;text-align:center;padding:10px;border-radius:11px;font-size:12.5px;font-weight:700;cursor:pointer;background:${s.authMode==='up'?'#fff':'transparent'};color:${s.authMode==='up'?INK:'#7A7F9E'};box-shadow:${s.authMode==='up'?'0 1px 3px rgba(20,24,60,.1)':'none'}`,
+      tabSignIn:`flex:1;text-align:center;padding:10px;border-radius:11px;font-size:12.5px;font-weight:700;cursor:pointer;background:${s.authMode==='in'?'#fff':'transparent'};color:${s.authMode==='in'?INK:'#7A7F9E'};box-shadow:${s.authMode==='in'?'0 1px 3px rgba(20,24,60,.1)':'none'}`,
+      setSignUp:()=>this.setState({authMode:'up'}), setSignIn:()=>this.setState({authMode:'in'}),
+      authFields: s.authMode==='up'
+        ? [{label:'Имя и фамилия',value:'Тінатін Батыркызы'},{label:'E-mail',value:'tinatin@mail.kz'},{label:'Класс',value:'11 класс'},{label:'Пароль',value:'••••••••'}]
+        : [{label:'E-mail',value:'tinatin@mail.kz'},{label:'Пароль',value:'••••••••'}],
+      loadBar:'height:100%;width:100%;background:#7C93FF;border-radius:2px;transform-origin:left;animation:spin 0s',
+      welcomeBullets:['Safety · Match · Reach подборка вузов','ИИ-стратегия по вашему портфолио','100 уровней за реальные достижения'],
+
+      // dashboard
+      planLabel: P ? 'Premium · до 12 мая' : 'Базовый доступ',
+      planColor: P ? GOLD : 'rgba(255,255,255,.55)',
+      tiles,
+      showNewbie: !s.filled, showFilledForm: s.filled,
+      showTasks: P, activeTasks: tasks, tasksCount: `${tasks.length} активных`,
+      analysisSub: s.filled ? 'Италия · подбор от 14 марта' : 'заполните анкету, чтобы запустить',
+      analysisCta: s.filled ? 'Показать вузы' : 'Запустить подбор',
+      buckets: [
+        { n: s.filled?'5':'—', label:'Безопасные', color:'#1FB574', style:`flex:1;background:${T.chip};border-radius:16px;padding:12px;cursor:pointer` },
+        { n: s.filled?'6':'—', label:'Оптимальные', color:BLUE, style:`flex:1;background:${T.chip};border-radius:16px;padding:12px;cursor:pointer` },
+        { n: s.filled?'3':'—', label:'Амбициозные', color:'#E2739B', style:`flex:1;background:${T.chip};border-radius:16px;padding:12px;cursor:pointer` },
+      ],
+      showUpsell: !P,
+
+      // questionnaire
+      questGroups: [
+        { title:'Академические результаты', fields:[{label:'Средний балл',value:'4,7'},{label:'Профильная математика',value:'86'},{label:'Английский',value:'IELTS 5.5'},{label:'Класс',value:'11'}] },
+        { title:'Предпочтения по вузам', fields:[{label:'Формат',value:'Бакалавриат'},{label:'Готовность к переезду',value:'Да'},{label:'Бюджет в год',value:'до 3 000 €'}] },
+      ],
+      interests: ['Инженерия','Технологии','Экономика','Дизайн','Медицина','Право','Физика','Архитектура'].map(label => ({ label,
+        toggle: () => this.setState(st => ({ interests: st.interests.includes(label) ? st.interests.filter(x=>x!==label) : [...st.interests, label] })),
+        style: this.chip(s.interests.includes(label)) })),
+
+      // filters
+      filterTitle: fs[0], filterStepLabel: fs[1], filterHint: fs[2],
+      filterDots: fsteps.map((_,i) => `flex:1;height:4px;border-radius:2px;background:${i<=s.fstep?NAVY:'#E3E5EF'}`),
+      filterOptions: fs[3].map(([title,sub,badge]) => {
+        const on = Array.isArray(fs[4]) ? fs[4].includes(title) : fs[4]===title;
+        return { title, sub, badge, on, pick: () => pick(title), style: this.row(on), mark: this.mark(on) };
+      }),
+      filterCta: s.fstep===4 ? 'Показать результаты' : 'Далее',
+      filterNext: () => s.fstep===4 ? this.setState({ screen:'results', filled:true }) : this.setState({ fstep: s.fstep+1 }),
+      filterBack: () => s.fstep===0 ? this.setState({ screen:'quest' }) : this.setState({ fstep: s.fstep-1 }),
+
+      // results
+      resultGroups: [
+        { title:'Безопасный выбор', sub:'Safety · 5', color:'#1FB574', dot:'width:8px;height:8px;border-radius:3px;background:#1FB574',
+          items:[
+            { name:'Università di Padova', city:'Падова · Инженерия · англ.', chance:'92%', tags:['2 500 €/год','стипендия до 100%','IELTS 5.5'], open:()=>this.go('uni') },
+            { name:'Politecnico di Torino', city:'Турин · Информатика · англ.', chance:'88%', tags:['2 800 €/год','грант региона','IELTS 5.5'], open:()=>this.go('uni') },
+          ] },
+        { title:'Оптимальный выбор', sub:'Match · 6', color:BLUE, dot:'width:8px;height:8px;border-radius:3px;background:#2E6BFF',
+          items:[
+            { name:'Università di Bologna', city:'Болонья · Инженерия · англ.', chance:'71%', tags:['3 000 €/год','стипендия ER-GO','IELTS 6.0'], open:()=>this.go('uni') },
+            { name:'Università di Trento', city:'Тренто · Информатика · англ.', chance:'66%', tags:['3 400 €/год','опекунский грант','IELTS 6.0'], open:()=>this.go('uni') },
+          ] },
+        { title:'Амбициозная цель', sub:'Reach · 3 · зона роста', color:'#E2739B', dot:'width:8px;height:8px;border-radius:3px;background:#E2739B',
+          items:[
+            { name:'Politecnico di Milano', city:'Милан · Инженерия · англ.', chance:'34%', tags:['+9 баллов рейтинга','портфолио','IELTS 6.5'], open:()=>this.go('uni') },
+            { name:'Università Bocconi', city:'Милан · Экономика · англ.', chance:'21%', tags:['+14 баллов','эссе','IELTS 7.0'], open:()=>this.go('uni') },
+          ] },
+      ],
+
+      // university details
+      uniStats:[{v:'71%',k:'вероятность'},{v:'3 000 €',k:'в год'},{v:'#154',k:'QS World'}],
+      uniRows:[{k:'Направление',v:'Инженерия · бакалавриат'},{k:'Язык',v:'Английский'},{k:'Дедлайн заявки',v:'12 мая'},{k:'Стипендия',v:'ER-GO, до 100 %'},{k:'Требуемый IELTS',v:'6.0'}],
+      notPremium: !P,
+      docCardStyle: P ? 'background:#fff;flex:none;border:1px solid #E7E9F2;border-radius:22px;padding:16px'
+                      : 'background:linear-gradient(150deg,#151843,#2A2F73);border-radius:22px;padding:16px',
+      docTitleColor: P ? INK : '#fff',
+      docSubColor: P ? '#7A7F9E' : 'rgba(255,255,255,.6)',
+      docText: P ? '9 документов: аттестат с апостилем, IELTS, мотивационное письмо, 2 рекомендации, dichiarazione di valore и др. Копилка уже создана.'
+                 : 'Список документов и копилка для их хранения доступны только в Premium. На базовом уровне вы видите сам список вузов.',
+      docCta: P ? 'Открыть копилку' : 'Разблокировать в Premium',
+      docBtnStyle: P ? `margin-top:14px;height:46px;border-radius:15px;background:${BLUE};color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer`
+                     : `margin-top:14px;height:46px;border-radius:15px;background:${GOLD};color:#221A00;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;cursor:pointer`,
+      openDocs: () => this.go(P ? 'vault' : 'paywall'),
+
+      // portfolio
+      uploadSlots: [['Резюме / CV','cv.pdf · 1 стр.'],['Мотивационное письмо','letter_v2.docx'],['Внеучебные активности','не загружено'],['Рекомендации','не загружено']]
+        .map(([title, sub], i) => {
+          const on = s.slots[i];
+          return { title, sub: on ? sub : 'не загружено', actionLabel: on ? 'загружено' : 'добавить',
+            toggle: () => this.setState(st => ({ slots: st.slots.map((v,j) => j===i ? !v : v) })),
+            style: this.row(on),
+            icon:`width:36px;height:36px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;background:${on?'#EAF1FF':'#F4F5FA'};color:${on?BLUE:'#A7ABC4'}`,
+            action:`font-size:11px;font-weight:700;flex:none;color:${on?'#1FB574':BLUE}` };
+        }),
+      analysisSteps: [
+        { label:'Академические данные обработаны', dot:'width:7px;height:7px;border-radius:50%;background:#1FB574;flex:none', color:'rgba(255,255,255,.8)' },
+        { label:'Портфолио и письма разобраны', dot:'width:7px;height:7px;border-radius:50%;background:#1FB574;flex:none', color:'rgba(255,255,255,.8)' },
+        { label:'Составляем стратегию поступления', dot:'width:7px;height:7px;border-radius:50%;background:#F3C24B;flex:none;animation:blink 1.2s infinite', color:'#fff' },
+      ],
+
+      // paywall
+      premiumPerks:['Полный ИИ-анализ портфолио и безлимитный чат с ментором','Интерактивные модули: карты, чек-листы, таймеры, задания','Список документов по каждому вузу + копилка','Белый шум, дождь и трекеры продуктивности'],
+      plans: [
+        { period:'Неделя', price:'500 тг', sub:'попробовать', best:false, pick:()=>setPlan('week'),
+          style:`flex:1;position:relative;border-radius:20px;padding:15px;cursor:pointer;background:${s.plan==='week'?'#fff':'rgba(255,255,255,.06)'};border:1.5px solid ${s.plan==='week'?'#fff':'rgba(255,255,255,.12)'}`,
+          labelColor:s.plan==='week'?'#7A7F9E':'rgba(255,255,255,.6)', priceColor:s.plan==='week'?INK:'#fff', subColor:s.plan==='week'?'#9297B5':'rgba(255,255,255,.45)' },
+        { period:'Месяц', price:'1 900 тг', sub:'≈ 63 тг в день', best:true, pick:()=>setPlan('month'),
+          style:`flex:1;position:relative;border-radius:20px;padding:15px;cursor:pointer;background:${s.plan==='month'?'#fff':'rgba(255,255,255,.06)'};border:1.5px solid ${s.plan==='month'?'#fff':'rgba(255,255,255,.12)'}`,
+          labelColor:s.plan==='month'?'#7A7F9E':'rgba(255,255,255,.6)', priceColor:s.plan==='month'?INK:'#fff', subColor:s.plan==='month'?'#9297B5':'rgba(255,255,255,.45)' },
+      ],
+      chosenPrice: money[s.plan],
+      subscribe: () => this.setState({ screen:'payment', payState:'idle', stack:[] }),
+
+      // chat
+      chatStatus: P ? 'онлайн · безлимитный доступ' : 'превью · доступ ограничен',
+      chatStatusColor: P ? '#1FB574' : '#B08A12',
+      typing: s.typing,
+      messages: s.msgs.map((m, i) => ({
+        text: m.t, wrap:`display:flex;flex-direction:column;align-items:${m.me?'flex-end':'flex-start'}`,
+        bubble:`max-width:272px;padding:13px 15px;font-size:13px;line-height:1.55;border-radius:${m.me?'18px 18px 6px 18px':'18px 18px 18px 6px'};background:${m.me?NAVY:'#fff'};color:${m.me?'#fff':'#3A3F63'};border:${m.me?'none':'1px solid #E7E9F2'};text-wrap:pretty`,
+        module: m.module ? { title:m.module.title, sub:m.module.sub, desc:m.module.desc,
+          cta: m.module.created ? 'Вынесено на главный экран ✓' : 'Создать дорожную карту',
+          create: () => this.createModule(i),
+          btn:`margin-top:12px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;cursor:pointer;background:${m.module.created?'#E4F7EF':BLUE};color:${m.module.created?'#128A55':'#fff'}` } : null,
+      })),
+      quickPrompts: ['Как усилить письмо?','Что делать с Reach-вузами?','Собери план на неделю'].map(label => ({ label, send: () => this.send(label) })),
+      inputPlaceholder: P ? 'Сообщение ИИ-ментору…' : 'Доступно в Premium',
+      sendDefault: () => this.send('Расскажи подробнее'),
+
+      // tasks page
+      tasksSub: `${tasks.length} модуля · выполненные уходят в журнал`,
+      tasksEmpty: tasks.length === 0,
+
+      // vaults
+      vaults: [
+        { name:'Università di Bologna', deadline:'дедлайн 12 мая · 9 ячеек', count:`${vaultFilledN}/9`, open:()=>this.go('vault'),
+          cells: Array.from({length:9}, (_,i) => `flex:1;height:6px;border-radius:3px;background:${i<vaultFilledN?BLUE:'#E7E9F2'}`) },
+        { name:'Università di Padova', deadline:'дедлайн 2 июня · 7 ячеек', count:'2/7', open:()=>this.go('vault'),
+          cells: Array.from({length:7}, (_,i) => `flex:1;height:6px;border-radius:3px;background:${i<2?BLUE:'#E7E9F2'}`) },
+      ],
+      vaultFilled: `${vaultFilledN} из 7`,
+      vaultBar:`width:${Math.round(vaultFilledN/7*100)}%;height:100%;border-radius:3px;background:#7C93FF;transition:width .25s`,
+      vaultCells: [['Аттестат с апостилем','pdf · загружено 14 марта'],['Транскрипт оценок','pdf · загружено'],['IELTS сертификат','pdf · загружено'],['Мотивационное письмо','нужен файл'],['Рекомендация №1','нужен файл'],['Dichiarazione di valore','нужен файл'],['Копия паспорта','нужен файл']]
+        .map(([title, sub], i) => {
+          const on = s.cells[i];
+          return { title, sub: on ? sub : 'ячейка пустая', actionLabel: on ? 'заменить' : 'загрузить',
+            toggle: () => this.setState(st => ({ cells: st.cells.map((v,j) => j===i ? !v : v) })),
+            style: this.row(on),
+            icon:`width:34px;height:34px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;background:${on?'#EAF1FF':'#F4F5FA'};color:${on?BLUE:'#A7ABC4'}`,
+            action:`font-size:11px;font-weight:700;flex:none;color:${on?'#9297B5':BLUE}` };
+        }),
+
+      // focus
+      timerText: `${mm}:${ss}`, timerCta: s.running ? 'Пауза' : 'Начать 25 минут',
+      toggleTimer: () => this.setState({ running: !s.running }), resetTimer: () => this.setState({ timer:1500, running:false }),
+      sounds: soundDefs.map(([name, sub], i) => {
+        const on = s.sound === i;
+        return { name, sub, color: on ? '#fff' : 'rgba(255,255,255,.8)',
+          toggle: () => this.setState({ sound: on ? null : i }),
+          style:`border-radius:20px;padding:15px;cursor:pointer;transition:background .15s;background:${on?'rgba(124,147,255,.22)':'rgba(255,255,255,.06)'};border:1px solid ${on?'rgba(124,147,255,.5)':'transparent'}`,
+          bars: [8,15,11,18,7].map((h,j) => `width:3px;border-radius:2px;background:${on?'#B6C4FF':'rgba(255,255,255,.3)'};height:${h}px;${on?`animation:pulse ${0.7+j*0.13}s ease-in-out infinite`:''}`) };
+      }),
+      trackers: [['Подготовка к IELTS','4 из 7 дней'],['Мотивационное письмо','2 из 7 дней'],['Сессии фокуса','5 из 7 дней']].map(([name, value], i) => ({
+        name, value, days: Array.from({length:7}, (_,d) => `flex:1;height:22px;border-radius:7px;background:${d < [4,2,5][i] ? '#7C93FF' : 'rgba(255,255,255,.1)'}`) })),
+
+      // profile
+      profileStats:[{v:'4',k:'уровень из 100'},{v:'620',k:'XP всего'},{v:'14',k:'подобрано вузов'}],
+      profileRows: [
+        {title:'Глубокое портфолио', sub:'резюме, письма, активности, достижения', lock:false, go:()=>this.go('portfolio')},
+        {title:'Журнал выполненных заданий', sub:'полный архив чек-листов, таймеров и ачивок', lock:false, go:()=>this.go('log')},
+        {title:'Копилки документов', sub: P ? '2 копилки · Bologna, Padova' : 'откроется с подпиской', lock:!P, go:()=>this.go(P?'vaults':'paywall')},
+        {title:'Активные модули', sub: P ? `${tasks.length} в работе` : 'откроется с подпиской', lock:!P, go:()=>this.go(P?'tasks':'paywall')},
+        {title:'Фокус и продуктивность', sub: P ? 'звуки и трекеры привычек' : 'откроется с подпиской', lock:!P, go:()=>this.go(P?'focus':'paywall')},
+        {title:'Подписка', sub: P ? 'Premium · продлится 12 мая' : 'Базовый доступ · 500 тг / неделя', lock:false, go:()=>this.go('paywall')},
+        {title:'Настройки аккаунта', sub:'уведомления, о нас, документы', lock:false, go:()=>this.go('settings')},
+      ],
+
+      // log
+      logDays: [
+        { date:'сегодня, 14 марта', items:[
+          {title:'Пробный тест Listening', kind:'дорожная карта · IELTS 6.5', xp:20, dot:'width:9px;height:9px;border-radius:3px;background:#2E6BFF;flex:none'},
+          {title:'Сессия фокуса 25 минут', kind:'таймер', xp:10, dot:'width:9px;height:9px;border-radius:3px;background:#7C93FF;flex:none'},
+          {title:'Черновик первого абзаца', kind:'чек-лист · мотивационное письмо', xp:15, dot:'width:9px;height:9px;border-radius:3px;background:#1FB574;flex:none'} ] },
+        { date:'12 марта', items:[
+          {title:'Ачивка «Первый подбор»', kind:'достижение', xp:50, dot:'width:9px;height:9px;border-radius:3px;background:#F3C24B;flex:none'},
+          {title:'Оценка по математике обновлена', kind:'академические данные', xp:25, dot:'width:9px;height:9px;border-radius:3px;background:#E2739B;flex:none'} ] },
+      ],
+
+      // settings
+      subCardStyle: P ? 'background:linear-gradient(150deg,#1F2360,#2C317A);border-radius:24px;padding:18px' : `background:${T.card};flex:none;border:1px solid ${T.border};border-radius:24px;padding:18px`,
+      subTag: P ? 'ПОДПИСКА АКТИВНА' : 'БАЗОВЫЙ ДОСТУП', subTagColor: P ? GOLD : '#9297B5',
+      subTitle: P ? 'UniPath Premium' : 'Открыть Premium', subTitleColor: P ? '#fff' : T.ink,
+      subSub: P ? 'Месяц · 1 900 тг · продлится 12 мая. Отмена в любой момент.' : 'ИИ-ментор, модули, копилки документов и инструменты фокусировки.',
+      subSubColor: P ? 'rgba(255,255,255,.6)' : '#7A7F9E',
+      subCta: P ? 'Управлять подпиской' : 'Смотреть тарифы',
+      subBtnStyle: P ? 'margin-top:15px;height:46px;border-radius:15px;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer'
+                     : `margin-top:15px;height:46px;border-radius:15px;background:${INK};color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer`,
+      subAction: () => this.go('paywall'),
+      settingsGroups: [
+        { title:'Аккаунт', rows:[{title:'Профиль и класс',value:'11 класс',go:()=>this.go('profile')},{title:'E-mail',value:'tinatin@mail.kz',go:()=>{}},{title:'Язык интерфейса',value:'Русский',go:()=>{}}] },
+        { title:'Уведомления', rows:[{title:'Дедлайны вузов',value:'вкл',go:()=>{}},{title:'Напоминания по задачам',value:'вкл',go:()=>{}},{title:'Новости и акции',value:'выкл',go:()=>{}}] },
+        { title:'О приложении', rows:[{title:'О нас',value:'',go:()=>{}},{title:'Условия использования',value:'',go:()=>{}},{title:'Политика конфиденциальности',value:'',go:()=>{}},{title:'Версия',value:'1.0.0 (24)',go:()=>{}}] },
+      ],
+
+      // payment
+      isPayment: S==='payment',
+      payIdle: s.payState==='idle', payProcessing: s.payState==='processing', paySuccess: s.payState==='success',
+      payPeriod: s.plan==='week' ? 'Неделя' : 'Месяц',
+      payFields: [{label:'Номер карты',value:'4400 •••• •••• 1265'},{label:'Срок / CVV',value:'09/28   •••'},{label:'Держатель',value:'T BATYRKYZY'}],
+      pay: () => { this.setState({ payState:'processing' }); setTimeout(() => this.setState({ payState:'success', premium:true }), 1900); },
+
+      // module detail
+      isModule: S==='module',
+      mdKind: mdTask.kind, mdTitle: mdTask.title, mdMeta: mdTask.meta, mdXp: mdTask.xp,
+      mdIsTimer: !!mdTask.timer,
+      mdProgress: `${mdDone}/${mdTask.items.length}`,
+      mdBar: `width:${Math.round(mdDone/mdTask.items.length*100)}%;height:100%;border-radius:3px;background:#7C93FF;transition:width .25s`,
+      mdItems: mdTask.items.map((x, ii) => ({ label:x.l, done:x.d, toggle: () => this.toggleItem(mdIdx, ii),
+        box: this.box(x.d), text:`font-size:13px;font-weight:500;color:${x.d?'#A7ABC4':'#3A3F63'};text-decoration:${x.d?'line-through':'none'}` })),
+      mdOutcome: mdDone === mdTask.items.length
+        ? 'Все пункты закрыты — модуль уходит из активного блока и навсегда сохраняется в «Журнале выполненных заданий» в профиле.'
+        : 'Когда все пункты будут отмечены, карточка исчезнет с главного экрана и осядет в «Журнале выполненных заданий» вместе с начисленным опытом.',
+
+      // system
+      isSystem: SYS.includes(S),
+      sysWrap:`position:absolute;inset:0;background:${S==='error'?'#151843':S==='maintenance'?'#2C317A':S==='update'?'#151843':'#F6F7FB'};display:flex;align-items:center;justify-content:center;padding:0 34px`,
+      sysIconWrap:`width:84px;height:84px;border-radius:28px;display:flex;align-items:center;justify-content:center;background:${sysDark?'rgba(255,255,255,.08)':'#E9ECF6'}`,
+      sysIcon:`width:${S==='offline'?28:26}px;height:${S==='offline'?28:26}px;border-radius:${S==='update'?'9px':'50%'};background:${S==='error'?'#E2739B':S==='maintenance'?'#F3C24B':S==='update'?'#2E6BFF':'#9297B5'};transform:rotate(${S==='update'?45:0}deg)`,
+      sysTitle: sysCopy[0], sysText: sysCopy[1], sysCta: sysCopy[2], sysDetail: sysCopy[3],
+      sysTitleColor: sysDark ? '#fff' : INK,
+      sysTextColor: sysDark ? 'rgba(255,255,255,.6)' : '#7A7F9E',
+      sysDetailBg: sysDark ? 'rgba(255,255,255,.07)' : '#EDEFF6',
+      sysBtn:`width:100%;height:52px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;cursor:pointer;background:${sysDark?'#fff':INK};color:${sysDark?INK:'#fff'}`,
+      sysAction: () => S==='offline' ? this.setState({ screen:'dash', offline:true, stack:[] }) : this.setState({ screen:'dash', stack:[] }),
+      showOfflineBanner: s.offline && !SYS.includes(S),
+      hideOffline: () => this.setState({ offline:false }),
+
+      // tabs
+      showTabs: ['dash','results','chat','tasks','profile'].includes(S),
+      tabs: [['Главная','dash'],['Вузы','results'],['ИИ-ментор','chat'],...(P ? [['Задачи','tasks']] : []),['Профиль','profile']].map(([label, key]) => {
+        const on = S === key;
+        return { label, go: () => this.setState({ screen:key, stack:[] }), color: on ? '#fff' : 'rgba(255,255,255,.45)',
+          style:`flex:1;height:46px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:background .15s;background:${on?'rgba(255,255,255,.12)':'transparent'}`,
+          dot:`width:6px;height:6px;border-radius:2px;background:${on?'#8FA6FF':'rgba(255,255,255,.35)'}` };
+      }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

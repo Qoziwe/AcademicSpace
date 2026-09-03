@@ -1,0 +1,12 @@
+{
+  "appName": "AcademicSpace",
+  "premiumPlanName": "AcademicSpace Premium",
+  "scheme": "academicspace",
+  "iosBundleId": "com.academicspace.app",
+  "androidPackage": "com.academicspace.app",
+  "webDomain": "academicspace.app",
+  "logo": {
+    "mode": "diamond",
+    "diamondGradient": ["#2E6BFF", "#7C93FF"]
+  }
+}

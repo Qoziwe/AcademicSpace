@@ -1,0 +1,12 @@
+node_modules
+.expo
+dist
+android
+ios
+*.lock
+package-lock.json
+
+# Проектная документация ведётся вручную (ручной перенос строк, RU-типографика) —
+# не отдаём Prettier на реформат.
+CLAUDE.md
+docs/
