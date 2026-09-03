@@ -1,9 +1,9 @@
-import { ScreenStub } from '@/components/dev/ScreenStub';
+import { FilterStepScreen } from '@/components/screens/FilterStepScreen';
 import { withGuard } from '@/navigation/withGuard';
 
-/** FILTER_COST — заглушка Фазы 1. Реальная вёрстка — Фаза 3 (см. docs/screen-inventory.md). */
+/** FILTER_COST — общий экран шага фильтров (`CLAUDE.md` §7). */
 function FilterCostScreen() {
-  return <ScreenStub id="FILTER_COST" />;
+  return <FilterStepScreen stepIndex={4} />;
 }
 
 export default withGuard(FilterCostScreen, { auth: true });

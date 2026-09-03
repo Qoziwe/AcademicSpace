@@ -1,9 +1,9 @@
-import { ScreenStub } from '@/components/dev/ScreenStub';
+import { AuthScreen } from '@/components/screens/AuthScreen';
 import { withGuard } from '@/navigation/withGuard';
 
-/** AUTH_SIGNIN — заглушка Фазы 1. Реальная вёрстка — Фаза 3 (см. docs/screen-inventory.md). */
+/** AUTH_SIGNIN (`/auth/signin`). Общий экран с AUTH_SIGNUP (`CLAUDE.md` §7). */
 function AuthSigninScreen() {
-  return <ScreenStub id="AUTH_SIGNIN" />;
+  return <AuthScreen mode="signin" />;
 }
 
 export default withGuard(AuthSigninScreen);

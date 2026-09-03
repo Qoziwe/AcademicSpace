@@ -15,19 +15,19 @@
 
 | # | Route ID (реестр) | Path | Экран | Строки в design-reference.html | Premium | Заметки по реализации | Статус |
 |---|---|---|---|---|---|---|---|
-| 1 | SPLASH | `/` | Splash | 75–91 | – | | 🔲 |
-| 2 | WELCOME | `/welcome` | Welcome | 93–116 | – | | 🔲 |
-| 3 | AUTH_SIGNUP | `/auth/signup` | Регистрация | 118–146 | – | Общий компонент с #4 | 🔲 |
-| 4 | AUTH_SIGNIN | `/auth/signin` | Вход | 118–146 | – | Общий компонент с #3 | 🔲 |
-| 5 | AUTH_LOADING | `/auth/loading` | Активация навигатора | 148–162 | – | | 🔲 |
-| 6 | DASHBOARD | `/dashboard` | Дашборд | 164–359 | false | 2 состояния анкеты × 2 роли = 4 варианта проверить | 🔲 |
-| 7 | QUESTIONNAIRE | `/universities/questionnaire` | Анкета | 321–360* | false | Шаг 1 из 6 общего мастера | 🔲 |
-| 8 | FILTER_COUNTRY | `/universities/filters/country` | Страна | 361–395* | false | Шаг 2 из 6 | 🔲 |
-| 9 | FILTER_UNIVERSITY | `/universities/filters/university` | Университеты | 361–395* | false | Шаг 3 из 6 | 🔲 |
-| 10 | FILTER_FACULTY | `/universities/filters/faculty` | Факультет | 361–395* | false | Шаг 4 из 6 | 🔲 |
-| 11 | FILTER_LANGUAGE | `/universities/filters/language` | Язык обучения | 361–395* | false | Шаг 5 из 6 | 🔲 |
-| 12 | FILTER_COST | `/universities/filters/cost` | Стоимость/стипендия | 361–395* | false | Шаг 6 из 6 | 🔲 |
-| 13 | RESULTS | `/universities/results` | Safety/Match/Reach | 396–441 | false | | 🔲 |
+| 1 | SPLASH | `/` | Splash | 75–91 | – | Фаза 3 (батч 1). Линейный градиент вместо radial | ✅ |
+| 2 | WELCOME | `/welcome` | Welcome | 93–116 | – | Фаза 3 (батч 1) | ✅ |
+| 3 | AUTH_SIGNUP | `/auth/signup` | Регистрация | 118–146 | – | Фаза 3 (батч 1). Общий `<AuthScreen>` с #4 | ✅ |
+| 4 | AUTH_SIGNIN | `/auth/signin` | Вход | 118–146 | – | Фаза 3 (батч 1). Общий `<AuthScreen>` с #3 | ✅ |
+| 5 | AUTH_LOADING | `/auth/loading` | Активация навигатора | 148–162 | – | Фаза 3 (батч 1) | ✅ |
+| 6 | DASHBOARD | `/dashboard` | Дашборд | 164–359 | false | Фаза 3 (батч 1). filled × Free/Premium; sheet theme-aware | ✅ |
+| 7 | QUESTIONNAIRE | `/universities/questionnaire` | Анкета | 321–360* | false | Фаза 3 (батч 1). Шаг 1 из 6 | ✅ |
+| 8 | FILTER_COUNTRY | `/universities/filters/country` | Страна | 361–395* | false | Фаза 3 (батч 1). Общий `<FilterStepScreen stepIndex={0}>` | ✅ |
+| 9 | FILTER_UNIVERSITY | `/universities/filters/university` | Университеты | 361–395* | false | Фаза 3 (батч 1). `stepIndex={1}` (multi) | ✅ |
+| 10 | FILTER_FACULTY | `/universities/filters/faculty` | Факультет | 361–395* | false | Фаза 3 (батч 1). `stepIndex={2}` | ✅ |
+| 11 | FILTER_LANGUAGE | `/universities/filters/language` | Язык обучения | 361–395* | false | Фаза 3 (батч 1). `stepIndex={3}` | ✅ |
+| 12 | FILTER_COST | `/universities/filters/cost` | Стоимость/стипендия | 361–395* | false | Фаза 3 (батч 1). `stepIndex={4}` → submit + RESULTS | ✅ |
+| 13 | RESULTS | `/universities/results` | Safety/Match/Reach | 396–441 | false | Фаза 3 (батч 1). Таб «Вузы» | ✅ |
 | 14 | UNIVERSITY_DETAILS | `/universities/:id` | Карточка вуза | 443–489 | false | Блок документов — lock-тизер → Paywall | 🔲 |
 | 15 | REQUIRED_DOCUMENTS | `/universities/:id/documents` | Документы для поступления | не выделен отдельно в прототипе | **true** | Собрать по аналогии с VAULT_DETAIL-паттерном | 🔲 |
 | 16 | PORTFOLIO_UPLOAD | `/ai/portfolio` | ИИ-портфолио | 490–525 | false (funnel) | | 🔲 |

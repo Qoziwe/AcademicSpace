@@ -9,6 +9,7 @@ import { OfflineBanner } from '@/components/organisms/OfflineBanner';
 import { TabBarHost } from '@/components/organisms/TabBar';
 import { useAppFonts } from '@/hooks/useAppFonts';
 import { useTheme } from '@/hooks/useTheme';
+import { useMockStore } from '@/mocks/store';
 import { AppProviders } from '@/providers/AppProviders';
 import { useSessionStore } from '@/stores/session';
 import { useThemeStore } from '@/stores/theme';
@@ -30,8 +31,9 @@ export default function RootLayout() {
   const { fontsLoaded } = useAppFonts();
   const sessionHydrated = useSessionStore((s) => s.hydrated);
   const themeHydrated = useThemeStore((s) => s.hydrated);
+  const mockHydrated = useMockStore((s) => s.hydrated);
 
-  const ready = fontsLoaded && sessionHydrated && themeHydrated;
+  const ready = fontsLoaded && sessionHydrated && themeHydrated && mockHydrated;
 
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync().catch(() => undefined);

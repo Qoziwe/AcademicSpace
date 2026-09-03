@@ -40,6 +40,12 @@
 
 ## Questionnaire / Universities
 ```
+*** Метод: GET
+*** URL: /api/v1/questionnaire
+*** Отправляем: token
+*** Ожидаем получить: {filled: boolean, interests: [...],
+    groups: [{title, fields: [{label, value}]}]}
+
 *** Метод: POST
 *** URL: /api/v1/questionnaire
 *** Отправляем: token, {academics: {...}, interests: [...], preferences: {...}}

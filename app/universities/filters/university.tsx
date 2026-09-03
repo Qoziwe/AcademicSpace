@@ -1,9 +1,9 @@
-import { ScreenStub } from '@/components/dev/ScreenStub';
+import { FilterStepScreen } from '@/components/screens/FilterStepScreen';
 import { withGuard } from '@/navigation/withGuard';
 
-/** FILTER_UNIVERSITY — заглушка Фазы 1. Реальная вёрстка — Фаза 3 (см. docs/screen-inventory.md). */
+/** FILTER_UNIVERSITY — общий экран шага фильтров (`CLAUDE.md` §7). */
 function FilterUniversityScreen() {
-  return <ScreenStub id="FILTER_UNIVERSITY" />;
+  return <FilterStepScreen stepIndex={1} />;
 }
 
 export default withGuard(FilterUniversityScreen, { auth: true });
