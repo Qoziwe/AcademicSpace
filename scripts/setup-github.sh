@@ -29,6 +29,9 @@ die() { printf '\n\033[1;31m✖ %s\033[0m\n' "$*" >&2; exit 1; }
 command -v gh >/dev/null 2>&1 || die "Нет gh. Установи: sudo pacman -S --needed github-cli, затем gh auth login"
 gh auth status >/dev/null 2>&1 || die "gh не авторизован. Выполни: gh auth login"
 
+git diff --quiet && git diff --cached --quiet || die "Есть незакоммиченные изменения — сначала git commit / git stash"
+git checkout "$P1"   # здесь лежит scripts/, и на эту ветку делаем rebase в шаге 5
+
 # ── 1. Merge-режим репозитория: только Squash and Merge ──────────────────────
 say "Настраиваю merge-режим репозитория (только squash, авто-удаление веток)"
 gh api -X PATCH "repos/$REPO" \
