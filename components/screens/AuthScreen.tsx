@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, TextField } from '@/components/atoms';
 import { useSignIn, useSignUp } from '@/hooks/api/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import { AUTH_PREFILL } from '@/mocks/fixtures';
 import { bodyFont, displayFont, radius, spacing } from '@/theme';
 
 export type AuthMode = 'signup' | 'signin';
@@ -31,9 +32,9 @@ export function AuthScreen({ mode }: Props) {
   const signUp = useSignUp();
   const signIn = useSignIn();
 
-  const [name, setName] = useState('Тінатін Батыркызы');
-  const [email, setEmail] = useState('tinatin@mail.kz');
-  const [grade, setGrade] = useState('11 класс');
+  const [name, setName] = useState<string>(AUTH_PREFILL.name);
+  const [email, setEmail] = useState<string>(AUTH_PREFILL.email);
+  const [grade, setGrade] = useState<string>(AUTH_PREFILL.grade);
   const [password, setPassword] = useState('');
 
   const isSignup = mode === 'signup';

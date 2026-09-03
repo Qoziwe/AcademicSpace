@@ -17,10 +17,31 @@ export const PROFILE = {
   grade: '11 класс',
   avatarUrl: null as string | null,
   level: 4,
+  /** Стартовый XP демо-профиля. Дальше растёт в `mocks/store.ts` при закрытии модулей. */
   xp: 620,
   xpToNextLevel: 1000,
   matchesCount: 14,
   rating: 78,
+} as const;
+
+/**
+ * Данные дашборда, которые в прототипе захардкожены прямо в разметке
+ * (`design-reference.html`): подпись зоны анализа и плитки-статы карточки
+ * профиля. Отдаются хендлером `GET /api/v1/profile/me` (`analysis`,
+ * `dashboardStats`) — страна берётся из выбранных фильтров.
+ */
+export const DASHBOARD = {
+  /** «подбор от 14 марта» — дата последнего прогона алгоритма. */
+  analysisSinceLabel: '14 марта',
+  /** «12/12 полей» в статах карточки профиля (анкета — 12 полей). */
+  questionnaireFieldCount: 12,
+} as const;
+
+/** Предзаполнение формы регистрации/входа (в прототипе поля не пустые). */
+export const AUTH_PREFILL = {
+  name: 'Тінатін Батыркызы',
+  email: 'tinatin@mail.kz',
+  grade: '11 класс',
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -310,6 +331,28 @@ export const CHAT_MODULE_TASK: TaskSeed = {
   ],
 };
 
+/**
+ * Как вид модуля превращается в запись журнала (ACHIEVEMENT_LOG) при
+ * закрытии всех пунктов — `mocks/store.ts.completeTask`.
+ */
+export const TASK_KIND_LOG: Record<TaskSeed['kind'], { kind: string; dot: LogDotColor }> = {
+  КАРТА: { kind: 'дорожная карта', dot: 'blue' },
+  'ЧЕК-ЛИСТ': { kind: 'чек-лист', dot: 'green' },
+  ТАЙМЕР: { kind: 'таймер', dot: 'blueLight' },
+};
+
+/**
+ * Копирайт блока «Что дальше» на MODULE_DETAIL (`mdOutcome` прототипа) —
+ * одинаков для всех модулей, поэтому экран берёт его отсюда напрямую.
+ */
+export const MODULE_OUTCOME_COPY = {
+  pending:
+    'Когда все пункты будут отмечены, карточка исчезнет с главного экрана и осядет в «Журнале выполненных заданий» вместе с начисленным опытом.',
+  complete:
+    'Все пункты закрыты — модуль уходит из активного блока и навсегда сохраняется в «Журнале выполненных заданий» в профиле.',
+  rewardLabel: 'Награда за завершение',
+} as const;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Карточка вуза (UNIVERSITY_DETAILS) — `uniStats` / `uniRows` прототипа
 // ─────────────────────────────────────────────────────────────────────────────
@@ -405,6 +448,11 @@ export const PLANS: PlanSeed[] = [
   { id: 'month', period: 'Месяц', price: '1 900 тг', sub: '≈ 63 тг в день', best: true },
 ];
 
+/** Дата продления активной подписки (мок; в проде — с бекенда). */
+export const SUBSCRIPTION_RENEWS_AT = '12 мая';
+/** Тариф активной демо-подписки. */
+export const ACTIVE_PLAN_ID: PlanSeed['id'] = 'month';
+
 export const PREMIUM_PERKS = [
   'Полный ИИ-анализ портфолио и безлимитный чат с ментором',
   'Интерактивные модули: карты, чек-листы, таймеры, задания',
@@ -428,6 +476,45 @@ export const CHAT_QUICK_PROMPTS = [
   'Собери план на неделю',
 ] as const;
 
+export interface ChatModuleSeed {
+  title: string;
+  sub: string;
+  desc: string;
+  created: boolean;
+}
+
+export interface ChatMsgSeed {
+  id: string;
+  fromMe: boolean;
+  text: string;
+  module?: ChatModuleSeed;
+}
+
+/** Стартовая история чата (`s.messages` прототипа). Живой чат дальше — в `mocks/store.ts`. */
+export const CHAT_MESSAGES_SEED: ChatMsgSeed[] = [
+  {
+    id: 'm1',
+    fromMe: false,
+    text: 'Ваша стратегия готова. Основной разрыв — язык: IELTS 6.5 открывает 9 из 14 подобранных программ. Предлагаю зафиксировать это как дорожную карту на 8 недель.',
+  },
+  { id: 'm2', fromMe: true, text: 'Давай, и ещё про мотивационное письмо' },
+  {
+    id: 'm3',
+    fromMe: false,
+    text: 'Хорошо. Оформлю подготовку к IELTS дорожной картой, а письмо — чек-листом, чтобы они были на главном экране, а не в переписке.',
+    module: {
+      title: 'Дорожная карта: IELTS 6.5',
+      sub: '8 недель · 6 этапов',
+      desc: 'Модуль появится в блоке «Активные задачи» на главной. Отмечать пункты можно не заходя в чат.',
+      created: false,
+    },
+  },
+];
+
+/** Фиксированный ответ ассистента на произвольное сообщение (`send` прототипа). */
+export const CHAT_ASSISTANT_REPLY =
+  'Записал. Разберу это по шагам и предложу оформить модулем, если станет объёмно.';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Копилки документов (VAULTS_LIST) — `vaults` прототипа
 // ─────────────────────────────────────────────────────────────────────────────
@@ -435,6 +522,8 @@ export const CHAT_QUICK_PROMPTS = [
 export interface VaultSeed {
   id: string;
   name: string;
+  /** Короткое имя для строк-сводок (профиль: «2 копилки · Bologna, Padova»). */
+  shortName: string;
   deadline: string;
   cellsTotal: number;
   /** Заполнено ячеек. Для первой копилки перекрывается `mocks/store.ts.vaultCells`. */
@@ -445,6 +534,7 @@ export const VAULTS: VaultSeed[] = [
   {
     id: 'bologna',
     name: 'Università di Bologna',
+    shortName: 'Bologna',
     deadline: 'дедлайн 12 мая · 9 ячеек',
     cellsTotal: 9,
     filledFixed: 3,
@@ -452,6 +542,7 @@ export const VAULTS: VaultSeed[] = [
   {
     id: 'padova',
     name: 'Università di Padova',
+    shortName: 'Padova',
     deadline: 'дедлайн 2 июня · 7 ячеек',
     cellsTotal: 7,
     filledFixed: 2,
@@ -523,6 +614,9 @@ export const FOCUS_TRACKERS = [
 
 /** Дефолтная длина сессии фокуса, сек (`timer: 1500`). */
 export const FOCUS_DEFAULT_SECONDS = 1500;
+
+/** Подпись кнопки старта сессии/таймера (25 минут = `FOCUS_DEFAULT_SECONDS`). */
+export const FOCUS_START_LABEL = `Начать ${Math.round(FOCUS_DEFAULT_SECONDS / 60)} минут`;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Профиль (PROFILE) — `profileStats` прототипа

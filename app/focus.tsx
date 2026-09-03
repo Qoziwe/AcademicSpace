@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/atoms';
 import { FocusSoundTile } from '@/components/molecules';
-import { FOCUS_SOUNDS, FOCUS_TRACKERS } from '@/mocks/fixtures';
+import { FOCUS_SOUNDS, FOCUS_START_LABEL, FOCUS_TRACKERS } from '@/mocks/fixtures';
 import { backOr } from '@/navigation/back';
 import { withGuard } from '@/navigation/withGuard';
 import { formatClock, useFocusStore } from '@/stores/focus';
@@ -47,7 +47,7 @@ function FocusToolsScreen() {
           <Text style={[displayFont('600'), styles.clock]}>{formatClock(seconds)}</Text>
           <View style={styles.sessionBtns}>
             <Button
-              label={running ? 'Пауза' : 'Начать 25 минут'}
+              label={running ? 'Пауза' : FOCUS_START_LABEL}
               tone="contrast"
               size="md"
               onPress={toggleRunning}

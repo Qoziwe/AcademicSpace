@@ -12,6 +12,8 @@ import { useMockStore } from '@/mocks/store';
 export interface ApiVault {
   id: string;
   universityName: string;
+  /** Короткое имя вуза для строк-сводок. */
+  shortName: string;
   deadline: string;
   filled: number;
   cellsTotal: number;
@@ -29,6 +31,7 @@ export function getVaults(): Promise<ApiVault[]> {
     VAULTS.map((v) => ({
       id: v.id,
       universityName: v.name,
+      shortName: v.shortName,
       deadline: v.deadline,
       filled: filledFor(v),
       cellsTotal: v.cellsTotal,
@@ -48,6 +51,7 @@ export function getVault(vaultId: string): Promise<ApiVaultDetail | null> {
   return delay({
     id: seed.id,
     universityName: seed.name,
+    shortName: seed.shortName,
     deadline: seed.deadline,
     filled: filledFor(seed),
     cellsTotal: seed.cellsTotal,

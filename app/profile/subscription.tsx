@@ -45,7 +45,7 @@ function ProfileSubscriptionScreen() {
               <Text style={[bodyFont('800'), styles.tagGold]}>ПОДПИСКА АКТИВНА</Text>
               <Text style={[bodyFont('800'), styles.title]}>AcademicSpace Premium</Text>
               <Text style={[bodyFont('500'), styles.text]}>
-                Месяц · 1 900 тг · продлится 12 мая. Отмена в любой момент.
+                {profileQ.data?.subscription?.summary}. Отмена в любой момент.
               </Text>
               <Button
                 label="Сменить тариф"

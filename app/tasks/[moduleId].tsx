@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Button, Checkbox, ProgressBar } from '@/components/atoms';
 import { useTask, useToggleTaskItem } from '@/hooks/api/useTasks';
 import { useTheme } from '@/hooks/useTheme';
+import { FOCUS_START_LABEL, MODULE_OUTCOME_COPY } from '@/mocks/fixtures';
 import { backOr } from '@/navigation/back';
 import { withGuard } from '@/navigation/withGuard';
 import { formatClock, useFocusStore } from '@/stores/focus';
@@ -62,8 +63,10 @@ function ModuleDetailScreen() {
               </Text>
             </View>
           </>
-        ) : (
+        ) : taskQ.isLoading ? (
           <ActivityIndicator color="#FFFFFF" style={styles.heroLoading} />
+        ) : (
+          <Text style={[bodyFont('800'), styles.title]}>Модуль завершён</Text>
         )}
       </View>
 
@@ -76,7 +79,7 @@ function ModuleDetailScreen() {
               <Text style={[bodyFont('700'), styles.timerLabel]}>Таймер модуля</Text>
               <Text style={[displayFont('600'), styles.timerClock]}>{formatClock(seconds)}</Text>
               <Button
-                label={running ? 'Пауза' : 'Начать 25 минут'}
+                label={running ? 'Пауза' : FOCUS_START_LABEL}
                 tone="contrast"
                 size="md"
                 onPress={toggleTimer}
@@ -122,13 +125,11 @@ function ModuleDetailScreen() {
               Что дальше
             </Text>
             <Text style={[bodyFont('500'), styles.outcome, { color: palette.sub }]}>
-              {complete
-                ? 'Все пункты закрыты — модуль уходит из активного блока и навсегда сохраняется в «Журнале выполненных заданий» в профиле.'
-                : 'Когда все пункты будут отмечены, карточка исчезнет с главного экрана и осядет в «Журнале выполненных заданий» вместе с начисленным опытом.'}
+              {complete ? MODULE_OUTCOME_COPY.complete : MODULE_OUTCOME_COPY.pending}
             </Text>
             <View style={[styles.rewardRow, { borderTopColor: palette.border }]}>
               <Text style={[bodyFont('500'), styles.rewardLabel, { color: palette.sub }]}>
-                Награда за завершение
+                {MODULE_OUTCOME_COPY.rewardLabel}
               </Text>
               <Text style={[bodyFont('800'), styles.rewardXp]}>+{task.xp} XP</Text>
             </View>
@@ -141,9 +142,34 @@ function ModuleDetailScreen() {
             onPress={() => router.push('/ai/chat')}
           />
         </ScrollView>
-      ) : (
+      ) : taskQ.isLoading ? (
         <View style={styles.bodyLoading}>
           <ActivityIndicator color={accent.blue} />
+        </View>
+      ) : (
+        <View style={styles.done}>
+          <View
+            style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}
+          >
+            <Text style={[bodyFont('800'), styles.cardTitle, { color: palette.ink }]}>
+              Модуль завершён
+            </Text>
+            <Text style={[bodyFont('500'), styles.outcome, { color: palette.sub }]}>
+              {MODULE_OUTCOME_COPY.complete}
+            </Text>
+          </View>
+          <Button
+            label="Открыть журнал"
+            tone="navy"
+            size="md"
+            onPress={() => router.replace('/profile/history')}
+          />
+          <Button
+            label="К активным задачам"
+            variant="secondary"
+            size="sm"
+            onPress={() => router.replace('/tasks')}
+          />
         </View>
       )}
     </View>
@@ -174,6 +200,7 @@ const styles = StyleSheet.create({
   progressText: { fontSize: 12, color: '#FFFFFF' },
   content: { paddingHorizontal: 18, paddingTop: 16, gap: 11 },
   bodyLoading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  done: { paddingHorizontal: 18, paddingTop: 16, gap: 11 },
   timerCard: {
     backgroundColor: navy.deep,
     borderRadius: radius.xl,

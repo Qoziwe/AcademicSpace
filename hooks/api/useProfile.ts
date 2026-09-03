@@ -7,13 +7,13 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { qk } from '@/hooks/api/keys';
-import { getProfile } from '@/mocks/handlers/profile';
+import { profileApi } from '@/services/api/profile';
 import { useSessionStore } from '@/stores/session';
 
 export function useProfile() {
   const plan = useSessionStore((s) => s.plan);
   return useQuery({
     queryKey: qk.profile(plan),
-    queryFn: () => getProfile(plan),
+    queryFn: () => profileApi.getProfile(plan),
   });
 }

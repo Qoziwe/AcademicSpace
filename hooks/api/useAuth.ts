@@ -6,12 +6,12 @@
 
 import { useMutation } from '@tanstack/react-query';
 
-import { signIn, signUp, type SignInBody, type SignUpBody } from '@/mocks/handlers/auth';
+import { authApi, type SignInBody, type SignUpBody } from '@/services/api/auth';
 
 export function useSignUp() {
-  return useMutation({ mutationFn: (body: SignUpBody) => signUp(body) });
+  return useMutation({ mutationFn: (body: SignUpBody) => authApi.signUp(body) });
 }
 
 export function useSignIn() {
-  return useMutation({ mutationFn: (body: SignInBody) => signIn(body) });
+  return useMutation({ mutationFn: (body: SignInBody) => authApi.signIn(body) });
 }

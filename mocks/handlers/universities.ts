@@ -43,6 +43,8 @@ export interface UniversityDetailResponse {
   rows: { k: string; v: string }[];
   /** Список названий документов — только для Premium; иначе `null`. */
   requiredDocuments: string[] | null;
+  /** Текст блока документов: разбор для Premium / тизер замка для Free. */
+  documentsNote: string;
 }
 
 /**
@@ -80,5 +82,6 @@ export function getUniversity(id: string, isPremium: boolean): Promise<Universit
           'Dichiarazione di valore',
         ]
       : null,
+    documentsNote: isPremium ? UNIVERSITY_DETAIL.docTextPremium : UNIVERSITY_DETAIL.docTextFree,
   });
 }

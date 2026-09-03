@@ -116,7 +116,10 @@ function DashboardScreen() {
           {!filled ? (
             <NewbieCard onStart={() => router.push('/universities/questionnaire')} />
           ) : (
-            <EditProfileCard onEdit={() => router.push('/universities/questionnaire')} />
+            <EditProfileCard
+              stats={profile?.dashboardStats ?? []}
+              onEdit={() => router.push('/universities/questionnaire')}
+            />
           )}
 
           {isPremium && tasksQ.data ? (
@@ -150,7 +153,9 @@ function DashboardScreen() {
                   Зона анализа
                 </Text>
                 <Text style={[bodyFont('500'), styles.analysisSub, { color: palette.sub }]}>
-                  {filled ? 'Италия · подбор от 14 марта' : 'заполните анкету, чтобы запустить'}
+                  {filled && profile
+                    ? `${profile.analysis.country} · подбор от ${profile.analysis.sinceLabel}`
+                    : 'заполните анкету, чтобы запустить'}
                 </Text>
               </View>
               <Button
@@ -221,7 +226,13 @@ function NewbieCard({ onStart }: { onStart: () => void }) {
   );
 }
 
-function EditProfileCard({ onEdit }: { onEdit: () => void }) {
+function EditProfileCard({
+  stats,
+  onEdit,
+}: {
+  stats: { v: string; k: string }[];
+  onEdit: () => void;
+}) {
   const { palette } = useTheme();
   return (
     <View style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
@@ -229,20 +240,18 @@ function EditProfileCard({ onEdit }: { onEdit: () => void }) {
       <Text style={[bodyFont('500'), styles.editText, { color: palette.sub }]}>
         Ваши цели меняются? Убедитесь, что данные актуальны, чтобы подборка была максимально точной.
       </Text>
-      <View style={[styles.stats, { borderTopColor: palette.border }]}>
-        {(
-          [
-            ['78', 'рейтинг'],
-            ['12/12', 'полей'],
-            ['Италия', 'страна подбора'],
-          ] as const
-        ).map(([v, k]) => (
-          <View key={k}>
-            <Text style={[displayFont('600'), styles.statNum, { color: palette.ink }]}>{v}</Text>
-            <Text style={[bodyFont('500'), styles.statLabel, { color: palette.sub }]}>{k}</Text>
-          </View>
-        ))}
-      </View>
+      {stats.length > 0 ? (
+        <View style={[styles.stats, { borderTopColor: palette.border }]}>
+          {stats.map((s) => (
+            <View key={s.k}>
+              <Text style={[displayFont('600'), styles.statNum, { color: palette.ink }]}>
+                {s.v}
+              </Text>
+              <Text style={[bodyFont('500'), styles.statLabel, { color: palette.sub }]}>{s.k}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }

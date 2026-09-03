@@ -7,12 +7,12 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { qk } from '@/hooks/api/keys';
-import { getVault, getVaults } from '@/mocks/handlers/vaults';
+import { vaultsApi } from '@/services/api/vaults';
 
 export function useVaults() {
-  return useQuery({ queryKey: qk.vaults(), queryFn: getVaults });
+  return useQuery({ queryKey: qk.vaults(), queryFn: vaultsApi.getVaults });
 }
 
 export function useVault(vaultId: string) {
-  return useQuery({ queryKey: qk.vault(vaultId), queryFn: () => getVault(vaultId) });
+  return useQuery({ queryKey: qk.vault(vaultId), queryFn: () => vaultsApi.getVault(vaultId) });
 }
