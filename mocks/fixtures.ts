@@ -427,3 +427,185 @@ export const CHAT_QUICK_PROMPTS = [
   'Что делать с Reach-вузами?',
   'Собери план на неделю',
 ] as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Копилки документов (VAULTS_LIST) — `vaults` прототипа
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface VaultSeed {
+  id: string;
+  name: string;
+  deadline: string;
+  cellsTotal: number;
+  /** Заполнено ячеек. Для первой копилки перекрывается `mocks/store.ts.vaultCells`. */
+  filledFixed: number;
+}
+
+export const VAULTS: VaultSeed[] = [
+  {
+    id: 'bologna',
+    name: 'Università di Bologna',
+    deadline: 'дедлайн 12 мая · 9 ячеек',
+    cellsTotal: 9,
+    filledFixed: 3,
+  },
+  {
+    id: 'padova',
+    name: 'Università di Padova',
+    deadline: 'дедлайн 2 июня · 7 ячеек',
+    cellsTotal: 7,
+    filledFixed: 2,
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Журнал выполненных заданий (ACHIEVEMENT_LOG) — `logDays` прототипа
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type LogDotColor = 'blue' | 'blueLight' | 'green' | 'gold' | 'rose';
+
+export interface LogEntry {
+  title: string;
+  kind: string;
+  xp: number;
+  dot: LogDotColor;
+}
+
+export interface LogDay {
+  date: string;
+  items: LogEntry[];
+}
+
+export const ACHIEVEMENT_LOG_DAYS: LogDay[] = [
+  {
+    date: 'сегодня, 14 марта',
+    items: [
+      { title: 'Пробный тест Listening', kind: 'дорожная карта · IELTS 6.5', xp: 20, dot: 'blue' },
+      { title: 'Сессия фокуса 25 минут', kind: 'таймер', xp: 10, dot: 'blueLight' },
+      {
+        title: 'Черновик первого абзаца',
+        kind: 'чек-лист · мотивационное письмо',
+        xp: 15,
+        dot: 'green',
+      },
+    ],
+  },
+  {
+    date: '12 марта',
+    items: [
+      { title: 'Ачивка «Первый подбор»', kind: 'достижение', xp: 50, dot: 'gold' },
+      {
+        title: 'Оценка по математике обновлена',
+        kind: 'академические данные',
+        xp: 25,
+        dot: 'rose',
+      },
+    ],
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Фокус (FOCUS_TOOLS) — `soundDefs` / `trackers` прототипа
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const FOCUS_SOUNDS = [
+  { name: 'Белый шум', sub: 'ровный фон' },
+  { name: 'Дождь', sub: 'мягкий, без грома' },
+  { name: 'Кафе', sub: 'негромкие голоса' },
+  { name: 'Лес', sub: 'птицы и ветер' },
+] as const;
+
+export const FOCUS_TRACKERS = [
+  { name: 'Подготовка к IELTS', value: '4 из 7 дней', days: 4 },
+  { name: 'Мотивационное письмо', value: '2 из 7 дней', days: 2 },
+  { name: 'Сессии фокуса', value: '5 из 7 дней', days: 5 },
+] as const;
+
+/** Дефолтная длина сессии фокуса, сек (`timer: 1500`). */
+export const FOCUS_DEFAULT_SECONDS = 1500;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Профиль (PROFILE) — `profileStats` прототипа
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const PROFILE_STATS = [
+  { v: '4', k: 'уровень из 100' },
+  { v: '620', k: 'XP всего' },
+  { v: '14', k: 'подобрано вузов' },
+] as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Настройки (SETTINGS) — `settingsGroups` прототипа
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface SettingsRowSeed {
+  title: string;
+  value?: string;
+  /** Навигация: 'profile' → PROFILE, иначе строка без перехода (пункт-заглушка). */
+  go?: 'profile';
+}
+
+export interface SettingsGroupSeed {
+  title: string;
+  rows: SettingsRowSeed[];
+}
+
+export const SETTINGS_GROUPS: SettingsGroupSeed[] = [
+  {
+    title: 'Аккаунт',
+    rows: [
+      { title: 'Профиль и класс', value: '11 класс', go: 'profile' },
+      { title: 'E-mail', value: 'tinatin@mail.kz' },
+      { title: 'Язык интерфейса', value: 'Русский' },
+    ],
+  },
+  {
+    title: 'Уведомления',
+    rows: [
+      { title: 'Дедлайны вузов', value: 'вкл' },
+      { title: 'Напоминания по задачам', value: 'вкл' },
+      { title: 'Новости и акции', value: 'выкл' },
+    ],
+  },
+  {
+    title: 'О приложении',
+    rows: [
+      { title: 'О нас', value: '' },
+      { title: 'Условия использования', value: '' },
+      { title: 'Политика конфиденциальности', value: '' },
+      { title: 'Версия', value: '1.0.0 (24)' },
+    ],
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Системные экраны (ERROR / OFFLINE / MAINTENANCE / UPDATE_REQUIRED)
+// — `sysCopyMap` прототипа
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const SYSTEM_COPY = {
+  error: {
+    title: 'Что-то пошло не так',
+    text: 'Не удалось загрузить данные подбора. Попробуйте ещё раз — прогресс и загруженные документы сохранены.',
+    cta: 'Повторить',
+    detail: 'request_id: 7f3a19 · /universities/results',
+  },
+  offline: {
+    title: 'Нет соединения',
+    text: 'Приложение работает офлайн: доступны сохранённые вузы, копилки и активные задачи. Остальное подтянется при возврате сети.',
+    cta: 'Продолжить офлайн',
+    detail: null,
+  },
+  maintenance: {
+    title: 'Технические работы',
+    text: 'Обновляем сервис подбора. Обычно это занимает меньше часа — попробуйте зайти чуть позже.',
+    cta: 'Обновить статус',
+    detail: '503 · backend',
+  },
+  update: {
+    title: 'Требуется обновление',
+    text: 'Версия приложения устарела: алгоритм скоринга и ИИ-анализ работают только на 1.1 и выше.',
+    cta: 'Обновить в магазине',
+    detail: 'установлено 1.0.0 (24) · минимум 1.1.0',
+  },
+} as const;
