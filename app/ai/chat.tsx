@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ChatThread, Composer } from '@/components/organisms';
@@ -63,16 +63,25 @@ function AiChatScreen() {
         </View>
       </View>
 
-      <ChatThread
-        style={styles.thread}
-        messages={messages}
-        typing={typing}
-        onCreateModule={(messageId) =>
-          createModule.mutate(messageId, { onSuccess: () => router.push('/tasks') })
-        }
-      />
+      <KeyboardAvoidingView
+        style={styles.kav}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ChatThread
+          style={styles.thread}
+          messages={messages}
+          typing={typing}
+          onCreateModule={(messageId) =>
+            createModule.mutate(messageId, { onSuccess: () => router.push('/tasks') })
+          }
+        />
 
-      <Composer quickPrompts={metaQ.data?.quickPrompts ?? []} onQuickPrompt={send} onSend={send} />
+        <Composer
+          quickPrompts={metaQ.data?.quickPrompts ?? []}
+          onQuickPrompt={send}
+          onSend={send}
+        />
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -107,6 +116,7 @@ const styles = StyleSheet.create({
   headerText: { flex: 1, minWidth: 0 },
   headerTitle: { fontSize: 14.5 },
   headerStatus: { fontSize: 11, color: accent.green, marginTop: 1 },
+  kav: { flex: 1 },
   thread: { flex: 1 },
 });
 
