@@ -82,8 +82,9 @@ bundle id / package name) вынести в один конфиг (`app.config.t
   премиум-флаг на этапе моков, состояние форм в моменте, тумблеры).
 - ESLint + Prettier обязательны. Husky + lint-staged — блокировка коммита
   с ошибками линта.
-- Git: прямые пуши в `main` запрещены. Feature-branch workflow,
-  Conventional Commits, слияние — только Pull Request + Squash and Merge.
+- Git: Conventional Commits. Прямые пуши в `main` разрешены для Claude
+  Code — не обязательно заводить feature-branch и PR под каждое
+  изменение.
 - Каждый поход к будущему бекенду документируется в `docs/api-contract.md`
   в формате:
   ```
