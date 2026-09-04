@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { TAB_BAR_BAR_HEIGHT } from '@/components/organisms/TabBar';
 import { useTheme } from '@/hooks/useTheme';
 import { accent, bodyFont, navy, radius, spacing } from '@/theme';
 
@@ -60,7 +61,9 @@ export function Composer({
         {
           backgroundColor: palette.card,
           borderTopColor: palette.border,
-          paddingBottom: Math.max(insets.bottom, 12) + 12,
+          // AI_CHAT — таб-рут: плавающий таб-бар висит над композером,
+          // добавляем его высоту, чтобы поле ввода не уходило под бар.
+          paddingBottom: Math.max(insets.bottom, 12) + 12 + TAB_BAR_BAR_HEIGHT,
         },
         style,
       ]}
