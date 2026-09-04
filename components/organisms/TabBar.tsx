@@ -21,6 +21,13 @@ import { TAB_BAR_ROUTE_PATHS, TAB_ENTRIES } from '@/navigation/registry';
 import { selectIsPremium, useSessionStore } from '@/stores/session';
 import { bodyFont, radius } from '@/theme';
 
+/**
+ * Высота самой плашки бара (padding 9×2 + высота таба 46). Экраны с
+ * фиксированным нижним элементом (`<Composer>` на AI_CHAT) добавляют это в
+ * свой нижний отступ, чтобы плавающий бар не перекрывал контент.
+ */
+export const TAB_BAR_BAR_HEIGHT = 64;
+
 /** Хост: решает, показывать ли таб-бар на текущем роуте. */
 export function TabBarHost() {
   const pathname = usePathname();
