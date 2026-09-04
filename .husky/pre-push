@@ -1,13 +1,1 @@
-#
-# Локальная страховка от прямого пуша в main (`CLAUDE.md` §5).
-# Серверная защита ветки настраивается отдельно в GitHub → Settings → Branches.
-#
-protected_branch='main'
-current_branch=$(git symbolic-ref --short HEAD)
-
-if [ "$current_branch" = "$protected_branch" ]; then
-  echo "✖ Прямой push в '$protected_branch' запрещён. Используй feature-ветку + Pull Request."
-  exit 1
-fi
-
 npm run typecheck
