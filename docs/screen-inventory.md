@@ -16,6 +16,21 @@
 > хардкода в UI вынесены в `fixtures.ts`/хендлеры. Сквозной путь
 > анкета → … → закрытие модуля → рост XP → запись в журнал работает на
 > моках и переживает перезапуск. Дальше — Фаза 5 (полировка).
+>
+> **Фаза 5 завершена:** полировка мобильного + веба-без-десктопа.
+> Motion-примитивы `components/motion/` (`<Spin>`/`<Pulse>`/`<Blink>`/
+> `<SlideUp>` на Reanimated, `useReducedMotion`) переносят `@keyframes`
+> прототипа по фактическим длительностям — Splash, AuthLoading,
+> ANALYSIS_LOADING, PAYMENT_FLOW, ChatThread typing, OfflineBanner,
+> Task/ModuleConfirmation-карточки, FocusSoundTile. Веб на широком экране —
+> центрированный контейнер `APP_MAX_WIDTH=420` (`docs/design-tokens.md` →
+> «Веб-контейнер»), без desktop-раскладки (Фаза 7). `KeyboardAvoidingView`
+> на Chat/Auth. Настоящий blur (`expo-blur`) на ANALYSIS_PREVIEW. Deep link
+> из `scheme: academicspace` (Expo Router 1:1 по файлам) — проверено:
+> прямой URL на RESULTS / UNIVERSITY_DETAILS / PAYWALL / AI_CHAT
+> открывает нужный экран, Premium-only роут для Free уводит на PAYWALL
+> (`withGuard`). Обе темы сверены на каждом theme-aware экране. Дальше —
+> Фаза 6 (QA-проход).
 
 Источник строк — `docs/source/design-reference.html` (маркеры
 `═══ ИМЯ ═══`). Звёздочка (*) — диапазон приблизительный, экран
