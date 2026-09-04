@@ -3,21 +3,15 @@
  * пузыри `<ChatBubble>`, прикреплённые карточки `<ModuleConfirmationCard>`
  * и индикатор набора. Автопрокрутка вниз при новом сообщении.
  *
- * Индикатор набора мигает через RN `Animated` (базовое поведение
- * компонента; общий пас анимаций spin/pulse/blink по экранам — Фаза 5).
+ * Индикатор набора — три точки `<Blink>` 1000 мс с задержками 0/200/400
+ * (`design-reference.html:653–655`).
  */
 
-import { useEffect, useRef } from 'react';
-import {
-  Animated,
-  ScrollView,
-  StyleSheet,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { useRef } from 'react';
+import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { ChatBubble, ModuleConfirmationCard } from '@/components/molecules';
+import { Blink } from '@/components/motion';
 import { useTheme } from '@/hooks/useTheme';
 import { spacing } from '@/theme';
 
@@ -78,36 +72,19 @@ export function ChatThread({
   );
 }
 
+const TYPING_DELAYS = [0, 200, 400];
+
 function TypingIndicator() {
   const { palette } = useTheme();
-  const a = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(a, { toValue: 1, duration: 500, useNativeDriver: true }),
-        Animated.timing(a, { toValue: 0, duration: 500, useNativeDriver: true }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [a]);
 
   return (
     <View style={[styles.typing, { backgroundColor: palette.card, borderColor: palette.border }]}>
-      {[0, 1, 2].map((i) => (
-        <Animated.View
-          key={i}
-          style={[
-            styles.typingDot,
-            {
-              backgroundColor: palette.sub,
-              opacity: a.interpolate({
-                inputRange: [0, 1],
-                outputRange: i === 1 ? [1, 0.25] : [0.25, 1],
-              }),
-            },
-          ]}
+      {TYPING_DELAYS.map((delay) => (
+        <Blink
+          key={delay}
+          durationMs={1000}
+          delayMs={delay}
+          style={[styles.typingDot, { backgroundColor: palette.sub }]}
         />
       ))}
     </View>

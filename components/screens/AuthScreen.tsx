@@ -11,7 +11,15 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, TextField } from '@/components/atoms';
@@ -51,13 +59,17 @@ export function AuthScreen({ mode }: Props) {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: palette.screen }]}>
+    <KeyboardAvoidingView
+      style={[styles.root, { backgroundColor: palette.screen }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <ScrollView
         contentContainerStyle={[
           styles.content,
           { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
         ]}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
       >
         <Pressable
           accessibilityRole="button"
@@ -132,7 +144,7 @@ export function AuthScreen({ mode }: Props) {
           </Text>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -1,3 +1,4 @@
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -13,12 +14,12 @@ import { accent, bodyFont, navy, radius } from '@/theme';
 
 /**
  * ANALYSIS_PREVIEW (`/ai/analysis/preview`, `design-reference.html:551`).
- * Первая монетизация: превью-блоки уходят под градиент-фейд, поверх —
- * карточка подписки → PAYWALL. Настоящий blur — Фаза 5 (`expo-blur`).
+ * Первая монетизация: превью-блоки уходят под `<BlurView>` + градиент-фейд
+ * (`backdrop-filter:blur(3px)`, `:574`), поверх — карточка подписки → PAYWALL.
  */
 function AnalysisPreviewScreen() {
   const insets = useSafeAreaInsets();
-  const { palette } = useTheme();
+  const { palette, isDark } = useTheme();
   const analysisQ = useAnalysis('a_demo');
   const blocks = analysisQ.data?.previewBlocks ?? [];
 
@@ -50,6 +51,14 @@ function AnalysisPreviewScreen() {
               </View>
             ))}
           </ScrollView>
+
+          <BlurView
+            pointerEvents="none"
+            intensity={12}
+            tint={isDark ? 'dark' : 'light'}
+            experimentalBlurMethod="dimezisBlurView"
+            style={styles.fade}
+          />
 
           <LinearGradient
             pointerEvents="none"

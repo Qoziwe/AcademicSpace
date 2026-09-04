@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, CheckIcon, TextField } from '@/components/atoms';
+import { Spin } from '@/components/motion';
 import { useSubscribe } from '@/hooks/api/useSubscription';
 import { PAYMENT_FIELDS, PLANS } from '@/mocks/fixtures';
 import { useMockStore } from '@/mocks/store';
@@ -82,7 +83,10 @@ function PaymentFlowScreen() {
         </>
       ) : payState === 'processing' ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={accent.gold} />
+          <View style={styles.payRing}>
+            <View style={styles.payRingBase} />
+            <Spin durationMs={1000} style={styles.payRingSpin} />
+          </View>
           <View style={styles.centeredText}>
             <Text style={[bodyFont('700'), styles.centeredTitle]}>Обрабатываем платёж</Text>
             <Text style={[bodyFont('400'), styles.centeredSub]}>Не закрывайте экран</Text>
@@ -133,6 +137,22 @@ const styles = StyleSheet.create({
   spacer: { flex: 1 },
   secure: { fontSize: 10.5, lineHeight: 15, color: 'rgba(255,255,255,0.4)', textAlign: 'center' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 22 },
+  payRing: { width: 88, height: 88 },
+  payRingBase: {
+    position: 'absolute',
+    inset: 0,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  payRingSpin: {
+    position: 'absolute',
+    inset: 0,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderTopColor: accent.gold,
+  },
   centeredText: { alignItems: 'center', gap: 10, paddingHorizontal: 20 },
   centeredTitle: { fontSize: 15, color: '#FFFFFF' },
   centeredSub: {

@@ -8,12 +8,14 @@
  *
  * Пункты переключаются на месте (`onToggleItem`) — как `toggleItem` в
  * прототипе. Экраны theme-aware только по фону — карточку доводим до
- * 7-токенного паттерна (`CLAUDE.md` §8).
+ * 7-токенного паттерна (`CLAUDE.md` §8). Появление — `<SlideUp>` .3s
+ * (`taskCardWrapStyle`, `animation:up`).
  */
 
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Checkbox, ProgressBar } from '@/components/atoms';
+import { SlideUp } from '@/components/motion';
 import { useTheme } from '@/hooks/useTheme';
 import { accent, bodyFont, radius, spacing } from '@/theme';
 
@@ -59,7 +61,7 @@ export function TaskModuleCard({
   const full = variant === 'full';
 
   return (
-    <View
+    <SlideUp
       style={[
         styles.card,
         {
@@ -153,7 +155,7 @@ export function TaskModuleCard({
           </Text>
         </View>
       )}
-    </View>
+    </SlideUp>
   );
 }
 

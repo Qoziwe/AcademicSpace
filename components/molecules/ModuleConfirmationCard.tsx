@@ -3,11 +3,13 @@
  * которую ассистент присылает в чат (`design-reference.html:640`,
  * `messages[].module`). Остаётся в переписке; `created` → кнопка
  * превращается в зелёный статус «Вынесено на главный экран ✓».
+ * Появление — `<SlideUp>` .3s (CSS `animation:up`, `:640`).
  */
 
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { IconTile } from '@/components/atoms';
+import { SlideUp } from '@/components/motion';
 import { useTheme } from '@/hooks/useTheme';
 import { accent, bodyFont, radius, spacing } from '@/theme';
 
@@ -33,7 +35,7 @@ export function ModuleConfirmationCard({
   const { palette } = useTheme();
 
   return (
-    <View style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
+    <SlideUp style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
       <View style={styles.header}>
         <IconTile size={26} radius={9} tone="blueSoft">
           <View style={styles.diamond} />
@@ -62,7 +64,7 @@ export function ModuleConfirmationCard({
           {created ? createdLabel : createLabel}
         </Text>
       </Pressable>
-    </View>
+    </SlideUp>
   );
 }
 

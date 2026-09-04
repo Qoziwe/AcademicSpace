@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandLogo } from '@/components/atoms';
+import { Spin } from '@/components/motion';
 import { BRAND } from '@/constants/brand';
 import { useSessionStore } from '@/stores/session';
 import { bodyFont, displayFont } from '@/theme';
@@ -11,7 +12,8 @@ import { bodyFont, displayFont } from '@/theme';
 /**
  * SPLASH (`/`, `design-reference.html:76`). Брендовый навy-экран (вне темы).
  * Тап или авто-переход (после гидратации сессии) → WELCOME, либо DASHBOARD
- * при уже существующей мок-сессии. Кольца spin/pulse — статичны до Фазы 5.
+ * при уже существующей мок-сессии. Акцент-кольцо — `<Spin>` 5s
+ * (`design-reference.html:82`).
  */
 export default function SplashScreen() {
   const hydrated = useSessionStore((s) => s.hydrated);
@@ -41,7 +43,7 @@ export default function SplashScreen() {
         <View style={[styles.ring, styles.ring1]} />
         <View style={[styles.ring, styles.ring2]} />
         <View style={[styles.ring, styles.ring3]} />
-        <View style={[styles.ring, styles.ringAccent]} />
+        <Spin durationMs={5000} style={[styles.ring, styles.ringAccent]} />
         <BrandLogo size={46} />
       </View>
 
