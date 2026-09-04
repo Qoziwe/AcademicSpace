@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { DevMenu } from '@/components/dev/DevMenu';
 import { OfflineBanner } from '@/components/organisms/OfflineBanner';
@@ -54,23 +54,8 @@ function AppShell() {
   return (
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      {/*
-       * Веб на широком экране: контент не растягивается, а живёт в
-       * центрированном app-like контейнере шириной `APP_MAX_WIDTH`
-       * (фрейм прототипа — 414/390 px), по бокам — canvas-цвет `theme.page`.
-       * Полноценная desktop-раскладка — отдельная Фаза 7 (`CLAUDE.md` §9).
-       * На iOS/Android рамка прозрачна (`flex: 1`, без ограничения ширины).
-       */}
       <View style={[styles.root, { backgroundColor: palette.page }]}>
-        <View
-          style={[
-            styles.frame,
-            Platform.OS === 'web' && [
-              styles.frameWeb,
-              { borderColor: palette.border, backgroundColor: palette.page },
-            ],
-          ]}
-        >
+        <View style={styles.frame}>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="subscription/offer" options={{ presentation: 'modal' }} />
             <Stack.Screen name="subscription/plans" options={{ presentation: 'modal' }} />
@@ -93,9 +78,6 @@ function AppShell() {
   );
 }
 
-/** Ширина центрированного веб-контейнера (`docs/design-tokens.md` → «Веб-контейнер»). */
-export const APP_MAX_WIDTH = 420;
-
 const styles = StyleSheet.create({
   root: {
     flex: 1,
@@ -103,11 +85,5 @@ const styles = StyleSheet.create({
   frame: {
     flex: 1,
     width: '100%',
-  },
-  frameWeb: {
-    maxWidth: APP_MAX_WIDTH,
-    alignSelf: 'center',
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
   },
 });
