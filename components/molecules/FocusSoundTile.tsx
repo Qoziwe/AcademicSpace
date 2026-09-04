@@ -3,11 +3,13 @@
  * (`design-reference.html:796`, `sounds`). Экран FOCUS сознательно вне темы
  * (фиксированный навy `navy.deep`) — цвета не из палитры.
  *
- * Эквалайзер статичен; анимация `pulse` активных баров — Фаза 5 (Reanimated).
+ * У активной плитки бары эквалайзера пульсируют — `<Pulse>` с длительностью
+ * `700 + i*130` мс (`design-reference.html:1511`).
  */
 
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
+import { Pulse } from '@/components/motion';
 import { bodyFont, radius } from '@/theme';
 
 const BAR_HEIGHTS = [8, 15, 11, 18, 7]; // ref: design-reference.html sounds bars
@@ -37,17 +39,19 @@ export function FocusSoundTile({ name, sub, active, onPress, style }: Props) {
       ]}
     >
       <View style={styles.bars}>
-        {BAR_HEIGHTS.map((h, i) => (
-          <View
-            key={i}
-            style={{
-              width: 3,
-              borderRadius: 2,
-              height: h,
-              backgroundColor: active ? '#B6C4FF' : 'rgba(255,255,255,0.3)',
-            }}
-          />
-        ))}
+        {BAR_HEIGHTS.map((h, i) => {
+          const barStyle = {
+            width: 3,
+            borderRadius: 2,
+            height: h,
+            backgroundColor: active ? '#B6C4FF' : 'rgba(255,255,255,0.3)',
+          } as const;
+          return active ? (
+            <Pulse key={i} durationMs={700 + i * 130} style={barStyle} />
+          ) : (
+            <View key={i} style={barStyle} />
+          );
+        })}
       </View>
       <Text
         style={[

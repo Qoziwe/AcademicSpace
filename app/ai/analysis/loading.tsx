@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { Blink, Spin } from '@/components/motion';
 import { useAnalysis } from '@/hooks/api/useAnalysis';
 import { ANALYSIS_STEPS } from '@/mocks/fixtures';
 import { withGuard } from '@/navigation/withGuard';
@@ -11,7 +12,8 @@ import { accent, bodyFont, navy } from '@/theme';
  * ANALYSIS_LOADING (`/ai/analysis/loading`, `design-reference.html:527`).
  * Навy `navy.deep`, вне темы. Авто-переход на ANALYSIS_PREVIEW; back
  * отключён (`gestureEnabled: false` в root `_layout`, здесь `replace`).
- * Кольца spin/blur — статичны до Фазы 5.
+ * Кольца — `<Spin>` 1.4s + `<Spin reverse>` 2.1s, точка активного шага —
+ * `<Blink>` 1.2s (`design-reference.html:531–532,1448`).
  */
 function AnalysisLoadingScreen() {
   // Прогреваем кэш анализа, чтобы ANALYSIS_PREVIEW открылся без спиннера.
@@ -26,8 +28,8 @@ function AnalysisLoadingScreen() {
     <View style={styles.root}>
       <View style={styles.rings}>
         <View style={[styles.ring, styles.ringOuter]} />
-        <View style={[styles.ring, styles.ringBlue]} />
-        <View style={[styles.ring, styles.ringGold]} />
+        <Spin durationMs={1400} style={[styles.ring, styles.ringBlue]} />
+        <Spin durationMs={2100} reverse style={[styles.ring, styles.ringGold]} />
         <View style={styles.diamond} />
       </View>
 
@@ -41,9 +43,14 @@ function AnalysisLoadingScreen() {
           const active = i === ANALYSIS_STEPS.length - 1;
           return (
             <View key={label} style={styles.step}>
-              <View
-                style={[styles.stepDot, { backgroundColor: active ? accent.gold : accent.green }]}
-              />
+              {active ? (
+                <Blink
+                  durationMs={1200}
+                  style={[styles.stepDot, { backgroundColor: accent.gold }]}
+                />
+              ) : (
+                <View style={[styles.stepDot, { backgroundColor: accent.green }]} />
+              )}
               <Text
                 style={[
                   bodyFont('500'),

@@ -1,35 +1,39 @@
 /**
- * Переходный экран с брендовым навy-фоном (SPLASH / AUTH_LOADING /
- * ANALYSIS_LOADING). Навy-экраны не подчиняются теме
- * (`docs/design-tokens.md`) — всегда `navy.primary`.
+ * Переходный брендовый навy-экран (AUTH_LOADING, `design-reference.html:148`).
+ * Навy-экраны не подчиняются теме (`docs/design-tokens.md`) — всегда
+ * `navy.primary`.
  *
- * Фаза 2: `<BrandLogo>` + шрифты Unbounded/Manrope + токены.
- * Анимации spin/pulse ромба и кольца — Фаза 5 (Reanimated).
+ * Кольцо `spin` 1100 мс + ромб `pulse` 1600 мс — Reanimated-примитивы
+ * `<Spin>` / `<Pulse>` (Фаза 5), значения из прототипа (`:153–154`).
  */
 
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { BrandLogo } from '@/components/atoms';
-import { BRAND } from '@/constants/brand';
-import { bodyFont, displayFont, navy, spacing } from '@/theme';
+import { Pulse, Spin } from '@/components/motion';
+import { bodyFont, navy, spacing } from '@/theme';
 
 interface Props {
   caption: string;
   sub?: string;
-  /** Показать название приложения под знаком (SPLASH). */
-  showBrandName?: boolean;
 }
 
-export function BrandLoading({ caption, sub, showBrandName = true }: Props) {
+export function BrandLoading({ caption, sub }: Props) {
   return (
     <View style={styles.root}>
-      <BrandLogo size={48} style={styles.logo} />
-      {showBrandName ? (
-        <Text style={[displayFont('600'), styles.brand]}>{BRAND.appName}</Text>
-      ) : null}
-      <ActivityIndicator color="#FFFFFF" style={styles.spinner} />
-      <Text style={[bodyFont('600'), styles.caption]}>{caption}</Text>
-      {sub ? <Text style={[bodyFont('400'), styles.sub]}>{sub}</Text> : null}
+      <View style={styles.rings}>
+        <View style={styles.ringBase} />
+        <Spin durationMs={1100} style={styles.ringSpin} />
+        <Pulse durationMs={1600} style={styles.diamond} />
+      </View>
+
+      <View style={styles.caption}>
+        <Text style={[bodyFont('700'), styles.title]}>{caption}</Text>
+        {sub ? <Text style={[bodyFont('400'), styles.sub]}>{sub}</Text> : null}
+      </View>
+
+      <View style={styles.track}>
+        <View style={styles.trackFill} />
+      </View>
     </View>
   );
 }
@@ -40,27 +44,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: navy.primary,
-    paddingHorizontal: spacing.xxxl,
+    gap: 30,
+    paddingHorizontal: 50,
   },
-  logo: {
-    marginBottom: spacing.xl,
+  rings: { width: 96, height: 96 },
+  ringBase: {
+    position: 'absolute',
+    inset: 0,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
-  brand: {
-    fontSize: 20,
-    letterSpacing: -0.4,
-    color: '#FFFFFF',
+  ringSpin: {
+    position: 'absolute',
+    inset: 0,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderTopColor: '#7C93FF',
   },
-  spinner: { marginTop: spacing.xxl },
-  caption: {
-    fontSize: 13.5,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: 14,
-    textAlign: 'center',
+  diamond: {
+    position: 'absolute',
+    inset: 34,
+    borderRadius: 9,
+    backgroundColor: '#7C93FF',
+    transform: [{ rotate: '45deg' }],
   },
+  caption: { alignItems: 'center', paddingHorizontal: spacing.sm },
+  title: { fontSize: 16, color: '#FFFFFF', textAlign: 'center' },
   sub: {
-    fontSize: 11.5,
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: 6,
+    fontSize: 13.5,
+    lineHeight: 21.5,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 8,
     textAlign: 'center',
   },
+  track: {
+    width: 150,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    overflow: 'hidden',
+  },
+  trackFill: { width: '100%', height: '100%', borderRadius: 2, backgroundColor: '#7C93FF' },
 });

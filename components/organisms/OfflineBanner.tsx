@@ -3,14 +3,17 @@
  * Поверх любого контентного экрана при `ui.offline`, кроме системных
  * (`/system/*` — там своё полноэкранное состояние).
  *
- * Фиксированный тёмный фон (как в прототипе) — вне темы. Реальное
- * определение сети (NetInfo) и авто-dismiss — Фаза 5.
+ * Фиксированный тёмный фон (как в прототипе) — вне темы. Появление —
+ * `<SlideUp>` .3s, точка статуса — `<Blink>` 1.4s
+ * (`design-reference.html:1075–1076`). Реальное определение сети (NetInfo)
+ * — с приходом бекенда (Фаза 8); сейчас переключается вручную.
  */
 
 import { usePathname } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Blink, SlideUp } from '@/components/motion';
 import { useMockStore } from '@/mocks/store';
 import { accent, bodyFont, radius } from '@/theme';
 
@@ -26,8 +29,8 @@ export function OfflineBanner() {
 
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { top: insets.top + 8 }]}>
-      <View style={styles.banner}>
-        <View style={styles.dot} />
+      <SlideUp style={styles.banner}>
+        <Blink durationMs={1400} style={styles.dot} />
         <View style={styles.text}>
           <Text style={[bodyFont('700'), styles.title]}>Нет соединения</Text>
           <Text style={[bodyFont('400'), styles.sub]}>Данные подтянутся автоматически</Text>
@@ -35,7 +38,7 @@ export function OfflineBanner() {
         <Pressable onPress={() => setOffline(false)} hitSlop={8}>
           <Text style={[bodyFont('700'), styles.hide]}>Скрыть</Text>
         </Pressable>
-      </View>
+      </SlideUp>
     </View>
   );
 }
