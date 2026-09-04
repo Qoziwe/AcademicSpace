@@ -8,6 +8,15 @@ import brand from './constants/brand.json';
  * не хардкодится (`CLAUDE.md` §4). Тот же JSON читает рантайм в
  * `constants/brand.ts`.
  */
+
+/**
+ * Подпуть для веб-сборки под GitHub Pages (project site отдаётся с
+ * `/<repo>/`). Локально и в нативных сборках переменной нет → `baseUrl`
+ * не проставляется, приложение живёт в корне. В `deploy-pages.yml` в неё
+ * кладётся `/<имя-репозитория>`. Должна начинаться со `/` и не оканчиваться `/`.
+ */
+const webBaseUrl = process.env.EXPO_WEB_BASE_URL?.trim().replace(/\/$/, '');
+
 const config: ExpoConfig = {
   name: brand.appName,
   slug: 'academicspace',
@@ -57,6 +66,7 @@ const config: ExpoConfig = {
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+    ...(webBaseUrl ? { baseUrl: webBaseUrl } : {}),
   },
 };
 
