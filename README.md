@@ -11,6 +11,15 @@
 > Полные правила процесса и стека — в [`CLAUDE.md`](./CLAUDE.md).
 > Фазы работ — в [`docs/00-roadmap.md`](./docs/00-roadmap.md).
 
+## Демо (веб, на моках)
+
+**https://qoziwe.github.io/AcademicSpace/**
+
+Веб-сборка (`expo export --platform web`, SPA) публикуется на GitHub Pages
+воркфлоу [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml)
+на каждый push в `main`. Данные — мок-слой (`mocks/`), бекенда нет.
+Мобильная раскладка в телефонном фрейме; полноценный desktop — Фаза 7.
+
 ## Требования к окружению
 
 - **Node.js 22 LTS** (зафиксировано в `.nvmrc` и `package.json → engines`).
