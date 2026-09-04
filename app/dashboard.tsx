@@ -1,7 +1,22 @@
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import {
+  ActivityIndicator,
+  type LayoutChangeEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandLogo, Button } from '@/components/atoms';
@@ -21,6 +36,14 @@ import { accent, bodyFont, displayFont, navy, radius, spacing } from '@/theme';
  * навy-зона (вне темы) + нижний белый sheet (theme-aware, 7 токенов).
  * Состояние анкеты (`filled`) переключает newbie-карту ↔ карту профиля;
  * роль (Free/Premium) — блок задач и апселл.
+ *
+ * Sheet — не в потоке: лежит абсолютным слоем поверх navy-зоны и тянется
+ * жестом (Reanimated + Gesture Handler) за любую точку секции (не только
+ * `grab`-хендл) между collapsed (высота navy-контента, измеряется
+ * `onLayout`) и expanded (под safe-area top), закрывая шапку целиком.
+ * Внутренний `ScrollView` и жест драга разведены через `scrollY`: пока
+ * лист развёрнут и контент не докручен до верха, тянуть вниз скроллит
+ * список, а не сворачивает шторку.
  */
 
 const TILES = [
@@ -55,145 +78,215 @@ function DashboardScreen() {
   const goAnalysis = () =>
     router.push(filled ? '/universities/results' : '/universities/questionnaire');
 
+  const expandedY = insets.top + 8;
+  const [sheetReady, setSheetReady] = useState(false);
+  const collapsedY = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const dragStartY = useSharedValue(0);
+  const isExpanded = useSharedValue(false);
+  const scrollY = useSharedValue(0);
+
+  const onTopContentLayout = (e: LayoutChangeEvent) => {
+    const h = e.nativeEvent.layout.height;
+    collapsedY.value = h;
+    if (!isExpanded.value) {
+      translateY.value = h;
+    }
+    setSheetReady(true);
+  };
+
+  const scrollHandler = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+  });
+
+  // Скролл владеет жестом, когда лист развёрнут и контент прокручен —
+  // иначе он же двигает шторку (drag по всей секции, не только по grab).
+  const dragSheet = Gesture.Pan()
+    .onStart(() => {
+      dragStartY.value = translateY.value;
+    })
+    .onUpdate((e) => {
+      const scrolledDown = translateY.value <= expandedY + 1 && scrollY.value > 1;
+      if (scrolledDown && e.translationY > 0) {
+        dragStartY.value = translateY.value - e.translationY;
+        return;
+      }
+      const next = dragStartY.value + e.translationY;
+      translateY.value = Math.min(collapsedY.value, Math.max(expandedY, next));
+    })
+    .onEnd((e) => {
+      const mid = (collapsedY.value + expandedY) / 2;
+      let expand: boolean;
+      if (e.velocityY < -300) expand = true;
+      else if (e.velocityY > 300) expand = false;
+      else expand = translateY.value < mid;
+
+      translateY.value = withSpring(expand ? expandedY : collapsedY.value, {
+        damping: 22,
+        stiffness: 220,
+        mass: 0.5,
+      });
+      isExpanded.value = expand;
+    });
+
+  const scrollNative = Gesture.Native();
+  const dragHandle = Gesture.Simultaneous(dragSheet, scrollNative);
+
+  const sheetAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   return (
     <View style={[styles.root, { backgroundColor: navy.primary }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <View style={styles.brand}>
-          <BrandLogo size={24} />
-          <Text style={[displayFont('600'), styles.brandName]}>AcademicSpace</Text>
-        </View>
-        <Pressable
-          accessibilityLabel="Настройки"
-          onPress={() => router.push('/settings')}
-          style={styles.burger}
-        >
-          <Feather name="menu" size={18} color="#FFFFFF" />
-        </Pressable>
-      </View>
-
-      {profile ? (
-        <ProfileHeaderWidget
-          variant="dashboard"
-          name={profile.name}
-          planLabel={
-            isPremium ? `Premium · до ${profile.subscription?.renewsAt ?? '—'}` : 'Базовый доступ'
-          }
-          isPremium={isPremium}
-          level={profile.level}
-          xpCurrent={profile.xp}
-          xpTarget={profile.xpToNextLevel}
-          onAvatarPress={() => router.push('/profile')}
-          style={styles.widget}
-        />
-      ) : (
-        <View style={styles.widgetLoading}>
-          <ActivityIndicator color="#FFFFFF" />
-        </View>
-      )}
-
-      <View style={styles.tiles}>
-        {TILES.map((t) => (
-          <View key={t.label} style={styles.tileCell}>
-            <BentoTile
-              label={t.label}
-              glyph={t.glyph}
-              href={t.href}
-              premium={t.premium}
-              variant={t.bot ? 'bot' : 'default'}
-            />
+      <View onLayout={onTopContentLayout}>
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+          <View style={styles.brand}>
+            <BrandLogo size={24} />
+            <Text style={[displayFont('600'), styles.brandName]}>AcademicSpace</Text>
           </View>
-        ))}
-      </View>
-
-      <View style={[styles.sheet, { backgroundColor: palette.screen }]}>
-        <View style={styles.grabWrap}>
-          <View style={styles.grab} />
-        </View>
-        <ScrollView
-          contentContainerStyle={[styles.sheetContent, { paddingBottom: insets.bottom + 120 }]}
-          showsVerticalScrollIndicator={false}
-        >
-          {!filled ? (
-            <NewbieCard onStart={() => router.push('/universities/questionnaire')} />
-          ) : (
-            <EditProfileCard
-              stats={profile?.dashboardStats ?? []}
-              onEdit={() => router.push('/universities/questionnaire')}
-            />
-          )}
-
-          {isPremium && tasksQ.data ? (
-            <ActiveTasksBlock
-              tasks={tasksQ.data.map((t) => ({
-                id: t.id,
-                kind: t.kind,
-                title: t.title,
-                items: t.items.map((it, i) => ({
-                  id: `${t.id}:${i}`,
-                  label: it.label,
-                  done: it.done,
-                })),
-              }))}
-              onToggleItem={(taskId, itemId) =>
-                toggleItem.mutate({ taskId, itemIndex: Number(itemId.split(':')[1]) })
-              }
-              onOpenTask={(taskId) =>
-                router.push({ pathname: '/tasks/[moduleId]', params: { moduleId: taskId } })
-              }
-              onSeeAll={() => router.push('/tasks')}
-            />
-          ) : null}
-
-          <View
-            style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}
+          <Pressable
+            accessibilityLabel="Настройки"
+            onPress={() => router.push('/settings')}
+            style={styles.burger}
           >
-            <View style={styles.analysisHead}>
-              <View style={styles.analysisHeadText}>
-                <Text style={[bodyFont('800'), styles.analysisTitle, { color: palette.ink }]}>
-                  Зона анализа
-                </Text>
-                <Text style={[bodyFont('500'), styles.analysisSub, { color: palette.sub }]}>
-                  {filled && profile
-                    ? `${profile.analysis.country} · подбор от ${profile.analysis.sinceLabel}`
-                    : 'заполните анкету, чтобы запустить'}
-                </Text>
-              </View>
-              <Button
-                label={filled ? 'Показать вузы' : 'Запустить подбор'}
-                tone="blue"
-                size="sm"
-                block={false}
-                elevated
-                onPress={goAnalysis}
+            <Feather name="menu" size={18} color="#FFFFFF" />
+          </Pressable>
+        </View>
+
+        {profile ? (
+          <ProfileHeaderWidget
+            variant="dashboard"
+            name={profile.name}
+            planLabel={
+              isPremium ? `Premium · до ${profile.subscription?.renewsAt ?? '—'}` : 'Базовый доступ'
+            }
+            isPremium={isPremium}
+            level={profile.level}
+            xpCurrent={profile.xp}
+            xpTarget={profile.xpToNextLevel}
+            onAvatarPress={() => router.push('/profile')}
+            style={styles.widget}
+          />
+        ) : (
+          <View style={styles.widgetLoading}>
+            <ActivityIndicator color="#FFFFFF" />
+          </View>
+        )}
+
+        <View style={styles.tiles}>
+          {TILES.map((t) => (
+            <View key={t.label} style={styles.tileCell}>
+              <BentoTile
+                label={t.label}
+                glyph={t.glyph}
+                href={t.href}
+                premium={t.premium}
+                variant={t.bot ? 'bot' : 'default'}
               />
             </View>
-            <View style={styles.buckets}>
-              {(
-                [
-                  ['Безопасные', accent.green, BUCKET_COUNTS.safety],
-                  ['Оптимальные', accent.blue, BUCKET_COUNTS.match],
-                  ['Амбициозные', accent.rose, BUCKET_COUNTS.reach],
-                ] as const
-              ).map(([label, color, n]) => (
-                <Pressable
-                  key={label}
-                  onPress={goAnalysis}
-                  style={[styles.bucket, { backgroundColor: palette.chip }]}
-                >
-                  <Text style={[displayFont('600'), styles.bucketN, { color }]}>
-                    {filled ? String(n) : '—'}
-                  </Text>
-                  <Text style={[bodyFont('600'), styles.bucketLabel, { color: palette.sub }]}>
-                    {label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          {!isPremium ? <UpsellCard onCreate={() => router.push('/ai/portfolio')} /> : null}
-        </ScrollView>
+          ))}
+        </View>
       </View>
+
+      <GestureDetector gesture={dragHandle}>
+        <Animated.View
+          style={[
+            styles.sheet,
+            { backgroundColor: palette.screen, opacity: sheetReady ? 1 : 0 },
+            sheetAnimatedStyle,
+          ]}
+        >
+          <View style={styles.grabWrap}>
+            <View style={styles.grab} />
+          </View>
+          <Animated.ScrollView
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
+            contentContainerStyle={[styles.sheetContent, { paddingBottom: insets.bottom + 120 }]}
+            showsVerticalScrollIndicator={false}
+          >
+            {!filled ? (
+              <NewbieCard onStart={() => router.push('/universities/questionnaire')} />
+            ) : (
+              <EditProfileCard
+                stats={profile?.dashboardStats ?? []}
+                onEdit={() => router.push('/universities/questionnaire')}
+              />
+            )}
+
+            {isPremium && tasksQ.data ? (
+              <ActiveTasksBlock
+                tasks={tasksQ.data.map((t) => ({
+                  id: t.id,
+                  kind: t.kind,
+                  title: t.title,
+                  items: t.items.map((it, i) => ({
+                    id: `${t.id}:${i}`,
+                    label: it.label,
+                    done: it.done,
+                  })),
+                }))}
+                onToggleItem={(taskId, itemId) =>
+                  toggleItem.mutate({ taskId, itemIndex: Number(itemId.split(':')[1]) })
+                }
+                onOpenTask={(taskId) =>
+                  router.push({ pathname: '/tasks/[moduleId]', params: { moduleId: taskId } })
+                }
+                onSeeAll={() => router.push('/tasks')}
+              />
+            ) : null}
+
+            <View
+              style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}
+            >
+              <View style={styles.analysisHead}>
+                <View style={styles.analysisHeadText}>
+                  <Text style={[bodyFont('800'), styles.analysisTitle, { color: palette.ink }]}>
+                    Зона анализа
+                  </Text>
+                  <Text style={[bodyFont('500'), styles.analysisSub, { color: palette.sub }]}>
+                    {filled && profile
+                      ? `${profile.analysis.country} · подбор от ${profile.analysis.sinceLabel}`
+                      : 'заполните анкету, чтобы запустить'}
+                  </Text>
+                </View>
+                <Button
+                  label={filled ? 'Показать вузы' : 'Запустить подбор'}
+                  tone="blue"
+                  size="sm"
+                  block={false}
+                  elevated
+                  onPress={goAnalysis}
+                />
+              </View>
+              <View style={styles.buckets}>
+                {(
+                  [
+                    ['Безопасные', accent.green, BUCKET_COUNTS.safety],
+                    ['Оптимальные', accent.blue, BUCKET_COUNTS.match],
+                    ['Амбициозные', accent.rose, BUCKET_COUNTS.reach],
+                  ] as const
+                ).map(([label, color, n]) => (
+                  <Pressable
+                    key={label}
+                    onPress={goAnalysis}
+                    style={[styles.bucket, { backgroundColor: palette.chip }]}
+                  >
+                    <Text style={[displayFont('600'), styles.bucketN, { color }]}>
+                      {filled ? String(n) : '—'}
+                    </Text>
+                    <Text style={[bodyFont('600'), styles.bucketLabel, { color: palette.sub }]}>
+                      {label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {!isPremium ? <UpsellCard onCreate={() => router.push('/ai/portfolio')} /> : null}
+          </Animated.ScrollView>
+        </Animated.View>
+      </GestureDetector>
     </View>
   );
 }
@@ -316,7 +409,11 @@ const styles = StyleSheet.create({
   },
   tileCell: { width: '22%', flexGrow: 1 },
   sheet: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     borderTopLeftRadius: radius.xxl,
     borderTopRightRadius: radius.xxl,
     paddingTop: 10,
