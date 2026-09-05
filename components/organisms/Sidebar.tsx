@@ -65,6 +65,8 @@ export function Sidebar({ visible, activePath }: Props) {
         ))}
       </View>
 
+      <View style={styles.spacer} />
+
       <View style={styles.footer}>
         <SidebarItem
           label="Настройки"
@@ -115,11 +117,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15,18,48,0.98)',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xxl,
-    justifyContent: 'space-between',
   },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: spacing.sm },
   brandName: { fontSize: 15.5, color: '#FFFFFF', letterSpacing: -0.3 },
   nav: { gap: 4, marginTop: spacing.xxxl },
+  spacer: { flex: 1, minHeight: spacing.xxxl },
   footer: {
     gap: 4,
     borderTopWidth: StyleSheet.hairlineWidth,

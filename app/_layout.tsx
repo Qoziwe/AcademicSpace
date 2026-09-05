@@ -82,8 +82,13 @@ function AppShell() {
         <View style={[styles.body, showShell && styles.bodyShell]}>
           <Sidebar visible={showShell} activePath={pathname} />
 
-          <View style={[styles.contentOuter, showShell && styles.contentOuterShell]}>
-            <View style={[styles.frame, contentMaxWidth != null && { maxWidth: contentMaxWidth }]}>
+          <View style={styles.contentOuter}>
+            <View
+              style={[
+                styles.frame,
+                contentMaxWidth != null && { alignSelf: 'center', maxWidth: contentMaxWidth },
+              ]}
+            >
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="subscription/offer" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="subscription/plans" options={{ presentation: 'modal' }} />
@@ -122,10 +127,6 @@ const styles = StyleSheet.create({
   contentOuter: {
     flex: 1,
     width: '100%',
-  },
-  contentOuterShell: {
-    alignItems: 'center',
-    overflow: 'hidden',
   },
   frame: {
     flex: 1,

@@ -19,15 +19,18 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BrandLogo, Button } from '@/components/atoms';
-import { BentoTile } from '@/components/molecules';
+import { BrandLogo, Button, ProgressBar } from '@/components/atoms';
+import { BentoTile, UniversityCard } from '@/components/molecules';
 import { ActiveTasksBlock, ProfileHeaderWidget } from '@/components/organisms';
+import { useAchievementLog } from '@/hooks/api/useAchievements';
 import { useProfile } from '@/hooks/api/useProfile';
 import { useQuestionnaireStatus } from '@/hooks/api/useQuestionnaire';
 import { useTasks, useToggleTaskItem } from '@/hooks/api/useTasks';
+import { useUniversitySearch } from '@/hooks/api/useUniversitySearch';
+import { useVaults } from '@/hooks/api/useVaults';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { useTheme } from '@/hooks/useTheme';
-import { BUCKET_COUNTS } from '@/mocks/fixtures';
+import { BUCKET_COUNTS, type LogDotColor } from '@/mocks/fixtures';
 import { ROUTES } from '@/navigation/registry';
 import { withGuard } from '@/navigation/withGuard';
 import { accent, bodyFont, displayFont, navy, radius, spacing } from '@/theme';
@@ -46,6 +49,14 @@ import { accent, bodyFont, displayFont, navy, radius, spacing } from '@/theme';
  * лист развёрнут и контент не докручен до верха, тянуть вниз скроллит
  * список, а не сворачивает шторку.
  */
+
+const DOT_COLOR: Record<LogDotColor, string> = {
+  blue: accent.blue,
+  blueLight: accent.blueLight,
+  green: accent.green,
+  gold: accent.gold,
+  rose: accent.rose,
+};
 
 const TILES = [
   { label: 'Профиль', glyph: '◉', href: ROUTES.PROFILE.demoHref, premium: false, bot: false },
@@ -83,10 +94,20 @@ function DesktopDashboard() {
   const questionnaireQ = useQuestionnaireStatus();
   const tasksQ = useTasks();
   const toggleItem = useToggleTaskItem();
+  const searchQ = useUniversitySearch();
+  const vaultsQ = useVaults();
+  const achievementLogQ = useAchievementLog();
 
   const profile = profileQ.data;
   const filled = questionnaireQ.data?.filled ?? false;
   const isPremium = profile?.plan === 'premium';
+
+  const topUniversities =
+    searchQ.data?.groups
+      .flatMap((g) => g.items.map((it) => ({ ...it, category: g.category })))
+      .slice(0, 3) ?? [];
+  const previewVaults = vaultsQ.data?.slice(0, 3) ?? [];
+  const recentAchievements = (achievementLogQ.data?.days.flatMap((d) => d.items) ?? []).slice(0, 4);
 
   const goAnalysis = () =>
     router.push(filled ? '/universities/results' : '/universities/questionnaire');
@@ -171,6 +192,119 @@ function DesktopDashboard() {
               ))}
             </View>
           </View>
+
+          {filled && topUniversities.length > 0 ? (
+            <View
+              style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}
+            >
+              <View style={styles.cardHeadRow}>
+                <Text style={[bodyFont('800'), styles.cardHeadingRow, { color: palette.ink }]}>
+                  Топ вузов подборки
+                </Text>
+                <Pressable onPress={() => router.push('/universities/results')} hitSlop={8}>
+                  <Text style={[bodyFont('700'), styles.cardLink]}>Показать все</Text>
+                </Pressable>
+              </View>
+              <View style={styles.desktopUniGrid}>
+                {topUniversities.map((u) => (
+                  <UniversityCard
+                    key={u.id}
+                    name={u.name}
+                    city={u.city}
+                    chance={u.chance}
+                    category={u.category}
+                    tags={u.tags}
+                    onPress={() =>
+                      router.push({ pathname: '/universities/[id]', params: { id: u.id } })
+                    }
+                    style={styles.desktopUniCard}
+                  />
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          {isPremium && previewVaults.length > 0 ? (
+            <View
+              style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}
+            >
+              <View style={styles.cardHeadRow}>
+                <Text style={[bodyFont('800'), styles.cardHeadingRow, { color: palette.ink }]}>
+                  Копилки документов
+                </Text>
+                <Pressable onPress={() => router.push('/documents')} hitSlop={8}>
+                  <Text style={[bodyFont('700'), styles.cardLink]}>Все копилки</Text>
+                </Pressable>
+              </View>
+              <View style={styles.vaultsPreview}>
+                {previewVaults.map((v) => (
+                  <Pressable
+                    key={v.id}
+                    onPress={() =>
+                      router.push({ pathname: '/documents/[vaultId]', params: { vaultId: v.id } })
+                    }
+                    style={[styles.vaultRow, { borderColor: palette.border }]}
+                  >
+                    <View style={styles.vaultRowText}>
+                      <Text style={[bodyFont('700'), styles.vaultName, { color: palette.ink }]}>
+                        {v.universityName}
+                      </Text>
+                      <Text style={[bodyFont('500'), styles.vaultDeadline, { color: palette.sub }]}>
+                        {v.deadline}
+                      </Text>
+                    </View>
+                    <ProgressBar
+                      value={v.cellsTotal > 0 ? v.filled / v.cellsTotal : 0}
+                      height={5}
+                      trackColor={palette.border}
+                      style={styles.vaultBar}
+                    />
+                    <Text style={[bodyFont('700'), styles.vaultCount, { color: accent.blue }]}>
+                      {v.filled}/{v.cellsTotal}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          {recentAchievements.length > 0 ? (
+            <View
+              style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}
+            >
+              <View style={styles.cardHeadRow}>
+                <Text style={[bodyFont('800'), styles.cardHeadingRow, { color: palette.ink }]}>
+                  Последние достижения
+                </Text>
+                <Pressable onPress={() => router.push('/profile/history')} hitSlop={8}>
+                  <Text style={[bodyFont('700'), styles.cardLink]}>Весь журнал</Text>
+                </Pressable>
+              </View>
+              <View style={styles.achievements}>
+                {recentAchievements.map((a, i) => (
+                  <View
+                    key={`${a.title}:${i}`}
+                    style={[styles.achievementRow, { borderColor: palette.border }]}
+                  >
+                    <View style={[styles.achievementDot, { backgroundColor: DOT_COLOR[a.dot] }]} />
+                    <View style={styles.achievementText}>
+                      <Text
+                        style={[bodyFont('700'), styles.achievementTitle, { color: palette.ink }]}
+                      >
+                        {a.title}
+                      </Text>
+                      <Text
+                        style={[bodyFont('500'), styles.achievementKind, { color: palette.sub }]}
+                      >
+                        {a.kind}
+                      </Text>
+                    </View>
+                    <Text style={[bodyFont('800'), styles.achievementXp]}>+{a.xp} XP</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.desktopSide}>
@@ -660,6 +794,42 @@ const styles = StyleSheet.create({
   desktopTiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   desktopTileCell: { width: 140 },
   desktopProfileWidget: { borderRadius: radius.xl, overflow: 'hidden' },
+  cardHeadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.lg,
+  },
+  cardHeadingRow: { fontSize: 13 },
+  cardLink: { fontSize: 11.5, color: accent.blue },
+  desktopUniGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  desktopUniCard: { flexGrow: 1, flexBasis: 220, maxWidth: 320 },
+  vaultsPreview: { gap: spacing.md },
+  vaultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: spacing.md,
+  },
+  vaultRowText: { width: 160, minWidth: 0 },
+  vaultName: { fontSize: 12.5 },
+  vaultDeadline: { fontSize: 10.5, marginTop: 2 },
+  vaultBar: { flex: 1 },
+  vaultCount: { fontSize: 11.5, width: 40, textAlign: 'right' },
+  achievements: { gap: spacing.md },
+  achievementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: spacing.md,
+  },
+  achievementDot: { width: 8, height: 8, borderRadius: 3, flexShrink: 0 },
+  achievementText: { flex: 1, minWidth: 0 },
+  achievementTitle: { fontSize: 12.5 },
+  achievementKind: { fontSize: 10.5, marginTop: 2 },
+  achievementXp: { fontSize: 11, color: accent.green, flexShrink: 0 },
 });
 
 export default withGuard(DashboardScreen, { auth: true });
