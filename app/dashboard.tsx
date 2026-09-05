@@ -7,6 +7,7 @@ import {
   type LayoutChangeEvent,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -42,13 +43,17 @@ import { accent, bodyFont, displayFont, navy, radius, spacing } from '@/theme';
  * Состояние анкеты (`filled`) переключает newbie-карту ↔ карту профиля;
  * роль (Free/Premium) — блок задач и апселл.
  *
- * Sheet — не в потоке: лежит абсолютным слоем поверх navy-зоны и тянется
- * жестом (Reanimated + Gesture Handler) за любую точку секции (не только
- * `grab`-хендл) между collapsed (высота navy-контента, измеряется
- * `onLayout`) и expanded (под safe-area top), закрывая шапку целиком.
- * Внутренний `ScrollView` и жест драга разведены через `scrollY`: пока
- * лист развёрнут и контент не докручен до верха, тянуть вниз скроллит
- * список, а не сворачивает шторку.
+ * Три раскладки, все на одних и тех же хуках/данных (`CLAUDE.md` §9):
+ *  - `DesktopDashboard` (Фаза 7) — многоколоночная desktop-страница;
+ *  - `MobileDashboardNative` (native iOS/Android) — sheet не в потоке:
+ *    лежит абсолютным слоем поверх navy-зоны и тянется жестом (Reanimated
+ *    + Gesture Handler) за любую точку секции между collapsed (высота
+ *    navy-контента, измеряется `onLayout`) и expanded (под safe-area
+ *    top); внутренний `ScrollView` и жест драга разведены через `scrollY`;
+ *  - `MobileDashboardWeb` — тот же Pan+native-scroll на тач-браузерах
+ *    ненадёжен (два независимых скролл-механизма конкурируют за один тач),
+ *    поэтому на вебе шторки нет вообще: вся секция — часть одной обычной
+ *    прокручиваемой страницы (`ScrollView` без gesture/absolute-оверлея).
  */
 
 const DOT_COLOR: Record<LogDotColor, string> = {
@@ -370,6 +375,171 @@ function DesktopDashboard() {
 }
 
 function MobileDashboard() {
+  // Драг-шторка (Simultaneous Pan + native scroll) — паттерн нативных
+  // iOS/Android приложений; на мобильном вебе он принципиально ненадёжен
+  // (см. коммиты фикса драга): даже ограничив Pan хендлом, внутри всё
+  // равно остаётся ДВА независимых скролл-механизма (позиция шторки +
+  // её собственный ScrollView), и на тач-браузерах они конфликтуют.
+  // На вебе вместо шторки — обычная одна страница: весь контент (шапка +
+  // плитки + карточки) в одном ScrollView, без gesture/absolute-оверлея.
+  // На native (iOS/Android) поведение Фазы 5 не тронуто.
+  if (Platform.OS === 'web') return <MobileDashboardWeb />;
+  return <MobileDashboardNative />;
+}
+
+function MobileDashboardWeb() {
+  const insets = useSafeAreaInsets();
+  const { palette } = useTheme();
+  const profileQ = useProfile();
+  const questionnaireQ = useQuestionnaireStatus();
+  const tasksQ = useTasks();
+  const toggleItem = useToggleTaskItem();
+
+  const profile = profileQ.data;
+  const filled = questionnaireQ.data?.filled ?? false;
+  const isPremium = profile?.plan === 'premium';
+
+  const goAnalysis = () =>
+    router.push(filled ? '/universities/results' : '/universities/questionnaire');
+
+  return (
+    <ScrollView
+      style={[styles.root, { backgroundColor: navy.primary }]}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <View style={styles.brand}>
+          <BrandLogo size={24} />
+          <Text style={[displayFont('600'), styles.brandName]}>AcademicSpace</Text>
+        </View>
+        <Pressable
+          accessibilityLabel="Настройки"
+          onPress={() => router.push('/settings')}
+          style={styles.burger}
+        >
+          <Feather name="menu" size={18} color="#FFFFFF" />
+        </Pressable>
+      </View>
+
+      {profile ? (
+        <ProfileHeaderWidget
+          variant="dashboard"
+          name={profile.name}
+          planLabel={
+            isPremium ? `Premium · до ${profile.subscription?.renewsAt ?? '—'}` : 'Базовый доступ'
+          }
+          isPremium={isPremium}
+          level={profile.level}
+          xpCurrent={profile.xp}
+          xpTarget={profile.xpToNextLevel}
+          onAvatarPress={() => router.push('/profile')}
+          style={styles.widget}
+        />
+      ) : (
+        <View style={styles.widgetLoading}>
+          <ActivityIndicator color="#FFFFFF" />
+        </View>
+      )}
+
+      <View style={styles.tiles}>
+        {TILES.map((t) => (
+          <View key={t.label} style={styles.tileCell}>
+            <BentoTile
+              label={t.label}
+              glyph={t.glyph}
+              href={t.href}
+              premium={t.premium}
+              variant={t.bot ? 'bot' : 'default'}
+            />
+          </View>
+        ))}
+      </View>
+
+      <View style={[styles.sheetContent, styles.webSheetCard, { backgroundColor: palette.screen }]}>
+        {!filled ? (
+          <NewbieCard onStart={() => router.push('/universities/questionnaire')} />
+        ) : (
+          <EditProfileCard
+            stats={profile?.dashboardStats ?? []}
+            onEdit={() => router.push('/universities/questionnaire')}
+          />
+        )}
+
+        {isPremium && tasksQ.data ? (
+          <ActiveTasksBlock
+            tasks={tasksQ.data.map((t) => ({
+              id: t.id,
+              kind: t.kind,
+              title: t.title,
+              items: t.items.map((it, i) => ({
+                id: `${t.id}:${i}`,
+                label: it.label,
+                done: it.done,
+              })),
+            }))}
+            onToggleItem={(taskId, itemId) =>
+              toggleItem.mutate({ taskId, itemIndex: Number(itemId.split(':')[1]) })
+            }
+            onOpenTask={(taskId) =>
+              router.push({ pathname: '/tasks/[moduleId]', params: { moduleId: taskId } })
+            }
+            onSeeAll={() => router.push('/tasks')}
+          />
+        ) : null}
+
+        <View style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
+          <View style={styles.analysisHead}>
+            <View style={styles.analysisHeadText}>
+              <Text style={[bodyFont('800'), styles.analysisTitle, { color: palette.ink }]}>
+                Зона анализа
+              </Text>
+              <Text style={[bodyFont('500'), styles.analysisSub, { color: palette.sub }]}>
+                {filled && profile
+                  ? `${profile.analysis.country} · подбор от ${profile.analysis.sinceLabel}`
+                  : 'заполните анкету, чтобы запустить'}
+              </Text>
+            </View>
+            <Button
+              label={filled ? 'Показать вузы' : 'Запустить подбор'}
+              tone="blue"
+              size="sm"
+              block={false}
+              elevated
+              onPress={goAnalysis}
+            />
+          </View>
+          <View style={styles.buckets}>
+            {(
+              [
+                ['Безопасные', accent.green, BUCKET_COUNTS.safety],
+                ['Оптимальные', accent.blue, BUCKET_COUNTS.match],
+                ['Амбициозные', accent.rose, BUCKET_COUNTS.reach],
+              ] as const
+            ).map(([label, color, n]) => (
+              <Pressable
+                key={label}
+                onPress={goAnalysis}
+                style={[styles.bucket, { backgroundColor: palette.chip }]}
+              >
+                <Text style={[displayFont('600'), styles.bucketN, { color }]}>
+                  {filled ? String(n) : '—'}
+                </Text>
+                <Text style={[bodyFont('600'), styles.bucketLabel, { color: palette.sub }]}>
+                  {label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {!isPremium ? <UpsellCard onCreate={() => router.push('/ai/portfolio')} /> : null}
+      </View>
+    </ScrollView>
+  );
+}
+
+function MobileDashboardNative() {
   const insets = useSafeAreaInsets();
   const { palette } = useTheme();
   const profileQ = useProfile();
@@ -436,13 +606,7 @@ function MobileDashboard() {
     });
 
   const scrollNative = Gesture.Native();
-  // На вебе браузерный тач-скролл побеждает Pan при драге по всей секции
-  // (Simultaneous с Gesture.Native работает не так надёжно, как на нативных
-  // iOS/Android — драг просто скроллит список вместо шторки). На вебе драг
-  // ограничиваем `grab`-хендлом (не часть ScrollView, конкурировать не с чем);
-  // на native — поведение Фазы 5 без изменений (драг за всю секцию).
-  const dragHandle =
-    Platform.OS === 'web' ? scrollNative : Gesture.Simultaneous(dragSheet, scrollNative);
+  const dragHandle = Gesture.Simultaneous(dragSheet, scrollNative);
 
   const sheetAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -508,17 +672,9 @@ function MobileDashboard() {
             sheetAnimatedStyle,
           ]}
         >
-          {Platform.OS === 'web' ? (
-            <GestureDetector gesture={dragSheet}>
-              <View style={styles.grabWrap}>
-                <View style={styles.grab} />
-              </View>
-            </GestureDetector>
-          ) : (
-            <View style={styles.grabWrap}>
-              <View style={styles.grab} />
-            </View>
-          )}
+          <View style={styles.grabWrap}>
+            <View style={styles.grab} />
+          </View>
           <Animated.ScrollView
             onScroll={scrollHandler}
             scrollEventThrottle={16}
@@ -746,6 +902,11 @@ const styles = StyleSheet.create({
   grabWrap: { alignItems: 'center', paddingVertical: 10 },
   grab: { width: 56, height: 5, borderRadius: 3, backgroundColor: '#D3D7E6' },
   sheetContent: { paddingHorizontal: 18, paddingTop: 8, gap: spacing.md },
+  webSheetCard: {
+    borderTopLeftRadius: radius.xxl,
+    borderTopRightRadius: radius.xxl,
+    paddingTop: 24,
+  },
   card: { borderWidth: 1, borderRadius: radius.xl, padding: 18 },
   analysisHead: {
     flexDirection: 'row',
