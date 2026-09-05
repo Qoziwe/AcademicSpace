@@ -10,6 +10,7 @@
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { UniversityCard, type UniCategory } from '@/components/molecules';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { useTheme } from '@/hooks/useTheme';
 import { accent, bodyFont, spacing } from '@/theme';
 
@@ -43,6 +44,7 @@ interface Props {
 
 export function ResultsGroupedList({ groups, onOpenUniversity, style }: Props) {
   const { palette } = useTheme();
+  const { isWide } = useBreakpoint();
 
   return (
     <View style={[styles.wrap, style]}>
@@ -58,17 +60,20 @@ export function ResultsGroupedList({ groups, onOpenUniversity, style }: Props) {
             </Text>
           </View>
 
-          {group.items.map((u) => (
-            <UniversityCard
-              key={u.id}
-              name={u.name}
-              city={u.city}
-              chance={u.chance}
-              category={group.category}
-              tags={u.tags}
-              onPress={() => onOpenUniversity(u.id)}
-            />
-          ))}
+          <View style={isWide ? styles.grid : styles.stack}>
+            {group.items.map((u) => (
+              <UniversityCard
+                key={u.id}
+                name={u.name}
+                city={u.city}
+                chance={u.chance}
+                category={group.category}
+                tags={u.tags}
+                onPress={() => onOpenUniversity(u.id)}
+                style={isWide ? styles.gridItem : undefined}
+              />
+            ))}
+          </View>
         </View>
       ))}
     </View>
@@ -81,6 +86,19 @@ const styles = StyleSheet.create({
   },
   group: {
     gap: 9,
+  },
+  stack: {
+    gap: 9,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+  },
+  gridItem: {
+    flexGrow: 1,
+    flexBasis: 320,
+    maxWidth: 400,
   },
   groupHeader: {
     flexDirection: 'row',

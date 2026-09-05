@@ -8,5 +8,6 @@ export { HeaderBar } from './HeaderBar';
 export { OfflineBanner } from './OfflineBanner';
 export { ProfileHeaderWidget } from './ProfileHeaderWidget';
 export { ResultsGroupedList, type ResultGroup, type ResultUniversity } from './ResultsGroupedList';
+export { Sidebar } from './Sidebar';
 export { SystemScreenLayout, type SystemKind } from './SystemScreenLayout';
 export { TabBar, TabBarHost } from './TabBar';

@@ -157,6 +157,20 @@ export const shadow = {
   },
 } as const;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Брейкпоинты веба (Фаза 7 — desktop-адаптация, `docs/00-roadmap.md`)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const breakpoints = {
+  /** От этой ширины — постоянный сайдбар вместо плавающего таб-бара. */
+  desktop: 1024,
+  /** От этой ширины — широкая (многоколоночная) раскладка контента. */
+  wide: 1280,
+} as const;
+
+/** Ширина постоянного сайдбара на десктопе (`components/organisms/Sidebar.tsx`). */
+export const SIDEBAR_WIDTH = 264;
+
 export const tokens = {
   fontFamily,
   fontWeight,
@@ -166,4 +180,6 @@ export const tokens = {
   radius,
   spacing,
   shadow,
+  breakpoints,
+  SIDEBAR_WIDTH,
 } as const;

@@ -23,8 +23,7 @@
 > прототипа по фактическим длительностям — Splash, AuthLoading,
 > ANALYSIS_LOADING, PAYMENT_FLOW, ChatThread typing, OfflineBanner,
 > Task/ModuleConfirmation-карточки, FocusSoundTile. Веб на широком экране —
-> центрированный контейнер `APP_MAX_WIDTH=420` (`docs/design-tokens.md` →
-> «Веб-контейнер»), без desktop-раскладки (Фаза 7). `KeyboardAvoidingView`
+> полноширинная рамка без desktop-раскладки (Фаза 7 — позже). `KeyboardAvoidingView`
 > на Chat/Auth. Настоящий blur (`expo-blur`) на ANALYSIS_PREVIEW. Deep link
 > из `scheme: academicspace` (Expo Router 1:1 по файлам) — проверено:
 > прямой URL на RESULTS / UNIVERSITY_DETAILS / PAYWALL / AI_CHAT
@@ -42,8 +41,14 @@
 > «Задачи» + нет блока активных задач у Free; профиль: lock-строки; карточка
 > вуза: lock-тизер документов). Найдено и исправлено: поле ввода чата
 > уходило под плавающий таб-бар на `AI_CHAT` — добавлен клиренс
-> `TAB_BAR_BAR_HEIGHT` в нижний отступ `<Composer>`. Дальше — Фаза 7
-> (desktop-адаптация) по готовому макету.
+> `TAB_BAR_BAR_HEIGHT` в нижний отступ `<Composer>`.
+>
+> **Фаза 7 завершена (первая итерация):** desktop-адаптация без готового
+> макета — спроектирована по ориентирам из `docs/00-roadmap.md`. Постоянный
+> `<Sidebar>` вместо плавающего таб-бара на широком вебе (все
+> аутентифицированные не-модальные роуты), многоколоночные Dashboard/
+> Results/Vaults List, остальные 19 shell-экранов — общая центрированная
+> колонка (780px). Детали — `docs/design-tokens.md` → «Веб-контейнер».
 
 Источник строк — `docs/source/design-reference.html` (маркеры
 `═══ ИМЯ ═══`). Звёздочка (*) — диапазон приблизительный, экран

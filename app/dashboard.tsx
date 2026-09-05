@@ -25,6 +25,7 @@ import { ActiveTasksBlock, ProfileHeaderWidget } from '@/components/organisms';
 import { useProfile } from '@/hooks/api/useProfile';
 import { useQuestionnaireStatus } from '@/hooks/api/useQuestionnaire';
 import { useTasks, useToggleTaskItem } from '@/hooks/api/useTasks';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { useTheme } from '@/hooks/useTheme';
 import { BUCKET_COUNTS } from '@/mocks/fixtures';
 import { ROUTES } from '@/navigation/registry';
@@ -64,6 +65,176 @@ const TILES = [
 ];
 
 function DashboardScreen() {
+  const { isDesktop } = useBreakpoint();
+  if (isDesktop) return <DesktopDashboard />;
+  return <MobileDashboard />;
+}
+
+/**
+ * Desktop (Фаза 7): жест-шторка мобильного паттерна тут не нужен (нет
+ * тач-драга) — та же данные (`useProfile`/`useQuestionnaireStatus`/
+ * `useTasks`) и те же карточки (`NewbieCard`/`EditProfileCard`/
+ * `ActiveTasksBlock`/`UpsellCard`), но обычная двухколоночная страница:
+ * слева быстрый доступ + зона анализа, справа профиль-виджет + задачи/апселл.
+ */
+function DesktopDashboard() {
+  const { palette } = useTheme();
+  const profileQ = useProfile();
+  const questionnaireQ = useQuestionnaireStatus();
+  const tasksQ = useTasks();
+  const toggleItem = useToggleTaskItem();
+
+  const profile = profileQ.data;
+  const filled = questionnaireQ.data?.filled ?? false;
+  const isPremium = profile?.plan === 'premium';
+
+  const goAnalysis = () =>
+    router.push(filled ? '/universities/results' : '/universities/questionnaire');
+
+  return (
+    <View style={[styles.desktopRoot, { backgroundColor: palette.screen }]}>
+      <View style={styles.desktopHeader}>
+        <Text style={[displayFont('700'), styles.desktopTitle, { color: palette.ink }]}>
+          Дашборд
+        </Text>
+        <Text style={[bodyFont('500'), styles.desktopSubtitle, { color: palette.sub }]}>
+          Обзор подбора вузов, задач и прогресса
+        </Text>
+      </View>
+
+      <View style={styles.desktopGrid}>
+        <View style={styles.desktopMain}>
+          <View
+            style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}
+          >
+            <Text style={[bodyFont('800'), styles.cardHeading, { color: palette.ink }]}>
+              Быстрый доступ
+            </Text>
+            <View style={styles.desktopTiles}>
+              {TILES.map((t) => (
+                <View key={t.label} style={styles.desktopTileCell}>
+                  <BentoTile
+                    label={t.label}
+                    glyph={t.glyph}
+                    href={t.href}
+                    premium={t.premium}
+                    variant={t.bot ? 'bot' : 'default'}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View
+            style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}
+          >
+            <View style={styles.analysisHead}>
+              <View style={styles.analysisHeadText}>
+                <Text style={[bodyFont('800'), styles.analysisTitle, { color: palette.ink }]}>
+                  Зона анализа
+                </Text>
+                <Text style={[bodyFont('500'), styles.analysisSub, { color: palette.sub }]}>
+                  {filled && profile
+                    ? `${profile.analysis.country} · подбор от ${profile.analysis.sinceLabel}`
+                    : 'заполните анкету, чтобы запустить'}
+                </Text>
+              </View>
+              <Button
+                label={filled ? 'Показать вузы' : 'Запустить подбор'}
+                tone="blue"
+                size="sm"
+                block={false}
+                elevated
+                onPress={goAnalysis}
+              />
+            </View>
+            <View style={styles.buckets}>
+              {(
+                [
+                  ['Безопасные', accent.green, BUCKET_COUNTS.safety],
+                  ['Оптимальные', accent.blue, BUCKET_COUNTS.match],
+                  ['Амбициозные', accent.rose, BUCKET_COUNTS.reach],
+                ] as const
+              ).map(([label, color, n]) => (
+                <Pressable
+                  key={label}
+                  onPress={goAnalysis}
+                  style={[styles.bucket, { backgroundColor: palette.chip }]}
+                >
+                  <Text style={[displayFont('600'), styles.bucketN, { color }]}>
+                    {filled ? String(n) : '—'}
+                  </Text>
+                  <Text style={[bodyFont('600'), styles.bucketLabel, { color: palette.sub }]}>
+                    {label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.desktopSide}>
+          {profile ? (
+            <ProfileHeaderWidget
+              variant="dashboard"
+              name={profile.name}
+              planLabel={
+                isPremium
+                  ? `Premium · до ${profile.subscription?.renewsAt ?? '—'}`
+                  : 'Базовый доступ'
+              }
+              isPremium={isPremium}
+              level={profile.level}
+              xpCurrent={profile.xp}
+              xpTarget={profile.xpToNextLevel}
+              onAvatarPress={() => router.push('/profile')}
+              style={styles.desktopProfileWidget}
+            />
+          ) : (
+            <View style={styles.widgetLoading}>
+              <ActivityIndicator color={accent.blue} />
+            </View>
+          )}
+
+          {!filled ? (
+            <NewbieCard onStart={() => router.push('/universities/questionnaire')} />
+          ) : (
+            <EditProfileCard
+              stats={profile?.dashboardStats ?? []}
+              onEdit={() => router.push('/universities/questionnaire')}
+            />
+          )}
+
+          {isPremium && tasksQ.data ? (
+            <ActiveTasksBlock
+              tasks={tasksQ.data.map((t) => ({
+                id: t.id,
+                kind: t.kind,
+                title: t.title,
+                items: t.items.map((it, i) => ({
+                  id: `${t.id}:${i}`,
+                  label: it.label,
+                  done: it.done,
+                })),
+              }))}
+              onToggleItem={(taskId, itemId) =>
+                toggleItem.mutate({ taskId, itemIndex: Number(itemId.split(':')[1]) })
+              }
+              onOpenTask={(taskId) =>
+                router.push({ pathname: '/tasks/[moduleId]', params: { moduleId: taskId } })
+              }
+              onSeeAll={() => router.push('/tasks')}
+            />
+          ) : null}
+
+          {!isPremium ? <UpsellCard onCreate={() => router.push('/ai/portfolio')} /> : null}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function MobileDashboard() {
   const insets = useSafeAreaInsets();
   const { palette } = useTheme();
   const profileQ = useProfile();
@@ -477,6 +648,18 @@ const styles = StyleSheet.create({
   },
   premiumDot: { width: 5, height: 5, borderRadius: 1, backgroundColor: accent.gold },
   premiumTagText: { fontSize: 10, color: accent.gold, letterSpacing: 0.6 },
+  // Desktop (Фаза 7) — двухколоночная раскладка, без навy full-bleed/шторки.
+  desktopRoot: { flex: 1, padding: spacing.xxxl, gap: spacing.xxl },
+  desktopHeader: { gap: 4 },
+  desktopTitle: { fontSize: 24, letterSpacing: -0.4 },
+  desktopSubtitle: { fontSize: 13 },
+  desktopGrid: { flexDirection: 'row', gap: spacing.xxl, alignItems: 'flex-start' },
+  desktopMain: { flex: 2, minWidth: 0, gap: spacing.xl },
+  desktopSide: { flex: 1, minWidth: 320, gap: spacing.lg },
+  cardHeading: { fontSize: 13, marginBottom: spacing.lg },
+  desktopTiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  desktopTileCell: { width: 140 },
+  desktopProfileWidget: { borderRadius: radius.xl, overflow: 'hidden' },
 });
 
 export default withGuard(DashboardScreen, { auth: true });

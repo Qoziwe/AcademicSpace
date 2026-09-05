@@ -568,6 +568,17 @@ export const TAB_BAR_ROUTE_PATHS = new Set<string>([
   ROUTES.PROFILE.path,
 ]);
 
+/**
+ * Роуты без постоянного desktop-сайдбара (Фаза 7): без мок-сессии (Splash /
+ * Welcome / Auth / System) или модалки (Paywall / PlanSelection / Payment) —
+ * это брендовые/полноэкранные моменты, сайдбар им не идёт. Всё остальное
+ * (19 аутентифицированных не-модальных роутов) получает сайдбар на десктопе,
+ * см. `components/organisms/Sidebar.tsx` и `app/_layout.tsx`.
+ */
+export const NO_SHELL_ROUTE_PATHS = new Set<string>(
+  ALL_ROUTES.filter((r) => !r.auth || r.navType === 'modal').map((r) => r.path),
+);
+
 export interface TabEntry {
   label: string;
   href: Href;
