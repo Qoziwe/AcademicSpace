@@ -5,6 +5,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   type LayoutChangeEvent,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -435,7 +436,13 @@ function MobileDashboard() {
     });
 
   const scrollNative = Gesture.Native();
-  const dragHandle = Gesture.Simultaneous(dragSheet, scrollNative);
+  // На вебе браузерный тач-скролл побеждает Pan при драге по всей секции
+  // (Simultaneous с Gesture.Native работает не так надёжно, как на нативных
+  // iOS/Android — драг просто скроллит список вместо шторки). На вебе драг
+  // ограничиваем `grab`-хендлом (не часть ScrollView, конкурировать не с чем);
+  // на native — поведение Фазы 5 без изменений (драг за всю секцию).
+  const dragHandle =
+    Platform.OS === 'web' ? scrollNative : Gesture.Simultaneous(dragSheet, scrollNative);
 
   const sheetAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -501,9 +508,17 @@ function MobileDashboard() {
             sheetAnimatedStyle,
           ]}
         >
-          <View style={styles.grabWrap}>
-            <View style={styles.grab} />
-          </View>
+          {Platform.OS === 'web' ? (
+            <GestureDetector gesture={dragSheet}>
+              <View style={styles.grabWrap}>
+                <View style={styles.grab} />
+              </View>
+            </GestureDetector>
+          ) : (
+            <View style={styles.grabWrap}>
+              <View style={styles.grab} />
+            </View>
+          )}
           <Animated.ScrollView
             onScroll={scrollHandler}
             scrollEventThrottle={16}
@@ -728,7 +743,7 @@ const styles = StyleSheet.create({
     shadowRadius: 40,
     elevation: 20,
   },
-  grabWrap: { alignItems: 'center', paddingBottom: 6 },
+  grabWrap: { alignItems: 'center', paddingVertical: 10 },
   grab: { width: 56, height: 5, borderRadius: 3, backgroundColor: '#D3D7E6' },
   sheetContent: { paddingHorizontal: 18, paddingTop: 8, gap: spacing.md },
   card: { borderWidth: 1, borderRadius: radius.xl, padding: 18 },
