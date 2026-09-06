@@ -2,7 +2,7 @@ import { Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
 import { DevMenu } from '@/components/dev/DevMenu';
 import { OfflineBanner } from '@/components/organisms/OfflineBanner';
@@ -108,7 +108,9 @@ function AppShell() {
         </View>
 
         <OfflineBanner />
-        {__DEV__ ? <DevMenu /> : null}
+        {/* native: только в dev. web: и в exported-превью (GitHub Pages) —
+            это dev/preview-канал, а не сторовый релиз. */}
+        {__DEV__ || Platform.OS === 'web' ? <DevMenu /> : null}
       </View>
     </>
   );
