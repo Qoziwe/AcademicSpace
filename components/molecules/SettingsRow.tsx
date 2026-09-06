@@ -9,11 +9,10 @@
  * `badge` — плашка `PREMIUM` для строк-гейтов (`CLAUDE.md` §6, lock-тизер).
  */
 
-import { Feather } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Badge } from '@/components/atoms';
+import { Badge, Icon } from '@/components/atoms';
 import { useTheme } from '@/hooks/useTheme';
 import { bodyFont, radius, spacing } from '@/theme';
 
@@ -91,7 +90,7 @@ export function SettingsRow({
         (value != null ? (
           <Text style={[bodyFont('500'), styles.value, { color: palette.sub }]}>{value}</Text>
         ) : chevron ? (
-          <Feather name="chevron-right" size={16} color="#C2C7DC" />
+          <Icon name="chevron-right" size={18} color="#C2C7DC" />
         ) : null)}
     </Pressable>
   );

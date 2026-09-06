@@ -15,11 +15,11 @@
  * (`<FilterStepper>`). `children` — доп. контент навy-шапки (бейджи, статы).
  */
 
-import { Feather } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/atoms';
 import { useTheme } from '@/hooks/useTheme';
 import { bodyFont, navy, radius, spacing } from '@/theme';
 
@@ -79,7 +79,7 @@ export function HeaderBar({
               { backgroundColor: chipBg, opacity: pressed ? 0.6 : 1 },
             ]}
           >
-            <Feather name="chevron-left" size={16} color={chipIcon} />
+            <Icon name="chevron-left" size={18} color={chipIcon} />
           </Pressable>
         ) : null}
 

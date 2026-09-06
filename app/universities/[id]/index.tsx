@@ -1,4 +1,3 @@
-import { Feather } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   ActivityIndicator,
@@ -11,7 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Badge, Button } from '@/components/atoms';
+import { Badge, Button, Icon } from '@/components/atoms';
 import { useUniversity } from '@/hooks/api/useUniversity';
 import { useTheme } from '@/hooks/useTheme';
 import { backOr } from '@/navigation/back';
@@ -48,7 +47,7 @@ function UniversityDetailsScreen() {
           onPress={backOr('/universities/results')}
           style={styles.backChip}
         >
-          <Feather name="chevron-left" size={16} color="#FFFFFF" />
+          <Icon name="chevron-left" size={18} color="#FFFFFF" />
         </Pressable>
 
         {data ? (
@@ -92,10 +91,11 @@ function UniversityDetailsScreen() {
               </View>
             ))}
             <Button
-              label="Сайт приёмной комиссии ↗"
+              label="Сайт приёмной комиссии"
               variant="secondary"
               size="sm"
               onPress={() => Linking.openURL(data.admissionsUrl)}
+              iconRight={<Icon name="arrow-up-right" size={15} color={accent.blue} />}
               style={styles.siteBtn}
             />
           </View>

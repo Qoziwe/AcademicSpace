@@ -7,10 +7,9 @@
  * `onPress` = мок file-picker (реальный `expo-document-picker` — Фаза 3/9).
  */
 
-import { Feather } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { IconTile } from '@/components/atoms';
+import { Icon, IconTile } from '@/components/atoms';
 import { useTheme } from '@/hooks/useTheme';
 import { accent, bodyFont, radius, spacing } from '@/theme';
 
@@ -53,7 +52,7 @@ export function DocumentCell({
     >
       <View style={styles.left}>
         <IconTile size={36} radius={12} tone={filled ? 'blueSoft' : 'muted'}>
-          <Feather name="file-text" size={16} color={filled ? accent.blue : '#A7ABC4'} />
+          <Icon name="file" size={17} color={filled ? accent.blue : '#A7ABC4'} />
         </IconTile>
         <View style={styles.textCol}>
           <Text numberOfLines={1} style={[bodyFont('700'), styles.title, { color: palette.ink }]}>

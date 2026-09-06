@@ -5,6 +5,9 @@
  * `opacity .55`, иконкой-замком и переходом на PAYWALL вместо цели —
  * через `usePremiumGate().resolveHref`.
  *
+ * Иконка — цветная SVG `<TileIcon>` на всю площадь плитки (не вложенный
+ * контейнер), подпись — на полупрозрачной подложке снизу.
+ *
  * По умолчанию навигирует через `router.push`; `onPress` (для Playground/
  * тестов) переопределяет с тем же lock-поведением.
  *
@@ -16,17 +19,16 @@
 import { router, type Href } from 'expo-router';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { IconTile } from '@/components/atoms';
+import { Icon, TileIcon, type TileIconName } from '@/components/atoms';
 import { usePremiumGate } from '@/hooks/usePremiumGate';
-import { bodyFont, navy, radius } from '@/theme';
+import { bodyFont, radius } from '@/theme';
 
-const TILE_BG = '#E2EAFB'; // ref: design-reference.html tiles / палитра
 const LABEL_COLOR = '#3A4180';
 
 interface Props {
   label: string;
-  /** Глиф из прототипа: ◉ ▤ ◎ ▦ ≡ ∿ ✓ ●● (`glyphs` map). */
-  glyph: string;
+  /** Имя цветной иконки плитки (`<TileIcon>`). */
+  icon: TileIconName;
   href: Href;
   /** Плитка ведёт в premium-раздел (для Free → замок + PAYWALL). */
   premium?: boolean;
@@ -35,41 +37,9 @@ interface Props {
   style?: StyleProp<ViewStyle>;
 }
 
-export function BentoTile({
-  label,
-  glyph,
-  href,
-  premium = false,
-  variant = 'default',
-  onPress,
-  style,
-}: Props) {
+export function BentoTile({ label, icon, href, premium = false, onPress, style }: Props) {
   const { isPremium, resolveHref } = usePremiumGate();
   const locked = premium && !isPremium;
-  const isBot = variant === 'bot';
-
-  const body = (
-    <View
-      style={[
-        styles.tile,
-        { backgroundColor: isBot ? '#FFFFFF' : TILE_BG, opacity: locked ? 0.55 : 1 },
-      ]}
-    >
-      <IconTile
-        size={26}
-        radius={9}
-        tone={isBot ? 'navy' : 'navySoft'}
-        glyph={glyph}
-        glyphSize={isBot ? 9 : 13}
-      />
-      <Text style={[bodyFont('700'), styles.label]}>{label}</Text>
-      {locked ? (
-        <View style={styles.lock}>
-          <View style={styles.lockDot} />
-        </View>
-      ) : null}
-    </View>
-  );
 
   const go = () => {
     if (onPress) onPress(locked);
@@ -77,8 +47,25 @@ export function BentoTile({
   };
 
   return (
-    <Pressable accessibilityRole="button" onPress={go} style={[styles.press, style]}>
-      {body}
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={go}
+      style={[styles.press, style]}
+    >
+      <View style={[styles.tile, locked && styles.tileLocked]}>
+        <TileIcon name={icon} />
+        <View style={styles.labelWrap}>
+          <Text numberOfLines={1} style={[bodyFont('700'), styles.label]}>
+            {label}
+          </Text>
+        </View>
+        {locked ? (
+          <View style={styles.lock}>
+            <Icon name="lock" size={9} color="#F3C24B" strokeWidth={1.6} />
+          </View>
+        ) : null}
+      </View>
     </Pressable>
   );
 }
@@ -87,11 +74,22 @@ const styles = StyleSheet.create({
   press: { flex: 1 },
   tile: {
     position: 'relative',
-    height: 74,
+    height: 82,
     borderRadius: radius.lg,
-    paddingVertical: 9,
-    paddingHorizontal: 8,
-    justifyContent: 'space-between',
+    overflow: 'hidden',
+    backgroundColor: '#E2EAFB',
+  },
+  tileLocked: { opacity: 0.55 },
+  labelWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.82)',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(20,24,60,0.06)',
   },
   label: {
     fontSize: 9.5,
@@ -102,17 +100,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     right: 6,
-    width: 14,
-    height: 14,
-    borderRadius: 5,
-    backgroundColor: navy.primary,
+    width: 16,
+    height: 16,
+    borderRadius: 6,
+    backgroundColor: '#2C317A',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  lockDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 1,
-    backgroundColor: '#F3C24B',
   },
 });

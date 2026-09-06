@@ -11,21 +11,18 @@
  * контента.
  */
 
-import { Feather } from '@expo/vector-icons';
 import { router, type Href } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { BrandLogo } from '@/components/atoms';
+import { BrandLogo, Icon, type IconName } from '@/components/atoms';
 import { ROUTES, TAB_ENTRIES } from '@/navigation/registry';
 import { selectIsPremium, useSessionStore } from '@/stores/session';
 import { bodyFont, displayFont, radius, SIDEBAR_WIDTH, spacing } from '@/theme';
 
-type FeatherIconName = keyof typeof Feather.glyphMap;
-
-const ICON_BY_LABEL: Record<string, FeatherIconName> = {
+const ICON_BY_LABEL: Record<string, IconName> = {
   Главная: 'home',
   Вузы: 'compass',
-  'ИИ-ментор': 'message-circle',
+  'ИИ-ментор': 'chat',
   Задачи: 'check-square',
   Профиль: 'user',
 };
@@ -58,7 +55,7 @@ export function Sidebar({ visible, activePath }: Props) {
           <SidebarItem
             key={entry.routePath}
             label={entry.label}
-            icon={ICON_BY_LABEL[entry.label] ?? 'circle'}
+            icon={ICON_BY_LABEL[entry.label] ?? 'dot'}
             active={entry.routePath === activePath}
             onPress={() => router.navigate(entry.href)}
           />
@@ -86,7 +83,7 @@ function SidebarItem({
   onPress,
 }: {
   label: string;
-  icon: FeatherIconName;
+  icon: IconName;
   active: boolean;
   onPress: () => void;
 }) {
@@ -97,9 +94,9 @@ function SidebarItem({
       onPress={onPress}
       style={[styles.item, active && styles.itemActive]}
     >
-      <Feather
+      <Icon
         name={icon}
-        size={17}
+        size={18}
         color={active ? '#FFFFFF' : 'rgba(255,255,255,0.55)'}
         style={styles.itemIcon}
       />
@@ -137,7 +134,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   itemActive: { backgroundColor: 'rgba(255,255,255,0.12)' },
-  itemIcon: { width: 18, textAlign: 'center' },
+  itemIcon: { width: 18 },
   itemLabel: { fontSize: 13, color: 'rgba(255,255,255,0.55)' },
   itemLabelActive: { color: '#FFFFFF' },
 });

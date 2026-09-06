@@ -1,8 +1,7 @@
-import { Feather } from '@expo/vector-icons';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from '@/components/atoms';
+import { Button, Icon } from '@/components/atoms';
 import { FocusSoundTile } from '@/components/molecules';
 import { FOCUS_SOUNDS, FOCUS_START_LABEL, FOCUS_TRACKERS } from '@/mocks/fixtures';
 import { backOr } from '@/navigation/back';
@@ -33,7 +32,7 @@ function FocusToolsScreen() {
           onPress={backOr('/profile')}
           style={styles.backChip}
         >
-          <Feather name="chevron-left" size={16} color="#FFFFFF" />
+          <Icon name="chevron-left" size={18} color="#FFFFFF" />
         </Pressable>
         <View>
           <Text style={[bodyFont('800'), styles.headerTitle]}>Фокус и продуктивность</Text>
@@ -54,7 +53,7 @@ function FocusToolsScreen() {
               style={styles.sessionBtn}
             />
             <Pressable accessibilityLabel="Сбросить" onPress={reset} style={styles.resetBtn}>
-              <Feather name="square" size={14} color="rgba(255,255,255,0.7)" />
+              <Icon name="stop" size={16} color="rgba(255,255,255,0.7)" />
             </Pressable>
           </View>
         </View>

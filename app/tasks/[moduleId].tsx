@@ -1,9 +1,8 @@
-import { Feather } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Badge, Button, Checkbox, ProgressBar } from '@/components/atoms';
+import { Badge, Button, Checkbox, Icon, ProgressBar } from '@/components/atoms';
 import { useTask, useToggleTaskItem } from '@/hooks/api/useTasks';
 import { useTheme } from '@/hooks/useTheme';
 import { FOCUS_START_LABEL, MODULE_OUTCOME_COPY } from '@/mocks/fixtures';
@@ -42,7 +41,7 @@ function ModuleDetailScreen() {
           onPress={backOr('/tasks')}
           style={styles.backChip}
         >
-          <Feather name="chevron-left" size={16} color="#FFFFFF" />
+          <Icon name="chevron-left" size={18} color="#FFFFFF" />
         </Pressable>
 
         {task ? (

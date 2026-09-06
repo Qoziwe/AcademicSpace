@@ -1,8 +1,8 @@
-import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/atoms';
 import { ChatThread, Composer } from '@/components/organisms';
 import { useChatMeta, useCreateChatModule, useSendMessage } from '@/hooks/api/useChat';
 import { useTheme } from '@/hooks/useTheme';
@@ -47,7 +47,7 @@ function AiChatScreen() {
           onPress={backOr('/dashboard')}
           style={[styles.backChip, { backgroundColor: palette.chip }]}
         >
-          <Feather name="chevron-left" size={16} color={palette.ink} />
+          <Icon name="chevron-left" size={18} color={palette.ink} />
         </Pressable>
         <View style={styles.botAvatar}>
           <View style={styles.botDots}>

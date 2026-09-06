@@ -8,7 +8,6 @@
  * внутренние карточки доведены до 7-токенного паттерна (`CLAUDE.md` §8).
  */
 
-import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -22,7 +21,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, TextField } from '@/components/atoms';
+import { Button, Icon, TextField } from '@/components/atoms';
 import { useSignIn, useSignUp } from '@/hooks/api/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { AUTH_PREFILL } from '@/mocks/fixtures';
@@ -77,7 +76,7 @@ export function AuthScreen({ mode }: Props) {
           onPress={() => router.push('/welcome')}
           style={[styles.backChip, { backgroundColor: palette.card, borderColor: palette.border }]}
         >
-          <Feather name="chevron-left" size={16} color={palette.ink} />
+          <Icon name="chevron-left" size={18} color={palette.ink} />
         </Pressable>
 
         <View style={styles.headings}>

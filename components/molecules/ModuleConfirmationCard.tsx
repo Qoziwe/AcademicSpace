@@ -8,7 +8,7 @@
 
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { IconTile } from '@/components/atoms';
+import { Icon, IconTile } from '@/components/atoms';
 import { SlideUp } from '@/components/motion';
 import { useTheme } from '@/hooks/useTheme';
 import { accent, bodyFont, radius, spacing } from '@/theme';
@@ -38,7 +38,7 @@ export function ModuleConfirmationCard({
     <SlideUp style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
       <View style={styles.header}>
         <IconTile size={26} radius={9} tone="blueSoft">
-          <View style={styles.diamond} />
+          <Icon name="sparkles" size={14} color={accent.blue} strokeWidth={1.5} />
         </IconTile>
         <View style={styles.headText}>
           <Text style={[bodyFont('800'), styles.title, { color: palette.ink }]}>{title}</Text>
@@ -80,13 +80,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  diamond: {
-    width: 8,
-    height: 8,
-    borderRadius: 2,
-    backgroundColor: accent.blue,
-    transform: [{ rotate: '45deg' }],
   },
   headText: { flex: 1, minWidth: 0 },
   title: { fontSize: 12.5 },

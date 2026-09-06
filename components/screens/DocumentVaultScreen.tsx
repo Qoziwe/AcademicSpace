@@ -8,11 +8,10 @@
  * переключаются на месте (мок file-picker) через `mocks/store.ts.vaultCells`.
  */
 
-import { Feather } from '@expo/vector-icons';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ProgressBar } from '@/components/atoms';
+import { Icon, ProgressBar } from '@/components/atoms';
 import { DocumentCell } from '@/components/molecules';
 import { useTheme } from '@/hooks/useTheme';
 import { DOCUMENT_SLOTS } from '@/mocks/fixtures';
@@ -45,7 +44,7 @@ export function DocumentVaultScreen({ title, caption, onBack }: Props) {
           onPress={onBack}
           style={styles.backChip}
         >
-          <Feather name="chevron-left" size={16} color="#FFFFFF" />
+          <Icon name="chevron-left" size={18} color="#FFFFFF" />
         </Pressable>
         <Text style={[displayFont('600'), styles.title]}>{title}</Text>
         <Text style={[bodyFont('500'), styles.caption]}>

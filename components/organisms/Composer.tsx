@@ -7,7 +7,6 @@
  * (`inputPlaceholder: 'Доступно в Premium'`): поле и подсказки неактивны.
  */
 
-import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
   Pressable,
@@ -21,6 +20,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/atoms';
 import { TAB_BAR_BAR_HEIGHT } from '@/components/organisms/TabBar';
 import { useTheme } from '@/hooks/useTheme';
 import { accent, bodyFont, navy, radius, spacing } from '@/theme';
@@ -110,7 +110,7 @@ export function Composer({
           onPress={submit}
           style={({ pressed }) => [styles.send, { opacity: !canSend ? 0.4 : pressed ? 0.85 : 1 }]}
         >
-          <Feather name="arrow-up" size={18} color="#FFFFFF" />
+          <Icon name="arrow-up" size={18} color="#FFFFFF" strokeWidth={2} />
         </Pressable>
       </View>
     </View>

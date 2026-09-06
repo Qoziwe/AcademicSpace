@@ -8,7 +8,6 @@
  * Тема (theme store).
  */
 
-import { Feather } from '@expo/vector-icons';
 import { useMemo, useState, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,12 +20,14 @@ import {
   Checkbox,
   Chip,
   Divider,
+  Icon,
   IconTile,
   LevelPill,
   ProgressBar,
   ProgressRing,
   Switch,
   TextField,
+  type TileIconName,
 } from '@/components/atoms';
 import { BrandLoading } from '@/components/BrandLoading';
 import {
@@ -59,15 +60,15 @@ import { ROUTES } from '@/navigation/registry';
 import { useSessionStore } from '@/stores/session';
 import { accent, bodyFont, displayFont, navy, radius, spacing } from '@/theme';
 
-const GLYPHS: Record<string, string> = {
-  person: '◉',
-  doc: '▤',
-  target: '◎',
-  cal: '▦',
-  list: '≡',
-  wave: '∿',
-  check: '✓',
-  bot: '●●',
+const TILE_ICONS: Record<string, TileIconName> = {
+  person: 'profile',
+  doc: 'vault',
+  target: 'universities',
+  cal: 'questionnaire',
+  list: 'journal',
+  wave: 'focus',
+  check: 'tasks',
+  bot: 'mentor',
 };
 
 const TASK_ITEMS: TaskModuleItem[] = [
@@ -203,7 +204,7 @@ export default function Playground() {
               variant="ghost"
               size="md"
               onPress={() => undefined}
-              iconRight={<Feather name="arrow-right" size={15} color={accent.blue} />}
+              iconRight={<Icon name="arrow-right" size={15} color={accent.blue} />}
             />
             <Button label="Loading" loading onPress={() => undefined} />
             <Button label="Disabled" disabled onPress={() => undefined} />
@@ -278,10 +279,10 @@ export default function Playground() {
         <Section title="Атомы · IconTile / Divider">
           <View style={styles.rowWrap}>
             <IconTile tone="blueSoft">
-              <Feather name="file-text" size={16} color={accent.blue} />
+              <Icon name="file" size={17} color={accent.blue} />
             </IconTile>
             <IconTile tone="muted">
-              <Feather name="file-text" size={16} color={palette.sub} />
+              <Icon name="file" size={17} color={palette.sub} />
             </IconTile>
             <IconTile tone="navy" glyph="●●" glyphSize={9} />
             <IconTile tone="navySoft" glyph="◎" />
@@ -439,7 +440,7 @@ export default function Playground() {
                 <BentoTile
                   key={label}
                   label={label}
-                  glyph={GLYPHS[icon] ?? '◦'}
+                  icon={TILE_ICONS[icon] ?? 'profile'}
                   href={href}
                   premium={premium}
                   variant={bot ? 'bot' : 'default'}

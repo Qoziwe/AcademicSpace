@@ -5,6 +5,7 @@ export { Composer } from './Composer';
 export { ChatThread, type ChatMessage, type ChatModule } from './ChatThread';
 export { FilterStepper } from './FilterStepper';
 export { HeaderBar } from './HeaderBar';
+export { LiquidGlass } from './LiquidGlass';
 export { OfflineBanner } from './OfflineBanner';
 export { ProfileHeaderWidget } from './ProfileHeaderWidget';
 export { ResultsGroupedList, type ResultGroup, type ResultUniversity } from './ResultsGroupedList';

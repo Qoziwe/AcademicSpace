@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useMockStore } from '@/mocks/store';
 import { ROUTES } from '@/navigation/registry';
+import { useDevFlags } from '@/stores/devFlags';
 import { useSessionStore } from '@/stores/session';
 import { accent } from '@/theme';
 
@@ -25,6 +26,8 @@ export function DevMenu() {
   const offline = useMockStore((s) => s.offline);
   const setOffline = useMockStore((s) => s.setOffline);
   const resetMock = useMockStore((s) => s.resetMock);
+  const liquidGlass = useDevFlags((s) => s.liquidGlass);
+  const toggleLiquidGlass = useDevFlags((s) => s.toggleLiquidGlass);
 
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: insets.bottom + 96 }]}>
@@ -51,6 +54,11 @@ export function DevMenu() {
             <Row
               label={`offline banner: ${offline}`}
               onPress={() => setOffline(!offline)}
+              action="toggle"
+            />
+            <Row
+              label={`жидкое стекло навбара: ${liquidGlass ? 'on' : 'off'}`}
+              onPress={toggleLiquidGlass}
               action="toggle"
             />
 

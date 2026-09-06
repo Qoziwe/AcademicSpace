@@ -8,10 +8,9 @@
  *    аватар 72, имя, чип уровня и три стата.
  */
 
-import { Feather } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Avatar, ProgressBar } from '@/components/atoms';
+import { Avatar, Icon, ProgressBar } from '@/components/atoms';
 import { accent, bodyFont, displayFont, navy, radius, spacing } from '@/theme';
 
 interface Stat {
@@ -69,7 +68,7 @@ export function ProfileHeaderWidget({
                 onPress={onBack}
                 style={styles.backChip}
               >
-                <Feather name="chevron-left" size={16} color="#FFFFFF" />
+                <Icon name="chevron-left" size={18} color="#FFFFFF" />
               </Pressable>
             ) : (
               <View />
