@@ -4,6 +4,7 @@ export { ActiveTasksBlock, type ActiveTask } from './ActiveTasksBlock';
 export { Composer } from './Composer';
 export { ChatThread, type ChatMessage, type ChatModule } from './ChatThread';
 export { FilterStepper } from './FilterStepper';
+export { FlashcardStack, type FlashcardStackCard } from './FlashcardStack';
 export { HeaderBar } from './HeaderBar';
 export { LiquidGlass } from './LiquidGlass';
 export { OfflineBanner } from './OfflineBanner';

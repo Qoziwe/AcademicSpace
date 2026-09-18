@@ -44,6 +44,10 @@ export type RouteId =
   | 'VAULTS_LIST'
   | 'VAULT_DETAIL'
   | 'FOCUS_TOOLS'
+  | 'FLASHCARDS_LIST'
+  | 'FLASHCARDS_CREATE'
+  | 'FLASHCARDS_GENERATING'
+  | 'FLASHCARDS_STUDY'
   | 'PROFILE'
   | 'ACHIEVEMENT_LOG'
   | 'PROFILE_SUBSCRIPTION'
@@ -166,6 +170,7 @@ export const ROUTES = {
       'FOCUS_TOOLS',
       'PROFILE',
       'PAYWALL',
+      'FLASHCARDS_LIST',
     ],
     back: 'none',
     demoHref: '/dashboard',
@@ -444,6 +449,58 @@ export const ROUTES = {
     back: 'none',
     demoHref: '/focus',
     note: 'Звуки (bars-анимация) + трекеры-полоски за 7 дней',
+  }),
+  FLASHCARDS_LIST: R({
+    id: 'FLASHCARDS_LIST',
+    path: '/flashcards',
+    file: 'flashcards/index.tsx',
+    title: 'Умные карточки',
+    auth: true,
+    premium: false,
+    navType: 'stack',
+    destinations: ['FLASHCARDS_CREATE', 'FLASHCARDS_STUDY', 'PAYWALL'],
+    back: 'DASHBOARD',
+    demoHref: '/flashcards',
+    note: 'Free: 1 колода одновременно, Premium: 10 — удаление освобождает слот',
+  }),
+  FLASHCARDS_CREATE: R({
+    id: 'FLASHCARDS_CREATE',
+    path: '/flashcards/create',
+    file: 'flashcards/create.tsx',
+    title: 'Новая колода',
+    auth: true,
+    premium: false,
+    navType: 'stack',
+    destinations: ['FLASHCARDS_GENERATING'],
+    back: 'FLASHCARDS_LIST',
+    demoHref: '/flashcards/create',
+    note: 'Текст или фото (мок file-picker, как PORTFOLIO_UPLOAD)',
+  }),
+  FLASHCARDS_GENERATING: R({
+    id: 'FLASHCARDS_GENERATING',
+    path: '/flashcards/generating',
+    file: 'flashcards/generating.tsx',
+    title: 'Генерация карточек',
+    auth: true,
+    premium: false,
+    navType: 'stack-no-back',
+    destinations: ['FLASHCARDS_STUDY'],
+    back: 'disabled',
+    demoHref: '/flashcards/generating',
+    note: 'Навy, авто-переход на созданную колоду (как ANALYSIS_LOADING)',
+  }),
+  FLASHCARDS_STUDY: R({
+    id: 'FLASHCARDS_STUDY',
+    path: '/flashcards/[deckId]',
+    file: 'flashcards/[deckId].tsx',
+    title: 'Колода карточек',
+    auth: true,
+    premium: false,
+    navType: 'stack',
+    destinations: [],
+    back: 'FLASHCARDS_LIST',
+    demoHref: { pathname: '/flashcards/[deckId]', params: { deckId: 'fc_demo' } },
+    note: 'Свайп влево — запомнил (убрать), вправо — перевернуть/дальше',
   }),
   PROFILE: R({
     id: 'PROFILE',

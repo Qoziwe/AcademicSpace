@@ -37,6 +37,9 @@ interface Props {
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   tone?: TextFieldTone;
+  /** Многострочный ввод (напр. FLASHCARDS_CREATE — описание темы текстом). */
+  multiline?: boolean;
+  numberOfLines?: number;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -50,6 +53,8 @@ export function TextField({
   keyboardType,
   autoCapitalize = 'sentences',
   tone = 'light',
+  multiline = false,
+  numberOfLines,
   style,
 }: Props) {
   const { palette } = useTheme();
@@ -80,9 +85,17 @@ export function TextField({
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          textAlignVertical={multiline ? 'top' : 'center'}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          style={[bodyFont('600'), styles.input, { color: valueColor }]}
+          style={[
+            bodyFont('600'),
+            styles.input,
+            { color: valueColor },
+            multiline && numberOfLines ? { height: numberOfLines * 20 } : null,
+          ]}
         />
       ) : (
         <Text style={[bodyFont('600'), styles.value, { color: valueColor }]}>

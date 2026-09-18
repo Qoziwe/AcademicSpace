@@ -64,6 +64,12 @@ const TILES: { label: string; icon: TileIconName; href: Href; premium: boolean }
   { label: 'Фокус', icon: 'focus', href: ROUTES.FOCUS_TOOLS.demoHref, premium: true },
   { label: 'Задачи', icon: 'tasks', href: ROUTES.ACTIVE_TASKS.demoHref, premium: true },
   { label: 'ИИ-ментор', icon: 'mentor', href: ROUTES.AI_CHAT.demoHref, premium: true },
+  {
+    label: 'Карточки',
+    icon: 'flashcards',
+    href: ROUTES.FLASHCARDS_LIST.demoHref,
+    premium: false,
+  },
 ];
 
 function DashboardScreen() {

@@ -18,6 +18,7 @@ export { achievementsApi } from './achievements';
 export { analysisApi } from './analysis';
 export { authApi } from './auth';
 export { chatApi } from './chat';
+export { flashcardsApi } from './flashcards';
 export { profileApi } from './profile';
 export { questionnaireApi } from './questionnaire';
 export { subscriptionApi } from './subscription';

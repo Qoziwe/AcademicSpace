@@ -14,7 +14,15 @@ import type { ReactNode } from 'react';
 import Svg, { Circle, Defs, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
 export type TileIconName =
-  'profile' | 'vault' | 'universities' | 'questionnaire' | 'journal' | 'focus' | 'tasks' | 'mentor';
+  | 'profile'
+  | 'vault'
+  | 'universities'
+  | 'questionnaire'
+  | 'journal'
+  | 'focus'
+  | 'tasks'
+  | 'mentor'
+  | 'flashcards';
 
 interface Props {
   name: TileIconName;
@@ -154,6 +162,26 @@ const SPECS: Record<TileIconName, { bg: ReactNode; glyph: ReactNode }> = {
         <Circle cx={25} cy={36} r={3.2} fill="#8FA6FF" />
         <Circle cx={39} cy={36} r={3.2} fill="#8FA6FF" />
         <Path d="M26 43c2.2 2.2 9.8 2.2 12 0" {...g('#FFFFFF', 3.4)} />
+      </>
+    ),
+  },
+  flashcards: {
+    bg: bg('#EFE9FB'),
+    glyph: (
+      <>
+        <Rect
+          x={16}
+          y={14}
+          width={28}
+          height={20}
+          rx={6}
+          transform="rotate(-8 30 24)"
+          {...g('#C4B4F7')}
+        />
+        <Rect x={20} y={26} width={28} height={20} rx={6} {...g('#7C5CE0')} fill="#FFFFFF" />
+        <Path d="M27 35.5h14" {...g('#7C5CE0')} />
+        <Path d="M27 41h9" {...g('#C4B4F7')} />
+        <Circle cx={45} cy={17} r={2.8} fill="#F3C24B" />
       </>
     ),
   },

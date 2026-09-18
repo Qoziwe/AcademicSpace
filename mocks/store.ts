@@ -19,10 +19,13 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import {
   CHAT_MESSAGES_SEED,
   CHAT_MODULE_TASK,
+  FLASHCARD_DECK_XP,
+  FLASHCARD_MOCK_BANK,
   PROFILE,
   TASK_KIND_LOG,
   TASKS_SEED,
   type ChatMsgSeed,
+  type FlashcardDeckSeed,
   type LogEntry,
   type SingleFilterKey,
   type TaskSeed,
@@ -69,6 +72,9 @@ interface MockState {
   // копилка документов
   vaultCells: boolean[];
 
+  // умные карточки
+  flashcardDecks: FlashcardDeckSeed[];
+
   // глобальный офлайн-баннер (эфемерный — не персистится)
   offline: boolean;
 
@@ -92,6 +98,10 @@ interface MockState {
   setPayState: (state: PayState) => void;
 
   toggleVaultCell: (index: number) => void;
+
+  createFlashcardDeck: (input: { source: 'text' | 'image' }) => string;
+  deleteFlashcardDeck: (deckId: string) => void;
+  markFlashcardKnown: (deckId: string, cardId: string) => void;
 
   setOffline: (offline: boolean) => void;
 
@@ -118,6 +128,7 @@ const INITIAL = {
   planChoice: 'month' as PlanChoice,
   payState: 'idle' as PayState,
   vaultCells: [true, true, true, false, false, false, false],
+  flashcardDecks: [] as FlashcardDeckSeed[],
   offline: false,
 };
 
@@ -136,6 +147,7 @@ type MockPersisted = Pick<
   | 'planChoice'
   | 'payState'
   | 'vaultCells'
+  | 'flashcardDecks'
 >;
 
 // Глубокая копия сидов, чтобы сеттеры не мутировали фикстуры-константы.
@@ -230,20 +242,79 @@ export const useMockStore = create<MockState>()(
       toggleVaultCell: (index) =>
         set((s) => ({ vaultCells: s.vaultCells.map((v, i) => (i === index ? !v : v)) })),
 
+      /**
+       * Мок-"нейронка": не читает текст/фото, а детерминированно берёт один
+       * из заготовленных наборов (`FLASHCARD_MOCK_BANK`), ротация по
+       * количеству уже созданных колод. Карточкам присваивается ID с
+       * префиксом колоды, чтобы не пересекались между колодами.
+       */
+      createFlashcardDeck: (input) => {
+        const id = `fc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+        set((s) => {
+          const bank = FLASHCARD_MOCK_BANK[s.flashcardDecks.length % FLASHCARD_MOCK_BANK.length];
+          const deck: FlashcardDeckSeed = {
+            id,
+            title: bank?.title ?? 'Новая колода',
+            source: input.source,
+            createdAt: new Date().toISOString(),
+            cardsTotal: bank?.cards.length ?? 0,
+            cards: (bank?.cards ?? []).map((c) => ({ ...c, id: `${id}_${c.id}` })),
+          };
+          return { flashcardDecks: [deck, ...s.flashcardDecks] };
+        });
+        return id;
+      },
+
+      deleteFlashcardDeck: (deckId) =>
+        set((s) => ({ flashcardDecks: s.flashcardDecks.filter((d) => d.id !== deckId) })),
+
+      /**
+       * Убирает карточку из колоды (свайп влево — "запомнил"). Если это была
+       * последняя карточка — колода "пройдена": начисляем XP и пишем запись
+       * в журнал, как при закрытии модуля (`toggleTaskItem`). Сама колода
+       * остаётся в списке (пустой) до явного удаления — освобождает слот
+       * квоты только по действию пользователя.
+       */
+      markFlashcardKnown: (deckId, cardId) =>
+        set((s) => {
+          const deck = s.flashcardDecks.find((d) => d.id === deckId);
+          if (!deck) return s;
+
+          const cards = deck.cards.filter((c) => c.id !== cardId);
+          const decks = s.flashcardDecks.map((d) => (d.id === deckId ? { ...d, cards } : d));
+          const justCompleted = cards.length === 0 && deck.cards.length > 0;
+
+          if (!justCompleted) return { flashcardDecks: decks };
+
+          const entry: LogEntry = {
+            title: deck.title,
+            kind: 'умные карточки',
+            xp: FLASHCARD_DECK_XP,
+            dot: 'rose',
+          };
+          return {
+            flashcardDecks: decks,
+            xp: s.xp + FLASHCARD_DECK_XP,
+            journalEntries: [entry, ...s.journalEntries],
+          };
+        }),
+
       setOffline: (offline) => set({ offline }),
 
       resetMock: () => set(clone(INITIAL)),
     }),
     {
       name: 'academicspace.mock',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persisted, from) => {
-        // v1 → v2: добавились xp / journalEntries. Остальной прогресс демо
+        // v1 → v2: добавились xp / journalEntries.
+        // v2 → v3: добавились flashcardDecks. Остальной прогресс демо
         // (задачи, фильтры, чат) сохраняем как есть.
-        if (from >= 2) return persisted as MockPersisted;
         const p = (persisted ?? {}) as Partial<MockPersisted>;
-        return { ...p, xp: p.xp ?? INITIAL.xp, journalEntries: p.journalEntries ?? [] };
+        const v2 =
+          from >= 2 ? p : { ...p, xp: p.xp ?? INITIAL.xp, journalEntries: p.journalEntries ?? [] };
+        return { ...v2, flashcardDecks: v2.flashcardDecks ?? [] } as MockPersisted;
       },
       partialize: (s): MockPersisted => ({
         interests: s.interests,
@@ -258,6 +329,7 @@ export const useMockStore = create<MockState>()(
         planChoice: s.planChoice,
         payState: s.payState,
         vaultCells: s.vaultCells,
+        flashcardDecks: s.flashcardDecks,
       }),
       onRehydrateStorage: () => () => {
         useMockStore.setState({ hydrated: true });
