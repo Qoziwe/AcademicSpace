@@ -281,27 +281,40 @@ export function FlashcardStack({ initialCards, cardsTotal, onKnown, onEmpty, sty
   );
 }
 
-const CARD_HEIGHT = 340;
+// Одна и та же фиксированная коробка для лицевой/оборотной/пик-карточки —
+// не тянется по ширине контейнера (иначе на широком вебе карточка
+// растягивалась вместе с центрированной колонкой и переставала быть
+// «одного размера» с мобильной). `maxWidth` только ограничивает сверху —
+// на очень узких телефонах карточка всё ещё сжимается, чтобы не вылезать
+// за экран, но выглядит одинаково на каждом развороте и на каждом устройстве.
+const CARD_MAX_WIDTH = 400;
+const CARD_HEIGHT = 460;
 
 const styles = StyleSheet.create({
-  root: { alignItems: 'center', gap: spacing.lg },
+  root: {
+    width: '100%',
+    maxWidth: CARD_MAX_WIDTH,
+    alignSelf: 'center',
+    alignItems: 'center',
+    gap: spacing.lg,
+  },
   progress: { fontSize: 12 },
   stack: { width: '100%', height: CARD_HEIGHT },
   card: {
     position: 'absolute',
+    top: 0,
     left: 0,
-    right: 0,
-    height: CARD_HEIGHT,
+    width: '100%',
+    height: '100%',
     borderRadius: radius.xl,
   },
   peekCard: {
-    top: 10,
-    marginHorizontal: 10,
-    opacity: 0.6,
+    top: 14,
+    opacity: 0.55,
     padding: spacing.xxl,
     justifyContent: 'center',
   },
-  peekText: { fontSize: 14, textAlign: 'center' },
+  peekText: { fontSize: 15, textAlign: 'center' },
   face: {
     position: 'absolute',
     inset: 0,
@@ -309,13 +322,13 @@ const styles = StyleSheet.create({
     padding: spacing.xxl,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.md,
+    gap: spacing.lg,
     backfaceVisibility: 'hidden',
   },
   faceBack: { borderWidth: 1 },
-  faceLabel: { fontSize: 11, letterSpacing: 1 },
-  faceText: { fontSize: 19, lineHeight: 27, textAlign: 'center' },
-  faceHint: { position: 'absolute', bottom: 18, fontSize: 10.5 },
+  faceLabel: { fontSize: 12, letterSpacing: 1 },
+  faceText: { fontSize: 23, lineHeight: 32, textAlign: 'center' },
+  faceHint: { position: 'absolute', bottom: 20, fontSize: 11 },
   overlay: {
     position: 'absolute',
     top: 22,
