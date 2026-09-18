@@ -32,7 +32,9 @@ export type IconName =
   | 'dot'
   | 'check'
   | 'lock'
-  | 'sparkles';
+  | 'sparkles'
+  | 'trash'
+  | 'image';
 
 interface Props {
   name: IconName;
@@ -174,6 +176,24 @@ function render(name: IconName, color: string, s: StrokeProps) {
         <>
           <Path d="M12 4l1.7 4.6L18 10l-4.3 1.4L12 16l-1.7-4.6L6 10l4.3-1.4z" {...s} />
           <Path d="M18.5 4l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" {...s} />
+        </>
+      );
+    case 'trash':
+      return (
+        <>
+          <Path d="M5 7h14" {...s} />
+          <Path d="M9.5 7V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v2" {...s} />
+          <Path d="M7 7l1 12.5A2 2 0 0 0 10 21.3h4a2 2 0 0 0 2-1.8L17 7" {...s} />
+          <Path d="M10.3 11v6.3M13.7 11v6.3" {...s} />
+        </>
+      );
+    case 'image':
+      return (
+        <>
+          <Rect x={3.5} y={5} width={17} height={14} rx={3} {...s} />
+          <Circle cx={9} cy={10} r={1.7} fill={color} />
+          <Path d="M4 17l5.2-5.2a2 2 0 0 1 2.8 0L16 15.8" {...s} />
+          <Path d="M14 14l1.3-1.3a2 2 0 0 1 2.8 0L20 14.5" {...s} />
         </>
       );
   }

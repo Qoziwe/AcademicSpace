@@ -18,4 +18,6 @@ export const qk = {
   vaults: () => ['vaults'] as const,
   vault: (id: string) => ['vaults', id] as const,
   achievementLog: () => ['achievements', 'log'] as const,
+  flashcards: () => ['flashcards'] as const,
+  flashcardDeck: (id: string) => ['flashcards', id] as const,
 } as const;

@@ -187,6 +187,47 @@
 `PATCH /tasks/...`), приходят записями в начале первого дня. Цвет точки
 по виду модуля: КАРТА → `blue`, ЧЕК-ЛИСТ → `green`, ТАЙМЕР → `blueLight`.
 
+## Flashcards
+Умные карточки (Фаза 9, сверх исходного дизайн-референса). Лимит
+одновременно хранимых колод — `quota.limit` (Free 1 / Premium 10);
+удаление колоды освобождает слот.
+```
+*** Метод: GET
+*** URL: /api/v1/flashcards
+*** Отправляем: token
+*** Ожидаем получить: {quota: {used, limit},
+    decks: [{id, title, source: "text"|"image", createdAt,
+             cardsTotal, cardsRemaining}]}
+
+*** Метод: GET
+*** URL: /api/v1/flashcards/:deckId
+*** Отправляем: token
+*** Ожидаем получить: {id, title, source, createdAt, cardsTotal,
+    cardsRemaining, cards: [{id, question, answer}]} | null
+
+*** Метод: POST
+*** URL: /api/v1/flashcards
+*** Отправляем: token, {source: "text"|"image", text?, images?: file[] (multipart)}
+*** Ожидаем получить: {id, title, source, createdAt, cardsTotal,
+    cardsRemaining, cards: [{id, question, answer}]}
+    (409, если квота колод исчерпана)
+
+*** Метод: DELETE
+*** URL: /api/v1/flashcards/:deckId
+*** Отправляем: token
+*** Ожидаем получить: {ok: true}
+
+*** Метод: PATCH
+*** URL: /api/v1/flashcards/:deckId/cards/:cardId
+*** Отправляем: token, {known: true}
+*** Ожидаем получить: {deck: {...обновлённая колода} | null, xpAwarded: number}
+```
+Когда карточка была последней в колоде, `xpAwarded` > 0: бекенд (1)
+прибавляет её к `profile.xp`, (2) добавляет запись в
+`GET /achievements/log` за сегодня (`kind: "умные карточки"`). Колода
+остаётся в списке пустой до явного `DELETE` — так пользователь сам решает,
+когда освободить слот квоты.
+
 ## TBD (добавлять по ходу Фазы 4)
 - Focus tools: сохранение сессий фокуса и трекеров привычек
 - Settings / notifications preferences (сейчас строки-заглушки)

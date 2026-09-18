@@ -22,8 +22,8 @@ import { useThemeStore } from '@/stores/theme';
  * ID реестра честный отдельный route-файл, а не переключение по стейту).
  * Nav-type из реестра прокидывается через `<Stack.Screen options>`:
  *  - `subscription/*` (PAYWALL / PLAN_SELECTION / PAYMENT_FLOW) — модалки;
- *  - `auth/loading`, `ai/analysis/loading`, `system/maintenance`,
- *    `system/update` — жест «назад» отключён.
+ *  - `auth/loading`, `ai/analysis/loading`, `flashcards/generating`,
+ *    `system/maintenance`, `system/update` — жест «назад» отключён.
  *
  * Сплэш держится (native splash) пока не загрузятся шрифты и не
  * гидратируются сторы сессии/темы (Фаза 2).
@@ -98,6 +98,7 @@ function AppShell() {
                 />
                 <Stack.Screen name="auth/loading" options={{ gestureEnabled: false }} />
                 <Stack.Screen name="ai/analysis/loading" options={{ gestureEnabled: false }} />
+                <Stack.Screen name="flashcards/generating" options={{ gestureEnabled: false }} />
                 <Stack.Screen name="system/maintenance" options={{ gestureEnabled: false }} />
                 <Stack.Screen name="system/update" options={{ gestureEnabled: false }} />
               </Stack>

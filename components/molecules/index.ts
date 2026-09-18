@@ -4,6 +4,7 @@ export { BentoTile } from './BentoTile';
 export { ChatBubble } from './ChatBubble';
 export { DocumentCell } from './DocumentCell';
 export { FilterOptionRow } from './FilterOptionRow';
+export { FlashcardDeckRow } from './FlashcardDeckRow';
 export { FocusSoundTile } from './FocusSoundTile';
 export { ModuleConfirmationCard } from './ModuleConfirmationCard';
 export { PlanCard } from './PlanCard';
