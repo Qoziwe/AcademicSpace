@@ -11,6 +11,7 @@
  */
 
 import { ENV } from '@/constants/env';
+import { useSessionStore } from '@/stores/session';
 
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
@@ -30,13 +31,18 @@ export function notImplemented(what: string): never {
 }
 
 /**
- * Единая точка реального запроса. Токен мок-сессии пока не шлём —
- * авторизация появится в Фазе 8 вместе с бекендом (`CLAUDE.md` §11).
+ * Единая точка реального запроса. JWT из `stores/session.ts` (полученный от
+ * `POST /auth/signup|signin`, Фаза 8.3) подставляется в `Authorization`,
+ * если сессия уже есть.
  */
 export async function apiFetch<T>(method: HttpMethod, path: string, body?: unknown): Promise<T> {
+  const { token } = useSessionStore.getState();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(`${ENV.apiBaseUrl}${path}`, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: body == null ? undefined : JSON.stringify(body),
   });
 
