@@ -19,10 +19,12 @@
  * дубли жеста для веба/десктопа без тача.
  */
 
+import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  Easing,
   Extrapolation,
   interpolate,
   runOnJS,
@@ -32,9 +34,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { Icon } from '@/components/atoms';
+import { Icon, IconTile, ProgressBar } from '@/components/atoms';
 import { useTheme } from '@/hooks/useTheme';
-import { accent, bodyFont, navy, radius, spacing } from '@/theme';
+import { accent, bodyFont, navy, radius, shadow, spacing } from '@/theme';
 
 export interface FlashcardStackCard {
   id: string;
@@ -62,7 +64,11 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 const SNAP = { damping: 20, stiffness: 240, mass: 0.6 };
-const FLIP_SPRING = { damping: 16, stiffness: 160 };
+// Быстрый flat-timing вместо пружины — переворот ощущался затянутым
+// (пружина с этими коэффициентами колебалась и оседала заметно дольше
+// прямого тайминга при развороте на 180°).
+const FLIP_DURATION = 240;
+const FLIP_EASING = Easing.out(Easing.cubic);
 const SWIPE_THRESHOLD = 110;
 const EXIT_DISTANCE = 520;
 const EXIT_DURATION = 220;
@@ -74,6 +80,7 @@ export function FlashcardStack({ initialCards, cardsTotal, onKnown, onEmpty, sty
 
   const current = queue[0];
   const upNext = queue[1];
+  const secondPeek = queue[2];
 
   const translateX = useSharedValue(0);
   const flipped = useSharedValue(0);
@@ -101,7 +108,7 @@ export function FlashcardStack({ initialCards, cardsTotal, onKnown, onEmpty, sty
   }, [translateX, flipped]);
 
   const triggerFlip = useCallback(() => {
-    flipped.value = withSpring(1, FLIP_SPRING);
+    flipped.value = withTiming(1, { duration: FLIP_DURATION, easing: FLIP_EASING });
     translateX.value = withSpring(0, SNAP);
     setIsFlipped(true);
   }, [flipped, translateX]);
@@ -178,13 +185,29 @@ export function FlashcardStack({ initialCards, cardsTotal, onKnown, onEmpty, sty
 
   return (
     <View style={[styles.root, style]}>
-      <Text style={[bodyFont('700'), styles.progress, { color: palette.sub }]}>
-        {position} из {cardsTotal}
-      </Text>
+      <View style={styles.progressRow}>
+        <View style={[styles.progressPill, { backgroundColor: palette.chip }]}>
+          <Text style={[bodyFont('700'), styles.progress, { color: palette.sub }]}>
+            {position} из {cardsTotal}
+          </Text>
+        </View>
+        <ProgressBar
+          value={cardsTotal > 0 ? (position - 1) / cardsTotal : 0}
+          height={4}
+          trackColor={palette.border}
+          fillColor={accent.blue}
+          style={styles.progressBar}
+        />
+      </View>
 
       <View style={styles.stack}>
+        {secondPeek ? (
+          <View style={[styles.card, styles.peekCard2, { backgroundColor: palette.card }]} />
+        ) : null}
         {upNext ? (
-          <View style={[styles.card, styles.peekCard, { backgroundColor: palette.card }]}>
+          <View
+            style={[styles.card, styles.peekCard, shadow.card, { backgroundColor: palette.card }]}
+          >
             <Text
               numberOfLines={4}
               style={[bodyFont('700'), styles.peekText, { color: palette.sub }]}
@@ -195,13 +218,23 @@ export function FlashcardStack({ initialCards, cardsTotal, onKnown, onEmpty, sty
         ) : null}
 
         <GestureDetector gesture={pan}>
-          <Animated.View style={[styles.card, cardStyle]}>
-            <Animated.View style={[styles.face, frontFaceStyle, { backgroundColor: navy.primary }]}>
-              <Text
-                style={[bodyFont('600'), styles.faceLabel, { color: 'rgba(255,255,255,0.55)' }]}
-              >
-                ВОПРОС
-              </Text>
+          <Animated.View style={[styles.card, shadow.card, cardStyle]}>
+            <Animated.View style={[styles.face, frontFaceStyle]}>
+              <LinearGradient
+                colors={['#3A41A0', navy.primary]}
+                start={{ x: 0.1, y: 0 }}
+                end={{ x: 0.9, y: 1 }}
+                style={StyleSheet.absoluteFillObject}
+              />
+              <View style={styles.faceBlob} />
+              <View style={styles.faceLabelRow}>
+                <View style={styles.faceLabelDot} />
+                <Text
+                  style={[bodyFont('600'), styles.faceLabel, { color: 'rgba(255,255,255,0.6)' }]}
+                >
+                  ВОПРОС
+                </Text>
+              </View>
               <Text style={[bodyFont('700'), styles.faceText, { color: '#FFFFFF' }]}>
                 {current.question}
               </Text>
@@ -218,7 +251,14 @@ export function FlashcardStack({ initialCards, cardsTotal, onKnown, onEmpty, sty
                 { backgroundColor: palette.card, borderColor: palette.border },
               ]}
             >
-              <Text style={[bodyFont('600'), styles.faceLabel, { color: accent.blue }]}>ОТВЕТ</Text>
+              <View style={styles.faceLabelRow}>
+                <IconTile size={26} radius={9} tone="blueSoft">
+                  <Icon name="check" size={13} color={accent.blue} strokeWidth={2} />
+                </IconTile>
+                <Text style={[bodyFont('700'), styles.faceLabel, { color: accent.blue }]}>
+                  ОТВЕТ
+                </Text>
+              </View>
               <Text style={[bodyFont('700'), styles.faceText, { color: palette.ink }]}>
                 {current.answer}
               </Text>
@@ -298,7 +338,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.lg,
   },
+  progressRow: { width: '100%', alignItems: 'center', gap: 9 },
+  progressPill: { borderRadius: radius.xs, paddingHorizontal: 11, paddingVertical: 5 },
   progress: { fontSize: 12 },
+  progressBar: { width: '60%' },
   stack: { width: '100%', height: CARD_HEIGHT },
   card: {
     position: 'absolute',
@@ -308,6 +351,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: radius.xl,
   },
+  peekCard2: { top: 26, opacity: 0.28 },
   peekCard: {
     top: 14,
     opacity: 0.55,
@@ -324,8 +368,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.lg,
     backfaceVisibility: 'hidden',
+    overflow: 'hidden',
   },
   faceBack: { borderWidth: 1 },
+  faceBlob: {
+    position: 'absolute',
+    right: -36,
+    top: -36,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: 'rgba(124,147,255,0.2)',
+  },
+  faceLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  faceLabelDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 1,
+    backgroundColor: accent.gold,
+    transform: [{ rotate: '45deg' }],
+  },
   faceLabel: { fontSize: 12, letterSpacing: 1 },
   faceText: { fontSize: 23, lineHeight: 32, textAlign: 'center' },
   faceHint: { position: 'absolute', bottom: 20, fontSize: 11 },
@@ -346,8 +408,8 @@ const styles = StyleSheet.create({
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
-    height: 48,
-    borderRadius: radius.lg,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,

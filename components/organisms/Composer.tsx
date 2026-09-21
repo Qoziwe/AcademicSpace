@@ -7,6 +7,7 @@
  * (`inputPlaceholder: 'Доступно в Premium'`): поле и подсказки неактивны.
  */
 
+import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
   Pressable,
@@ -108,9 +109,19 @@ export function Composer({
           accessibilityLabel="Отправить"
           disabled={!canSend}
           onPress={submit}
-          style={({ pressed }) => [styles.send, { opacity: !canSend ? 0.4 : pressed ? 0.85 : 1 }]}
+          style={({ pressed }) => [
+            styles.sendWrap,
+            { opacity: !canSend ? 0.4 : pressed ? 0.85 : 1 },
+          ]}
         >
-          <Icon name="arrow-up" size={18} color="#FFFFFF" strokeWidth={2} />
+          <LinearGradient
+            colors={[navy.primary, accent.blue]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.send}
+          >
+            <Icon name="arrow-up" size={18} color="#FFFFFF" strokeWidth={2} />
+          </LinearGradient>
         </Pressable>
       </View>
     </View>
@@ -152,13 +163,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     padding: 0,
   },
+  sendWrap: { flexShrink: 0 },
   send: {
     width: 48,
     height: 48,
     borderRadius: radius.md,
-    backgroundColor: navy.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
   },
 });

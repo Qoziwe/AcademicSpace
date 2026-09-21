@@ -12,46 +12,56 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TextField } from '@/components/atoms';
-import { DocumentCell } from '@/components/molecules';
+import { Icon, IconTile, TextField } from '@/components/atoms';
 import { HeaderBar } from '@/components/organisms';
 import { useCreateFlashcardDeck } from '@/hooks/api/useFlashcards';
 import { useTheme } from '@/hooks/useTheme';
 import { FLASHCARD_IMAGE_SLOTS } from '@/mocks/fixtures';
 import { backOr } from '@/navigation/back';
 import { withGuard } from '@/navigation/withGuard';
-import { bodyFont, navy, radius } from '@/theme';
-
-type Mode = 'text' | 'image';
+import { accent, bodyFont, navy, radius, spacing } from '@/theme';
 
 /**
- * FLASHCARDS_CREATE (`/flashcards/create`). Текст или фото (мок file-picker,
- * как `PORTFOLIO_UPLOAD`) → генерация (`useCreateFlashcardDeck`). Экран сам
- * дожидается результата мутации и уводит на конкретную колоду — GENERATING
- * между ними чисто декоративный (id колоды известен только после ответа).
+ * FLASHCARDS_CREATE (`/flashcards/create`). Единый композер, как в чате с
+ * ИИ-ментором: текст и фото — не взаимоисключающие вкладки, а один инпут —
+ * можно описать тему словами, приложить фото конспекта (мок file-picker,
+ * как `PORTFOLIO_UPLOAD`) или и то, и другое сразу (`docs/api-contract.md`
+ * §Flashcards уже описывает `{text?, images?: file[]}` в одном запросе).
+ * `source` для строки в списке колод — вычисляется: есть фото → `image`,
+ * иначе `text`. Генерация (`useCreateFlashcardDeck`) — экран сам дожидается
+ * результата и уводит на конкретную колоду; GENERATING между ними чисто
+ * декоративный (id колоды известен только после ответа).
  */
 function FlashcardsCreateScreen() {
   const insets = useSafeAreaInsets();
   const { palette } = useTheme();
-  const [mode, setMode] = useState<Mode>('text');
   const [text, setText] = useState('');
   const [imageSlots, setImageSlots] = useState<boolean[]>(() =>
     FLASHCARD_IMAGE_SLOTS.map(() => false),
   );
   const create = useCreateFlashcardDeck();
 
-  const toggleSlot = (i: number) =>
-    setImageSlots((slots) => slots.map((v, idx) => (idx === i ? !v : v)));
+  const attachedCount = imageSlots.filter(Boolean).length;
+  const canAttachMore = attachedCount < FLASHCARD_IMAGE_SLOTS.length;
 
-  const canSubmit = mode === 'text' ? text.trim().length > 0 : imageSlots.some((v) => v);
+  const addPhoto = () => {
+    const next = imageSlots.findIndex((v) => !v);
+    if (next === -1) return;
+    setImageSlots((slots) => slots.map((v, i) => (i === next ? true : v)));
+  };
+  const removePhoto = (i: number) =>
+    setImageSlots((slots) => slots.map((v, idx) => (idx === i ? false : v)));
+
+  const canSubmit = text.trim().length > 0 || attachedCount > 0;
 
   const submit = async () => {
     if (!canSubmit || create.isPending) return;
+    const source = attachedCount > 0 ? 'image' : 'text';
     router.push('/flashcards/generating');
     try {
       const deck = await create.mutateAsync({
-        source: mode,
-        text: mode === 'text' ? text.trim() : undefined,
+        source,
+        text: text.trim() || undefined,
       });
       router.replace({ pathname: '/flashcards/[deckId]', params: { deckId: deck.id } });
     } catch {
@@ -64,39 +74,91 @@ function FlashcardsCreateScreen() {
       style={[styles.root, { backgroundColor: palette.screen }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <HeaderBar title="Новая колода" sub="что разбираем?" onBack={backOr('/flashcards')} />
+      <HeaderBar
+        title="Новая колода"
+        sub="текст, фото — или всё сразу"
+        onBack={backOr('/flashcards')}
+      />
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 110 }]}>
-        <View style={[styles.segment, { backgroundColor: palette.border }]}>
-          <SegmentTab label="Текст" active={mode === 'text'} onPress={() => setMode('text')} />
-          <SegmentTab label="Фото" active={mode === 'image'} onPress={() => setMode('image')} />
+        <View style={styles.tip}>
+          <IconTile size={30} radius={10} tone="blueSoft" background="rgba(243,194,75,0.16)">
+            <Icon name="sparkles" size={14} color={accent.gold} strokeWidth={1.7} />
+          </IconTile>
+          <Text style={[bodyFont('500'), styles.tipText, { color: palette.sub }]}>
+            Опишите тему своими словами и приложите фото конспекта — можно и то, и другое сразу.
+          </Text>
         </View>
 
-        {mode === 'text' ? (
-          <TextField
-            label="Опишите тему, которую не поняли"
-            value={text}
-            onChangeText={setText}
-            placeholder="Например: не понимаю, как решать квадратные уравнения через дискриминант…"
-            multiline
-            numberOfLines={7}
-          />
-        ) : (
-          <View style={styles.slots}>
-            {FLASHCARD_IMAGE_SLOTS.map((slot, i) => (
-              <DocumentCell
-                key={slot.title}
-                title={slot.title}
-                sub={slot.filledSub}
-                emptySub="фото не добавлено"
-                filled={imageSlots[i] ?? false}
-                onPress={() => toggleSlot(i)}
-                actionFilledLabel="добавлено"
-                actionEmptyLabel="добавить фото"
-              />
-            ))}
-          </View>
-        )}
+        <TextField
+          label="Что разбираем?"
+          value={text}
+          onChangeText={setText}
+          placeholder="Например: не понимаю, как решать квадратные уравнения через дискриминант…"
+          multiline
+          numberOfLines={5}
+        />
+
+        <View style={styles.attachHead}>
+          <Text style={[bodyFont('700'), styles.attachLabel, { color: palette.sub }]}>
+            ФОТО КОНСПЕКТА
+          </Text>
+          {attachedCount > 0 ? (
+            <Text style={[bodyFont('600'), styles.attachCount, { color: palette.sub }]}>
+              {attachedCount} из {FLASHCARD_IMAGE_SLOTS.length}
+            </Text>
+          ) : null}
+        </View>
+
+        <View style={styles.attachRow}>
+          {imageSlots.map((attached, i) =>
+            attached ? (
+              <View
+                key={FLASHCARD_IMAGE_SLOTS[i]!.title}
+                style={[
+                  styles.chip,
+                  { backgroundColor: palette.card, borderColor: palette.border },
+                ]}
+              >
+                <IconTile size={30} radius={10} tone="blueSoft">
+                  <Icon name="image" size={14} color={accent.blue} />
+                </IconTile>
+                <Text
+                  numberOfLines={1}
+                  style={[bodyFont('600'), styles.chipText, { color: palette.ink }]}
+                >
+                  {FLASHCARD_IMAGE_SLOTS[i]!.title}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Убрать фото"
+                  hitSlop={8}
+                  onPress={() => removePhoto(i)}
+                  style={({ pressed }) => [
+                    styles.chipRemove,
+                    { backgroundColor: palette.chip, opacity: pressed ? 0.6 : 1 },
+                  ]}
+                >
+                  <Icon name="x" size={12} color={palette.sub} strokeWidth={2} />
+                </Pressable>
+              </View>
+            ) : null,
+          )}
+
+          {canAttachMore ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={addPhoto}
+              style={({ pressed }) => [
+                styles.addChip,
+                { borderColor: palette.border, opacity: pressed ? 0.7 : 1 },
+              ]}
+            >
+              <Icon name="camera" size={15} color={accent.blue} strokeWidth={1.7} />
+              <Text style={[bodyFont('700'), styles.addChipText]}>Добавить фото</Text>
+            </Pressable>
+          ) : null}
+        </View>
 
         <Text style={[bodyFont('500'), styles.note, { color: palette.sub }]}>
           ИИ разберёт материал и соберёт карточки «вопрос → ответ» для повторения — обычно это
@@ -126,45 +188,51 @@ function FlashcardsCreateScreen() {
   );
 }
 
-function SegmentTab({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  const { palette } = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="tab"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={[styles.segmentTab, active && { backgroundColor: palette.card }]}
-    >
-      <Text
-        style={[bodyFont('700'), styles.segmentText, { color: active ? palette.ink : palette.sub }]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { paddingHorizontal: 18, paddingTop: 16, gap: 14 },
-  segment: { flexDirection: 'row', borderRadius: radius.lg, padding: 4, gap: 4 },
-  segmentTab: {
-    flex: 1,
-    height: 40,
-    borderRadius: radius.md,
+  tip: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: 2 },
+  tipText: { flex: 1, fontSize: 11.5, lineHeight: 16 },
+  attachHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+    marginTop: -4,
+  },
+  attachLabel: { fontSize: 10.5, letterSpacing: 0.5 },
+  attachCount: { fontSize: 10.5 },
+  attachRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
+    maxWidth: 190,
+  },
+  chipText: { fontSize: 11.5, flexShrink: 1 },
+  chipRemove: {
+    width: 22,
+    height: 22,
+    borderRadius: radius.xs,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
-  segmentText: { fontSize: 13 },
-  slots: { gap: 10 },
+  addChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderRadius: radius.lg,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  addChipText: { fontSize: 11.5, color: accent.blue },
   note: { fontSize: 11.5, lineHeight: 17 },
   footer: {
     position: 'absolute',
