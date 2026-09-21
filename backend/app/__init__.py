@@ -12,6 +12,9 @@ def create_app(config_name: str | None = None) -> Flask:
 
     db.init_app(app)
     migrate.init_app(app, db)
+
+    from app import models  # noqa: F401  — регистрирует таблицы в db.metadata
+
     jwt.init_app(app)
     cors.init_app(app, origins=app.config["CORS_ORIGINS"])
 

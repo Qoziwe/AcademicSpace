@@ -19,8 +19,8 @@
     ],
     "frontend/**/*.{json,md,yml,yaml}": ["npm exec --workspace frontend -- prettier --write"],
     "backend/**/*.py": [
-      "uv run --project backend ruff check --fix",
-      "uv run --project backend black"
+      "uv run --project backend ruff check --fix --force-exclude",
+      "uv run --project backend black --force-exclude"
     ]
   }
 }
