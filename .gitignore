@@ -50,4 +50,5 @@ backend/__pycache__/
 *.pyc
 backend/.env
 backend/instance/
-backend/storage/
+backend/storage/*
+!backend/storage/.gitkeep
