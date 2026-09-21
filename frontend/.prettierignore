@@ -5,6 +5,7 @@ android
 ios
 *.lock
 package-lock.json
+expo-env.d.ts
 
 # Проектная документация ведётся вручную (ручной перенос строк, RU-типографика) —
 # не отдаём Prettier на реформат.

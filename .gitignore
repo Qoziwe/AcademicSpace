@@ -40,5 +40,14 @@ yarn-error.*
 app-example
 
 # generated native folders
-/ios
-/android
+/frontend/ios
+/frontend/android
+
+# backend (Python)
+backend/.venv/
+backend/__pycache__/
+**/__pycache__/
+*.pyc
+backend/.env
+backend/instance/
+backend/storage/
