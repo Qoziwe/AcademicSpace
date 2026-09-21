@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  quality:
-    name: Lint & Typecheck
+  frontend-quality:
+    name: Frontend — Lint & Typecheck
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,17 +17,51 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version-file: frontend/.nvmrc
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
       - name: Prettier check
-        run: npm run format:check
+        run: npm run format:check --workspace frontend
 
       - name: ESLint
-        run: npm run lint
+        run: npm run lint --workspace frontend
 
       - name: TypeScript
-        run: npm run typecheck
+        run: npm run typecheck --workspace frontend
+
+  backend-quality:
+    name: Backend — Lint & Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Skip (not bootstrapped yet)
+        if: ${{ hashFiles('backend/pyproject.toml') == '' }}
+        run: echo "backend не забутстрапен (Фаза 8.1) — пропуск"
+
+      - name: Install uv
+        if: ${{ hashFiles('backend/pyproject.toml') != '' }}
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        if: ${{ hashFiles('backend/pyproject.toml') != '' }}
+        run: uv sync
+
+      - name: Ruff
+        if: ${{ hashFiles('backend/pyproject.toml') != '' }}
+        run: uv run ruff check .
+
+      - name: Black
+        if: ${{ hashFiles('backend/pyproject.toml') != '' }}
+        run: uv run black --check .
+
+      - name: Pytest
+        if: ${{ hashFiles('backend/pyproject.toml') != '' }}
+        run: uv run pytest -q
