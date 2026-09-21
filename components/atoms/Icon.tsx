@@ -34,7 +34,12 @@ export type IconName =
   | 'lock'
   | 'sparkles'
   | 'trash'
-  | 'image';
+  | 'image'
+  | 'clock'
+  | 'flame'
+  | 'plus'
+  | 'x'
+  | 'camera';
 
 interface Props {
   name: IconName;
@@ -194,6 +199,44 @@ function render(name: IconName, color: string, s: StrokeProps) {
           <Circle cx={9} cy={10} r={1.7} fill={color} />
           <Path d="M4 17l5.2-5.2a2 2 0 0 1 2.8 0L16 15.8" {...s} />
           <Path d="M14 14l1.3-1.3a2 2 0 0 1 2.8 0L20 14.5" {...s} />
+        </>
+      );
+    case 'clock':
+      return (
+        <>
+          <Circle cx={12} cy={12} r={8.2} {...s} />
+          <Path d="M12 7.5V12l3.2 2" {...s} />
+        </>
+      );
+    case 'flame':
+      return (
+        <Path
+          d="M12 3.2c1 2.6-2.7 3.8-2.7 7 0 1.2.6 2 1.4 2.5-.9-2 .3-3 .8-3.6.2 1.1.9 1.7 1.6 2.2.9.6 1.6 1.5 1.6 2.9 0 3-2.5 5.3-5.7 4.9-2.6-.3-4.5-2.6-4.5-5.2 0-4.6 4.9-6.4 3.9-10.7 1.4.5 2.7 1.4 3.6 2.9z"
+          {...s}
+        />
+      );
+    case 'plus':
+      return (
+        <>
+          <Path d="M12 5v14" {...s} />
+          <Path d="M5 12h14" {...s} />
+        </>
+      );
+    case 'x':
+      return (
+        <>
+          <Path d="M6 6l12 12" {...s} />
+          <Path d="M18 6L6 18" {...s} />
+        </>
+      );
+    case 'camera':
+      return (
+        <>
+          <Path
+            d="M4 8.5A2 2 0 0 1 6 6.5h1.6l1-1.8h6.8l1 1.8H18a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"
+            {...s}
+          />
+          <Circle cx={12} cy={12.5} r={3.6} {...s} />
         </>
       );
   }

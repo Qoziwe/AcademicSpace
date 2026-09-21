@@ -2,14 +2,15 @@ import { router } from 'expo-router';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon } from '@/components/atoms';
+import { Icon, TileIcon } from '@/components/atoms';
+import { Blink } from '@/components/motion';
 import { ChatThread, Composer } from '@/components/organisms';
 import { useChatMeta, useCreateChatModule, useSendMessage } from '@/hooks/api/useChat';
 import { useTheme } from '@/hooks/useTheme';
 import { useMockStore } from '@/mocks/store';
 import { backOr } from '@/navigation/back';
 import { withGuard } from '@/navigation/withGuard';
-import { accent, bodyFont, navy, radius } from '@/theme';
+import { accent, bodyFont, radius } from '@/theme';
 
 /**
  * AI_CHAT (`/ai/chat`, `design-reference.html:624`). Premium-only — Free по
@@ -50,16 +51,16 @@ function AiChatScreen() {
           <Icon name="chevron-left" size={18} color={palette.ink} />
         </Pressable>
         <View style={styles.botAvatar}>
-          <View style={styles.botDots}>
-            <View style={styles.botDot} />
-            <View style={styles.botDot} />
-          </View>
+          <TileIcon name="mentor" />
         </View>
         <View style={styles.headerText}>
           <Text style={[bodyFont('800'), styles.headerTitle, { color: palette.ink }]}>
             ИИ-ментор
           </Text>
-          <Text style={[bodyFont('500'), styles.headerStatus]}>онлайн · безлимитный доступ</Text>
+          <View style={styles.statusRow}>
+            <Blink durationMs={1400} style={styles.statusDot} />
+            <Text style={[bodyFont('500'), styles.headerStatus]}>онлайн · безлимитный доступ</Text>
+          </View>
         </View>
       </View>
 
@@ -107,15 +108,13 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radius.sm,
-    backgroundColor: navy.deep,
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  botDots: { flexDirection: 'row', gap: 4 },
-  botDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#8FA6FF' },
   headerText: { flex: 1, minWidth: 0 },
   headerTitle: { fontSize: 14.5 },
-  headerStatus: { fontSize: 11, color: accent.green, marginTop: 1 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
+  statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: accent.green },
+  headerStatus: { fontSize: 11, color: accent.green },
   kav: { flex: 1 },
   thread: { flex: 1 },
 });

@@ -7,11 +7,12 @@
  * `children` — прикреплённая карточка (`<ModuleConfirmationCard>`).
  */
 
+import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '@/hooks/useTheme';
-import { bodyFont, navy } from '@/theme';
+import { bodyFont, navy, shadow } from '@/theme';
 
 interface Props {
   text: string;
@@ -24,23 +25,27 @@ export function ChatBubble({ text, fromMe, children }: Props) {
 
   return (
     <View style={[styles.wrap, { alignItems: fromMe ? 'flex-end' : 'flex-start' }]}>
-      <View
-        style={[
-          styles.bubble,
-          fromMe
-            ? { backgroundColor: navy.primary, borderBottomRightRadius: 6 }
-            : {
-                backgroundColor: palette.card,
-                borderWidth: 1,
-                borderColor: palette.border,
-                borderBottomLeftRadius: 6,
-              },
-        ]}
-      >
-        <Text style={[bodyFont('500'), styles.text, { color: fromMe ? '#FFFFFF' : palette.ink }]}>
-          {text}
-        </Text>
-      </View>
+      {fromMe ? (
+        <LinearGradient
+          colors={['#3A41A0', navy.primary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.bubble, styles.bubbleMe]}
+        >
+          <Text style={[bodyFont('500'), styles.text, { color: '#FFFFFF' }]}>{text}</Text>
+        </LinearGradient>
+      ) : (
+        <View
+          style={[
+            styles.bubble,
+            styles.bubbleThem,
+            shadow.card,
+            { backgroundColor: palette.card, borderColor: palette.border },
+          ]}
+        >
+          <Text style={[bodyFont('500'), styles.text, { color: palette.ink }]}>{text}</Text>
+        </View>
+      )}
       {children}
     </View>
   );
@@ -56,6 +61,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 18,
   },
+  bubbleMe: { borderBottomRightRadius: 6 },
+  bubbleThem: { borderWidth: 1, borderBottomLeftRadius: 6 },
   text: {
     fontSize: 13,
     lineHeight: 20,

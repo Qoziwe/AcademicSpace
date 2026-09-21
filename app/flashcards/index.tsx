@@ -3,8 +3,9 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon } from '@/components/atoms';
+import { Icon, ProgressBar, TileIcon } from '@/components/atoms';
 import { FlashcardDeckRow } from '@/components/molecules';
+import { SlideUp } from '@/components/motion';
 import { HeaderBar } from '@/components/organisms';
 import { useDeleteFlashcardDeck, useFlashcardDecks } from '@/hooks/api/useFlashcards';
 import { usePremiumGate } from '@/hooks/usePremiumGate';
@@ -28,6 +29,7 @@ function FlashcardsListScreen() {
   const decks = decksQ.data?.decks ?? [];
   const quota = decksQ.data?.quota ?? { used: 0, limit: isPremium ? 10 : 1 };
   const quotaFree = quota.used < quota.limit;
+  const quotaProgress = quota.limit > 0 ? quota.used / quota.limit : 0;
 
   const createGo = () => {
     if (quotaFree) router.push('/flashcards/create');
@@ -40,43 +42,73 @@ function FlashcardsListScreen() {
         title="Умные карточки"
         sub={`${quota.used} из ${quota.limit} колод`}
         onBack={backOr('/dashboard')}
+        below={
+          <ProgressBar
+            value={quotaProgress}
+            height={4}
+            trackColor={palette.border}
+            fillColor={accent.blue}
+          />
+        }
       />
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 130 }]}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          decks.length === 0 && styles.contentEmpty,
+          { paddingBottom: insets.bottom + 130 },
+        ]}
+      >
         {decks.length === 0 ? (
-          <View
-            style={[styles.empty, { backgroundColor: palette.card, borderColor: palette.border }]}
-          >
-            <Text style={[bodyFont('700'), styles.emptyTitle, { color: palette.ink }]}>
+          <SlideUp style={styles.emptyWrap}>
+            <View style={styles.emptyIconOuter}>
+              <View style={styles.emptyIcon}>
+                <TileIcon name="flashcards" />
+              </View>
+            </View>
+            <Text style={[bodyFont('800'), styles.emptyTitle, { color: palette.ink }]}>
               Пока нет ни одной колоды
             </Text>
             <Text style={[bodyFont('500'), styles.emptySub, { color: palette.sub }]}>
               Опишите тему, которую не поняли, текстом или фото конспекта — ИИ соберёт карточки
               вопрос-ответ для повторения
             </Text>
-          </View>
+            <View style={styles.emptyExamples}>
+              {['«Неправильные глаголы»', '«Формулы физики»', 'Фото конспекта'].map((ex) => (
+                <View key={ex} style={[styles.exampleChip, { backgroundColor: palette.chip }]}>
+                  <Text style={[bodyFont('600'), styles.exampleChipText, { color: palette.sub }]}>
+                    {ex}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </SlideUp>
         ) : (
           <View style={styles.list}>
-            {decks.map((d) => (
-              <FlashcardDeckRow
-                key={d.id}
-                title={d.title}
-                source={d.source}
-                cardsTotal={d.cardsTotal}
-                cardsRemaining={d.cardsRemaining}
-                onPress={() =>
-                  router.push({ pathname: '/flashcards/[deckId]', params: { deckId: d.id } })
-                }
-                onDelete={() => deleteDeck.mutate(d.id)}
-              />
+            {decks.map((d, i) => (
+              <SlideUp key={d.id} delayMs={i * 50}>
+                <FlashcardDeckRow
+                  title={d.title}
+                  source={d.source}
+                  cardsTotal={d.cardsTotal}
+                  cardsRemaining={d.cardsRemaining}
+                  onPress={() =>
+                    router.push({ pathname: '/flashcards/[deckId]', params: { deckId: d.id } })
+                  }
+                  onDelete={() => deleteDeck.mutate(d.id)}
+                />
+              </SlideUp>
             ))}
           </View>
         )}
 
         {!quotaFree && isPremium ? (
-          <Text style={[bodyFont('500'), styles.limitNote, { color: palette.sub }]}>
-            Достигнут лимит в {quota.limit} колод — удалите одну, чтобы создать новую
-          </Text>
+          <View style={[styles.limitNote, { backgroundColor: palette.chip }]}>
+            <Icon name="lock" size={13} color={palette.sub} />
+            <Text style={[bodyFont('600'), styles.limitNoteText, { color: palette.sub }]}>
+              Достигнут лимит в {quota.limit} колод — удалите одну, чтобы создать новую
+            </Text>
+          </View>
         ) : null}
       </ScrollView>
 
@@ -116,17 +148,38 @@ function FlashcardsListScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { paddingHorizontal: 18, paddingTop: 16, gap: 12 },
+  contentEmpty: { flexGrow: 1, justifyContent: 'center' },
   list: { gap: 10 },
-  empty: {
-    borderWidth: 1,
-    borderRadius: radius.xl,
-    padding: 22,
+  emptyWrap: { alignItems: 'center', gap: 8, paddingHorizontal: 8, paddingBottom: 40 },
+  emptyIconOuter: {
+    width: 88,
+    height: 88,
+    borderRadius: radius.xxl,
+    backgroundColor: '#EFE9FB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  emptyIcon: { width: 56, height: 56, borderRadius: radius.lg, overflow: 'hidden' },
+  emptyTitle: { fontSize: 16, textAlign: 'center' },
+  emptySub: { fontSize: 12.5, lineHeight: 19, textAlign: 'center', maxWidth: 280 },
+  emptyExamples: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 7,
+    marginTop: 6,
+  },
+  exampleChip: { borderRadius: radius.sm, paddingHorizontal: 11, paddingVertical: 7 },
+  exampleChipText: { fontSize: 11 },
+  limitNote: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    borderRadius: radius.md,
+    padding: 12,
   },
-  emptyTitle: { fontSize: 14 },
-  emptySub: { fontSize: 12.5, lineHeight: 18, textAlign: 'center' },
-  limitNote: { fontSize: 11.5, textAlign: 'center', marginTop: 4 },
+  limitNoteText: { fontSize: 11.5, flex: 1, lineHeight: 16 },
   footer: {
     position: 'absolute',
     left: 0,

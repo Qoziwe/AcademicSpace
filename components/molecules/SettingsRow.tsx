@@ -23,6 +23,8 @@ interface Props {
   value?: string;
   sub?: string;
   badge?: string;
+  /** Ведущая иконка-плитка (`<IconTile>`/`<TileIcon>`) — акцент раздела на PROFILE. */
+  icon?: ReactNode;
   onPress?: () => void;
   rightSlot?: ReactNode;
   showChevron?: boolean;
@@ -37,6 +39,7 @@ export function SettingsRow({
   value,
   sub,
   badge,
+  icon,
   onPress,
   rightSlot,
   showChevron,
@@ -76,6 +79,7 @@ export function SettingsRow({
         style,
       ]}
     >
+      {icon ? <View style={styles.icon}>{icon}</View> : null}
       <View style={styles.textCol}>
         <View style={styles.titleRow}>
           <Text style={[bodyFont('600'), styles.title, { color: palette.ink }]}>{title}</Text>
@@ -104,6 +108,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   pressed: { opacity: 0.6 },
+  icon: { flexShrink: 0 },
   textCol: { flex: 1, minWidth: 0 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   title: { fontSize: 13 },
