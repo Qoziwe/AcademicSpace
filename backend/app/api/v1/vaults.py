@@ -1,12 +1,13 @@
-from pathlib import Path
+import mimetypes
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, Response, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from werkzeug.exceptions import BadRequest, NotFound
 from werkzeug.utils import secure_filename
 
 from app.extensions import db
-from app.models import Vault
+from app.models import Vault, VaultCell
+from app.services.storage.router import get_storage
 
 vaults_bp = Blueprint("vaults", __name__, url_prefix="/vaults")
 
@@ -35,6 +36,10 @@ def _get_vault(user_id: int, vault_id: str) -> Vault | None:
     return db.session.execute(
         db.select(Vault).filter_by(id=vault_pk, user_id=user_id)
     ).scalar_one_or_none()
+
+
+def _get_cell(vault: Vault, cell_index: int) -> VaultCell | None:
+    return next((c for c in vault.cells if c.position == cell_index), None)
 
 
 @vaults_bp.get("")
@@ -68,7 +73,7 @@ def upload_vault_cell(vault_id: str, cell_index: int):
     if vault is None:
         raise NotFound("Копилка не найдена.")
 
-    cell = next((c for c in vault.cells if c.position == cell_index), None)
+    cell = _get_cell(vault, cell_index)
     if cell is None:
         raise NotFound("Ячейка не найдена.")
 
@@ -77,16 +82,34 @@ def upload_vault_cell(vault_id: str, cell_index: int):
         raise BadRequest("Файл не передан.")
 
     filename = secure_filename(upload.filename)
-    storage_root = Path(current_app.config.get("STORAGE_LOCAL_PATH", "storage"))
-    vault_dir = storage_root / "vaults" / str(user_id) / str(vault.id)
-    vault_dir.mkdir(parents=True, exist_ok=True)
-    file_path = vault_dir / f"{cell.id}_{filename}"
-    upload.save(file_path)
+    key = f"vaults/{user_id}/{vault.id}/{cell.id}_{filename}"
+    get_storage().save(upload, key)
 
     extension = filename.rsplit(".", 1)[-1].lower() if "." in filename else "файл"
     cell.uploaded = True
-    cell.file_path = str(file_path)
+    cell.file_path = key
     cell.sub = extension
     db.session.commit()
 
     return jsonify({"cell": {"title": cell.title, "sub": cell.sub, "uploaded": cell.uploaded}})
+
+
+@vaults_bp.get("/<vault_id>/cells/<int:cell_index>/file")
+@jwt_required()
+def download_vault_cell_file(vault_id: str, cell_index: int):
+    user_id = int(get_jwt_identity())
+    vault = _get_vault(user_id, vault_id)
+    if vault is None:
+        raise NotFound("Копилка не найдена.")
+
+    cell = _get_cell(vault, cell_index)
+    if cell is None or not cell.uploaded or not cell.file_path:
+        raise NotFound("Файл не найден.")
+
+    try:
+        data = get_storage().read(cell.file_path)
+    except FileNotFoundError:
+        raise NotFound("Файл не найден.") from None
+
+    mimetype = mimetypes.guess_type(cell.file_path)[0] or "application/octet-stream"
+    return Response(data, mimetype=mimetype)

@@ -80,3 +80,50 @@ def test_upload_without_file_is_bad_request(client):
     res = client.post(f"/api/v1/vaults/{vault.id}/cells/0", headers=_auth(token))
 
     assert res.status_code == 400
+
+
+def test_download_uploaded_cell_file(client):
+    token, user_id = _signup(client)
+    vault = _seed_vault(user_id)
+
+    client.post(
+        f"/api/v1/vaults/{vault.id}/cells/0",
+        headers=_auth(token),
+        data={"file": (io.BytesIO(b"%PDF-1.4 content"), "attestat.pdf")},
+        content_type="multipart/form-data",
+    )
+
+    res = client.get(f"/api/v1/vaults/{vault.id}/cells/0/file", headers=_auth(token))
+
+    assert res.status_code == 200
+    assert res.data == b"%PDF-1.4 content"
+    assert res.mimetype == "application/pdf"
+
+
+def test_download_empty_cell_is_not_found(client):
+    token, user_id = _signup(client)
+    vault = _seed_vault(user_id)
+
+    res = client.get(f"/api/v1/vaults/{vault.id}/cells/0/file", headers=_auth(token))
+
+    assert res.status_code == 404
+
+
+def test_download_requires_ownership(client):
+    token, user_id = _signup(client)
+    vault = _seed_vault(user_id)
+    client.post(
+        f"/api/v1/vaults/{vault.id}/cells/0",
+        headers=_auth(token),
+        data={"file": (io.BytesIO(b"data"), "f.pdf")},
+        content_type="multipart/form-data",
+    )
+
+    other = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "other-vault@mail.kz", "password": "password123", "name": "X", "grade": "9"},
+    )
+    other_token = other.get_json()["token"]
+
+    res = client.get(f"/api/v1/vaults/{vault.id}/cells/0/file", headers=_auth(other_token))
+    assert res.status_code == 404
