@@ -40,6 +40,7 @@ interface Props {
 export function FilterStepScreen({ stepIndex }: Props) {
   const insets = useSafeAreaInsets();
   const { palette } = useTheme();
+  const interests = useMockStore((s) => s.interests);
   const filters = useMockStore((s) => s.filters);
   const setFilter = useMockStore((s) => s.setFilter);
   const toggleUniversity = useMockStore((s) => s.toggleUniversity);
@@ -62,9 +63,10 @@ export function FilterStepScreen({ stepIndex }: Props) {
 
   const next = () => {
     if (isLast) {
-      submit.mutate(undefined, {
-        onSuccess: () => router.replace('/universities/results'),
-      });
+      submit.mutate(
+        { interests, preferences: filters },
+        { onSuccess: () => router.replace('/universities/results') },
+      );
     } else {
       router.push(STEP_ROUTES[stepIndex + 1] as Href);
     }

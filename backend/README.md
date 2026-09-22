@@ -1,10 +1,12 @@
 # AcademicSpace — backend
 
 Flask + PostgreSQL. Реализует `docs/api-contract.md` (Фаза 8, см. корневой
-`docs/00-roadmap.md`). На данный момент: каркас приложения (Фаза 8.1) +
-модели данных и миграции (Фаза 8.2). Эндпоинты/бизнес-логика (Auth, Tasks,
-Vaults, AI Mentor и т.д.) — следующие подфазы (8.3+), сейчас есть только
-служебный `GET /api/v1/health`.
+`docs/00-roadmap.md`). На данный момент реализованы: каркас приложения
+(Фаза 8.1), модели данных и миграции (Фаза 8.2), Auth + Profile (Фаза 8.3),
+Questionnaire, Universities, Tasks, Vaults, Subscription, Achievement Log
+(Фаза 8.4). Файловое хранилище копилок пока простое (локальный диск через
+`STORAGE_LOCAL_PATH`, без абстракции `StorageBackend`) — формализуется в
+Фазе 8.6. AI Mentor (портфолио-анализ, чат, генерация карточек) — Фаза 8.5.
 
 Стек: Flask + Flask-SQLAlchemy + Flask-Migrate + Flask-JWT-Extended +
 Flask-CORS + marshmallow, PostgreSQL, пакетный менеджер [`uv`](https://docs.astral.sh/uv/).

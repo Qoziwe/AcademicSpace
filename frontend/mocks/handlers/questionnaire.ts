@@ -26,6 +26,8 @@ export function getQuestionnaire(): Promise<QuestionnaireStatus> {
 }
 
 export function submitQuestionnaire(): Promise<{ questionnaireId: string; filled: true }> {
+  // Мок уже держит interests/filters в `mocks/store.ts` — сабмит просто
+  // фиксирует флаг, тело запроса (интересы/предпочтения) ему не нужно.
   useMockStore.getState().setQuestionnaireFilled(true);
   return delay({ questionnaireId: 'q_demo', filled: true });
 }
