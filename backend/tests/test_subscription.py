@@ -69,3 +69,40 @@ def test_subscribe_with_unknown_plan_is_rejected(client):
     )
 
     assert res.status_code == 400
+
+
+def test_resubscribing_cancels_previous_active_subscription(client):
+    token = _signup(client)
+    _seed_plans()
+
+    client.post("/api/v1/subscription/subscribe", json={"planId": "week"}, headers=_auth(token))
+    client.post("/api/v1/subscription/subscribe", json={"planId": "month"}, headers=_auth(token))
+
+    from app.models import Subscription
+
+    subs = db.session.execute(db.select(Subscription).order_by(Subscription.id)).scalars().all()
+    assert [s.status for s in subs] == ["canceled", "active"]
+    assert subs[1].plan_id == "month"
+
+
+def test_subscribe_with_failing_provider_does_not_activate_premium(client, monkeypatch):
+    token = _signup(client)
+    _seed_plans()
+
+    class FailingProvider:
+        def charge(self, **kwargs):
+            from app.services.payments.base import ChargeResult
+
+            return ChargeResult(status="failed", renews_at=None, summary=None)
+
+    monkeypatch.setattr("app.api.v1.subscription.get_payment_provider", lambda: FailingProvider())
+
+    res = client.post(
+        "/api/v1/subscription/subscribe", json={"planId": "month"}, headers=_auth(token)
+    )
+
+    assert res.status_code == 402
+    assert res.get_json() == {"status": "failed", "subscription": None}
+
+    profile_res = client.get("/api/v1/profile/me", headers=_auth(token))
+    assert profile_res.get_json()["plan"] == "free"

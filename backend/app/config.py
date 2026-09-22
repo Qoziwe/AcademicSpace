@@ -18,6 +18,10 @@ class Config:
     ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
+    # Реальный провайдер для Кыргызстана ещё не выбран (см. docs/00-roadmap.md
+    # Фаза 8.7) — "mock" честно активирует Premium без реального списания.
+    PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "mock")
+
 
 class DevConfig(Config):
     DEBUG = True

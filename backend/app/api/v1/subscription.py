@@ -1,5 +1,3 @@
-import datetime as dt
-
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from werkzeug.exceptions import NotFound
@@ -7,16 +5,11 @@ from werkzeug.exceptions import NotFound
 from app.extensions import db
 from app.models import Profile, Subscription, SubscriptionPlan
 from app.schemas.subscription import SubscribeSchema
-from app.utils import ru_date
+from app.services.payments.router import get_payment_provider
 
 subscription_bp = Blueprint("subscription", __name__, url_prefix="/subscription")
 
 subscribe_schema = SubscribeSchema()
-
-# Мок-провайдер: `idle → processing → success` живёт на фронте через
-# setTimeout (CLAUDE.md §11); бекенд сразу отвечает успехом. Формализуется в
-# `app/services/payments/` в Фазе 8.7 — реальный провайдер ещё не выбран.
-PLAN_DURATION_DAYS = {"week": 7, "month": 30}
 
 
 @subscription_bp.get("/plans")
@@ -42,6 +35,12 @@ def subscribe():
     if plan is None or profile is None:
         raise NotFound("Тариф или профиль не найдены.")
 
+    result = get_payment_provider().charge(
+        plan_id=plan.id, period=plan.period, price=plan.price, payment_method=data["paymentMethod"]
+    )
+    if result.status != "success":
+        return jsonify({"status": "failed", "subscription": None}), 402
+
     previous_active = (
         db.session.execute(db.select(Subscription).filter_by(user_id=user_id, status="active"))
         .scalars()
@@ -50,7 +49,6 @@ def subscribe():
     for sub in previous_active:
         sub.status = "canceled"
 
-    renews_at = ru_date(dt.date.today() + dt.timedelta(days=PLAN_DURATION_DAYS[plan.id]))
     db.session.add(
         Subscription(
             user_id=user_id,
@@ -58,13 +56,13 @@ def subscribe():
             status="active",
             period_label=plan.period,
             price=plan.price,
-            renews_at=renews_at,
-            summary=f"{plan.period} · {plan.price}",
+            renews_at=result.renews_at,
+            summary=result.summary,
         )
     )
     profile.plan = "premium"
     db.session.commit()
 
     return jsonify(
-        {"status": "success", "subscription": {"period": plan.period, "renewsAt": renews_at}}
+        {"status": "success", "subscription": {"period": plan.period, "renewsAt": result.renews_at}}
     )
