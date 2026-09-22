@@ -11,7 +11,10 @@ export type QuestionnaireStatus = mock.QuestionnaireStatus;
 
 export interface QuestionnaireApi {
   getQuestionnaire(): Promise<QuestionnaireStatus>;
-  submitQuestionnaire(): Promise<{ questionnaireId: string; filled: true }>;
+  submitQuestionnaire(payload: {
+    interests: string[];
+    preferences: Record<string, unknown>;
+  }): Promise<{ questionnaireId: string; filled: true }>;
 }
 
 export const questionnaireApi: QuestionnaireApi = {

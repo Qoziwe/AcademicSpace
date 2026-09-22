@@ -1,6 +1,6 @@
 import datetime as dt
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -15,7 +15,8 @@ class SubscriptionPlan(db.Model):
     id: Mapped[str] = mapped_column(String(32), primary_key=True)  # "week" | "month"
     period: Mapped[str] = mapped_column(String(32), nullable=False)
     price: Mapped[str] = mapped_column(String(32), nullable=False)
-    label: Mapped[str] = mapped_column(String(255), default="")
+    sub: Mapped[str] = mapped_column(String(255), default="")  # подпись под ценой
+    best: Mapped[bool] = mapped_column(Boolean, default=False)  # выделенный тариф на PAYWALL
 
 
 class Subscription(db.Model):

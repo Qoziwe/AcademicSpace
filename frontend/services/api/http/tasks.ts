@@ -10,9 +10,8 @@ export function getTask(taskId: string): Promise<ApiTask | null> {
   return apiFetch<ApiTask | null>('GET', `/tasks/${taskId}`);
 }
 
-export function toggleTaskItem(): Promise<ToggleTaskItemResponse> {
-  // Начисление XP и запись в журнал на стороне бекенда — Фаза 8.
-  return notImplemented('PATCH /tasks/:taskId/items/:itemIndex');
+export function toggleTaskItem(taskId: string, itemIndex: number): Promise<ToggleTaskItemResponse> {
+  return apiFetch<ToggleTaskItemResponse>('PATCH', `/tasks/${taskId}/items/${itemIndex}`);
 }
 
 export function createChatModule(): Promise<{ created: true }> {

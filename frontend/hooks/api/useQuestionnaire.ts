@@ -19,7 +19,8 @@ export function useQuestionnaireStatus() {
 export function useSubmitQuestionnaire() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: questionnaireApi.submitQuestionnaire,
+    mutationFn: (payload: { interests: string[]; preferences: Record<string, unknown> }) =>
+      questionnaireApi.submitQuestionnaire(payload),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: qk.questionnaire() });
       void qc.invalidateQueries({ queryKey: qk.universitySearch() });

@@ -5,8 +5,9 @@ from app.extensions import db
 
 
 @pytest.fixture()
-def app():
+def app(tmp_path):
     app = create_app("testing")
+    app.config["STORAGE_LOCAL_PATH"] = str(tmp_path / "storage")
     with app.app_context():
         db.create_all()
         yield app

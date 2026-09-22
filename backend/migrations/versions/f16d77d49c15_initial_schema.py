@@ -24,7 +24,8 @@ def upgrade():
         sa.Column("id", sa.String(length=32), nullable=False),
         sa.Column("period", sa.String(length=32), nullable=False),
         sa.Column("price", sa.String(length=32), nullable=False),
-        sa.Column("label", sa.String(length=255), nullable=False),
+        sa.Column("sub", sa.String(length=255), nullable=False),
+        sa.Column("best", sa.Boolean(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
