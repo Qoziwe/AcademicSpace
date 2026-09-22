@@ -406,14 +406,6 @@ export const PORTFOLIO_SLOTS = [
   { title: 'Рекомендации', filledSub: 'загружено' },
 ] as const;
 
-/** Слоты фото для FLASHCARDS_CREATE (мок file-picker, как `PORTFOLIO_SLOTS`). */
-export const FLASHCARD_IMAGE_SLOTS = [
-  { title: 'Страница конспекта 1', filledSub: 'изображение добавлено' },
-  { title: 'Страница конспекта 2', filledSub: 'изображение добавлено' },
-  { title: 'Формулы / доска', filledSub: 'изображение добавлено' },
-  { title: 'Ещё страница', filledSub: 'изображение добавлено' },
-] as const;
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Умные карточки (FLASHCARDS_LIST / CREATE / GENERATING / STUDY)
 // ─────────────────────────────────────────────────────────────────────────────

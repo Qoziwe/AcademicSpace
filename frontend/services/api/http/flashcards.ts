@@ -17,10 +17,23 @@ export function getDeck(deckId: string): Promise<ApiFlashcardDeckDetail | null> 
   return apiFetch('GET', `/flashcards/${deckId}`);
 }
 
-export function createDeck(input: CreateFlashcardDeckInput): Promise<ApiFlashcardDeckDetail> {
-  // Фото конспекта на фронте — пока мок file-picker (реальных байт не
-  // уходит), генерация всегда идёт от `text`; см. `app/flashcards/create.tsx`.
-  return apiFetch('POST', '/flashcards', input);
+async function toBlob(uri: string): Promise<Blob> {
+  const res = await fetch(uri);
+  return res.blob();
+}
+
+export async function createDeck(input: CreateFlashcardDeckInput): Promise<ApiFlashcardDeckDetail> {
+  if (!input.images || input.images.length === 0) {
+    return apiFetch('POST', '/flashcards', { source: input.source, text: input.text });
+  }
+
+  const form = new FormData();
+  form.append('source', input.source);
+  if (input.text) form.append('text', input.text);
+  const blobs = await Promise.all(input.images.map(toBlob));
+  blobs.forEach((blob, i) => form.append('images', blob, `photo-${i}.jpg`));
+
+  return apiFetch('POST', '/flashcards', form);
 }
 
 export function deleteDeck(deckId: string): Promise<{ ok: true }> {

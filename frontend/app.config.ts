@@ -62,6 +62,13 @@ const config: ExpoConfig = {
         },
       },
     ],
+    [
+      'expo-image-picker',
+      {
+        photosPermission:
+          'Приложению нужен доступ к фото, чтобы приложить снимок конспекта к умным карточкам.',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

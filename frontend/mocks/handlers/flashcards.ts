@@ -35,6 +35,8 @@ export interface ApiFlashcardDeckDetail extends ApiFlashcardDeck {
 export interface CreateFlashcardDeckInput {
   source: 'text' | 'image';
   text?: string;
+  /** Локальные URI выбранных фото (`expo-image-picker`) — мок их не читает. */
+  images?: string[];
 }
 
 export class FlashcardQuotaError extends Error {
