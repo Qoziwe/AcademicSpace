@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -20,8 +20,10 @@ import { accent, bodyFont, navy, radius } from '@/theme';
 function AnalysisPreviewScreen() {
   const insets = useSafeAreaInsets();
   const { palette, isDark } = useTheme();
-  const analysisQ = useAnalysis('a_demo');
+  const { analysisId } = useLocalSearchParams<{ analysisId: string }>();
+  const analysisQ = useAnalysis(analysisId ?? '');
   const blocks = analysisQ.data?.previewBlocks ?? [];
+  const ready = analysisQ.data && analysisQ.data.status === 'ready';
 
   return (
     <View style={[styles.root, { backgroundColor: palette.screen }]}>
@@ -31,7 +33,7 @@ function AnalysisPreviewScreen() {
         onBack={backOr('/dashboard')}
       />
 
-      {analysisQ.data ? (
+      {ready ? (
         <View style={styles.body}>
           <ScrollView contentContainerStyle={styles.scroll} scrollEnabled={false}>
             {blocks.map((b) => (

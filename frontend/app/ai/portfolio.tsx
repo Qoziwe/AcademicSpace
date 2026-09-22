@@ -27,7 +27,13 @@ function PortfolioUploadScreen() {
 
   const run = () => {
     if (start.isPending) return;
-    start.mutate(undefined, { onSuccess: () => router.push('/ai/analysis/loading') });
+    start.mutate(undefined, {
+      onSuccess: (data) =>
+        router.push({
+          pathname: '/ai/analysis/loading',
+          params: { analysisId: data.analysisId },
+        }),
+    });
   };
 
   return (

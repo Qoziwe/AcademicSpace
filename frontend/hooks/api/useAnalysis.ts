@@ -18,5 +18,8 @@ export function useAnalysis(analysisId: string) {
   return useQuery({
     queryKey: qk.analysis(analysisId),
     queryFn: () => analysisApi.getAnalysis(analysisId),
+    enabled: Boolean(analysisId),
+    // На реальном бекенде анализ считается в фоне — опрашиваем, пока не ready.
+    refetchInterval: (query) => (query.state.data?.status === 'processing' ? 1500 : false),
   });
 }

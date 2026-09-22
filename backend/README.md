@@ -4,9 +4,12 @@ Flask + PostgreSQL. Реализует `docs/api-contract.md` (Фаза 8, см.
 `docs/00-roadmap.md`). На данный момент реализованы: каркас приложения
 (Фаза 8.1), модели данных и миграции (Фаза 8.2), Auth + Profile (Фаза 8.3),
 Questionnaire, Universities, Tasks, Vaults, Subscription, Achievement Log
-(Фаза 8.4). Файловое хранилище копилок пока простое (локальный диск через
-`STORAGE_LOCAL_PATH`, без абстракции `StorageBackend`) — формализуется в
-Фазе 8.6. AI Mentor (портфолио-анализ, чат, генерация карточек) — Фаза 8.5.
+(Фаза 8.4), AI Mentor (портфолио-анализ в фоновом потоке, чат с
+опциональным предложением модуля, генерация умных карточек — Фаза 8.5,
+`app/services/ai/` — Anthropic/OpenAI за общим интерфейсом `AIProvider`,
+выбор провайдера per-фича через `.env`). Файловое хранилище копилок пока
+простое (локальный диск через `STORAGE_LOCAL_PATH`, без абстракции
+`StorageBackend`) — формализуется в Фазе 8.6.
 
 Стек: Flask + Flask-SQLAlchemy + Flask-Migrate + Flask-JWT-Extended +
 Flask-CORS + marshmallow, PostgreSQL, пакетный менеджер [`uv`](https://docs.astral.sh/uv/).

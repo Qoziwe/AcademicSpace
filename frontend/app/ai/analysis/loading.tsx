@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -16,13 +16,18 @@ import { accent, bodyFont, navy } from '@/theme';
  * `<Blink>` 1.2s (`design-reference.html:531–532,1448`).
  */
 function AnalysisLoadingScreen() {
-  // Прогреваем кэш анализа, чтобы ANALYSIS_PREVIEW открылся без спиннера.
-  useAnalysis('a_demo');
+  const { analysisId } = useLocalSearchParams<{ analysisId: string }>();
+  // Прогреваем кэш анализа, чтобы ANALYSIS_PREVIEW открылся без спиннера
+  // (на реальном бекенде хук сам опрашивает, пока status не станет ready).
+  useAnalysis(analysisId ?? '');
 
   useEffect(() => {
-    const t = setTimeout(() => router.replace('/ai/analysis/preview'), 2600);
+    const t = setTimeout(
+      () => router.replace({ pathname: '/ai/analysis/preview', params: { analysisId } }),
+      2600,
+    );
     return () => clearTimeout(t);
-  }, []);
+  }, [analysisId]);
 
   return (
     <View style={styles.root}>
