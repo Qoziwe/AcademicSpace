@@ -7,9 +7,12 @@ Questionnaire, Universities, Tasks, Vaults, Subscription, Achievement Log
 (Фаза 8.4), AI Mentor (портфолио-анализ в фоновом потоке, чат с
 опциональным предложением модуля, генерация умных карточек — Фаза 8.5,
 `app/services/ai/` — Anthropic/OpenAI за общим интерфейсом `AIProvider`,
-выбор провайдера per-фича через `.env`). Файловое хранилище копилок пока
-простое (локальный диск через `STORAGE_LOCAL_PATH`, без абстракции
-`StorageBackend`) — формализуется в Фазе 8.6.
+выбор провайдера per-фича через `.env`), файловое хранилище (Фаза 8.6,
+`app/services/storage/` — интерфейс `StorageBackend`, реализация
+`local.py` на диске через `STORAGE_LOCAL_PATH`; облачный бекенд позже
+подключается одним файлом за тем же интерфейсом). Загрузка/выдача файла
+копилки — через хранилище; фото для умных карточек на фронте пока
+мок-file-picker, реальных байт не отправляет.
 
 Стек: Flask + Flask-SQLAlchemy + Flask-Migrate + Flask-JWT-Extended +
 Flask-CORS + marshmallow, PostgreSQL, пакетный менеджер [`uv`](https://docs.astral.sh/uv/).

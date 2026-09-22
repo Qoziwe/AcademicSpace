@@ -163,6 +163,13 @@
 *** URL: /api/v1/vaults/:vaultId/cells/:cellIndex
 *** Отправляем: token, file (multipart)
 *** Ожидаем получить: {cell: {...обновлённая ячейка}}
+
+*** Метод: GET
+*** URL: /api/v1/vaults/:vaultId/cells/:cellIndex/file
+*** Отправляем: token
+*** Ожидаем получить: бинарное тело файла (Content-Type по расширению) —
+    добавлен в Фазе 8.6 вместе со `StorageBackend`, изначально в контракте
+    не было; фронт пока не вызывает (нет экрана просмотра загруженного).
 ```
 
 ## Subscription
