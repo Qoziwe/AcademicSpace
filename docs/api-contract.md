@@ -24,11 +24,14 @@
 одного интерфейса `<Resource>Api`:
 
 - **мок-ветка** — `mocks/handlers/*` (форма ответа = этот файл);
-- **HTTP-ветка** — `services/api/http/*`: GET-чтения уже собраны через
-  `apiFetch()` к `ENV.apiBaseUrl` по URL ниже; мутации с побочными
-  эффектами (`signup/signin`, `POST /questionnaire`, `POST /ai/portfolio`,
-  `POST /ai/chat/messages`, `PATCH /tasks/...`, `POST /subscription/...`)
-  помечены `notImplemented()` — их тело и точный ответ проектирует Фаза 8.
+- **HTTP-ветка** — `services/api/http/*`: реализована по этому контракту
+  для всех ресурсов Фаз 8.3–8.5 (Auth, Profile, Questionnaire,
+  Universities, Tasks, Vaults-чтение, Subscription, Achievement Log,
+  AI Mentor, Flashcards). Остаются `notImplemented()`: загрузка файла в
+  ячейку копилки (`POST /vaults/:id/cells/:idx` — реальный
+  `StorageBackend` приходит в Фазе 8.6, см. `docs/00-roadmap.md`) и
+  создание задачи из карточки-предложения в чате (`POST /ai/chat/modules`
+  — не описан в этом контракте, вне плана бекенда).
 
 Фаза 8 = дозаполнить `services/api/http/*` по этому контракту; ни хуки,
 ни `mocks/` при этом не меняются.
@@ -108,7 +111,7 @@
 *** Метод: POST
 *** URL: /api/v1/ai/chat/messages
 *** Отправляем: token, {text}
-*** Ожидаем получить: {reply: {text, module: {kind, title, sub, description} | null}}
+*** Ожидаем получить: {reply: {text, module: {title, sub, desc, created} | null}}
 ```
 
 Быстрые подсказки чата (`quickPrompts`) — отдельным лёгким запросом:
