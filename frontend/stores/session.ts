@@ -18,12 +18,19 @@ interface SessionState {
   isAuthed: boolean;
   /** Текущий тариф. Гейт для Premium-guard роутов. */
   plan: Plan;
+  /**
+   * JWT реального бекенда (`POST /auth/signup|signin`, Фаза 8.3). `null` на
+   * моках и до первого реального входа — `services/api/http/client.ts`
+   * подставляет его в `Authorization: Bearer <token>`.
+   */
+  token: string | null;
   /** AsyncStorage прочитан — до этого guard'ы показывают fallback, не редиректят. */
   hydrated: boolean;
 
   signIn: () => void;
   signOut: () => void;
   setPlan: (plan: Plan) => void;
+  setToken: (token: string) => void;
   /** Полный сброс (dev-меню). */
   reset: () => void;
 }
@@ -31,6 +38,7 @@ interface SessionState {
 const initial = {
   isAuthed: false,
   plan: 'free' as Plan,
+  token: null as string | null,
 };
 
 export const useSessionStore = create<SessionState>()(
@@ -40,15 +48,17 @@ export const useSessionStore = create<SessionState>()(
       hydrated: false,
 
       signIn: () => set({ isAuthed: true }),
-      signOut: () => set({ isAuthed: false, plan: 'free' }),
+      signOut: () => set({ isAuthed: false, plan: 'free', token: null }),
       setPlan: (plan) => set({ plan }),
+      setToken: (token) => set({ token }),
       reset: () => set({ ...initial }),
     }),
     {
       name: 'academicspace.session',
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ isAuthed: state.isAuthed, plan: state.plan }),
+      migrate: (persisted) => ({ token: null, ...(persisted as object) }),
+      partialize: (state) => ({ isAuthed: state.isAuthed, plan: state.plan, token: state.token }),
       onRehydrateStorage: () => () => {
         useSessionStore.setState({ hydrated: true });
       },

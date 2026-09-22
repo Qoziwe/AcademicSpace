@@ -1,13 +1,11 @@
-import type { AuthResponse } from '@/mocks/handlers/auth';
+import type { AuthResponse, SignInBody, SignUpBody } from '@/mocks/handlers/auth';
 
-import { notImplemented } from './client';
+import { apiFetch } from './client';
 
-// Сигнатуры сознательно без аргументов: Фаза 8 спроектирует тело/ответ
-// заново, здесь фиксируется только форма результата и точка переключения.
-export function signUp(): Promise<AuthResponse> {
-  return notImplemented('POST /auth/signup');
+export function signUp(body: SignUpBody): Promise<AuthResponse> {
+  return apiFetch<AuthResponse>('POST', '/auth/signup', body);
 }
 
-export function signIn(): Promise<AuthResponse> {
-  return notImplemented('POST /auth/signin');
+export function signIn(body: SignInBody): Promise<AuthResponse> {
+  return apiFetch<AuthResponse>('POST', '/auth/signin', body);
 }
