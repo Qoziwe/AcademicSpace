@@ -1,5 +1,9 @@
 import os
 from datetime import timedelta
+from pathlib import Path
+
+# `backend/` — родитель `app/`, где лежит этот файл.
+BACKEND_DIR = Path(__file__).resolve().parent.parent
 
 
 class Config:
@@ -25,9 +29,14 @@ class Config:
 
 class DevConfig(Config):
     DEBUG = True
+    # SQLite-файл в `instance/` (уже в .gitignore) — локальная разработка не
+    # требует ни Docker, ни локально поднятого Postgres. Тот же движок, что
+    # и у `TestConfig` (не in-memory — файл переживает перезапуск сервера).
+    # Продакшн (`ProdConfig`) и Docker Compose всегда задают `DATABASE_URL`
+    # явно — Postgres, модели/миграции без Postgres-специфичных типов,
+    # переключение между движками ничего не ломает.
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL",
-        "postgresql+psycopg://academicspace:academicspace@localhost:5432/academicspace",
+        "DATABASE_URL", f"sqlite:///{BACKEND_DIR / 'instance' / 'dev.db'}"
     )
 
 
