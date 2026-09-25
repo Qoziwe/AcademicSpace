@@ -4,6 +4,10 @@
  * на экране AUTH_LOADING; здесь — «запрос» + сохранение реального JWT
  * (на моках `token` — заглушка `'mock-token'`, но пишем его всё равно,
  * чтобы `apiFetch` вело себя одинаково на обеих ветках).
+ *
+ * `meta.skipErrorToast` — `AuthScreen` сам показывает ошибку текстом рядом
+ * с кнопкой (`components/screens/AuthScreen.tsx`), глобальный тост
+ * (`providers/query-client.ts`) тут был бы дублем.
  */
 
 import { useMutation } from '@tanstack/react-query';
@@ -16,6 +20,7 @@ export function useSignUp() {
   return useMutation({
     mutationFn: (body: SignUpBody) => authApi.signUp(body),
     onSuccess: (data) => setToken(data.token),
+    meta: { skipErrorToast: true },
   });
 }
 
@@ -24,5 +29,6 @@ export function useSignIn() {
   return useMutation({
     mutationFn: (body: SignInBody) => authApi.signIn(body),
     onSuccess: (data) => setToken(data.token),
+    meta: { skipErrorToast: true },
   });
 }

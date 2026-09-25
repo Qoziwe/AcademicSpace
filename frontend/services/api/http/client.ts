@@ -30,7 +30,23 @@ export async function apiFetch<T>(method: HttpMethod, path: string, body?: unkno
   });
 
   if (!res.ok) {
-    throw new Error(`${method} ${path} → HTTP ${res.status}`);
+    throw new Error(await errorMessage(method, path, res));
   }
   return (await res.json()) as T;
+}
+
+/**
+ * Бекенд отвечает на ошибки `{"error": {"code", "message"}}` (`app/errors.py`)
+ * с уже готовым русским текстом для пользователя — вытаскиваем его, а не
+ * заменяем на голый статус-код. Падает на дефолт, если тело не JSON
+ * (сеть легла, прокси вернул html и т.п.).
+ */
+async function errorMessage(method: HttpMethod, path: string, res: Response): Promise<string> {
+  try {
+    const body = (await res.json()) as { error?: { message?: string } };
+    if (body.error?.message) return body.error.message;
+  } catch {
+    // тело не JSON — используем дефолт ниже
+  }
+  return `${method} ${path} → HTTP ${res.status}`;
 }
