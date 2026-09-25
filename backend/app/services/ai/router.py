@@ -19,5 +19,12 @@ def get_provider(feature: Feature) -> AIProvider:
         from app.services.ai.openai_provider import OpenAIProvider
 
         return OpenAIProvider(current_app.config.get("OPENAI_API_KEY"))
+    if provider_name == "openrouter":
+        from app.services.ai.openrouter_provider import OpenRouterProvider
+
+        return OpenRouterProvider(
+            current_app.config.get("OPENROUTER_API_KEY"),
+            current_app.config.get("OPENROUTER_MODEL"),
+        )
 
     raise RuntimeError(f"Неизвестный ИИ-провайдер для {feature}: {provider_name!r}")

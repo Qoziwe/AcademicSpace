@@ -21,6 +21,12 @@ class Config:
     AI_FLASHCARDS_PROVIDER = os.environ.get("AI_FLASHCARDS_PROVIDER", "anthropic")
     ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+    # AI_*_PROVIDER=openrouter — один ключ, доступ к моделям разных
+    # вендоров через OpenAI-совместимый API (openrouter.ai). MODEL — слаг
+    # вида "провайдер/модель" (https://openrouter.ai/models), без дефолта:
+    # у агрегатора нет единственно верного выбора, угадывать рискованно.
+    OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+    OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL")
 
     # Реальный провайдер для Кыргызстана ещё не выбран (см. docs/00-roadmap.md
     # Фаза 8.7) — "mock" честно активирует Premium без реального списания.

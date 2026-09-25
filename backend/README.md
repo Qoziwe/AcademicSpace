@@ -6,7 +6,7 @@ Flask. Реализует `docs/api-contract.md` (Фаза 8, см. корнев
 Universities, Tasks, Vaults, Subscription, Achievement Log (Фаза 8.4),
 AI Mentor (портфолио-анализ в фоновом потоке, чат с опциональным
 предложением модуля, генерация умных карточек — Фаза 8.5,
-`app/services/ai/` — Anthropic/OpenAI за общим интерфейсом `AIProvider`,
+`app/services/ai/` — Anthropic/OpenAI/OpenRouter за общим интерфейсом `AIProvider`,
 выбор провайдера per-фича через `.env`), файловое хранилище (Фаза 8.6,
 `app/services/storage/` — интерфейс `StorageBackend`, реализация
 `local.py` на диске через `STORAGE_LOCAL_PATH`; облачный бекенд позже
