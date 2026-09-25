@@ -4,35 +4,58 @@
  * screen-inventory говорит собрать REQUIRED_DOCUMENTS «по аналогии с
  * VAULT_DETAIL-паттерном»).
  *
- * Навy-шапка с прогрессом заполнения + список `<DocumentCell>`. Ячейки
- * переключаются на месте (мок file-picker) через `mocks/store.ts.vaultCells`.
+ * Навy-шапка с прогрессом заполнения + список `<DocumentCell>`. Данные —
+ * `useVault(vaultId)`, загрузка/замена файла — реальный
+ * `expo-document-picker` + `useUploadVaultCell()` (Фаза 8.8, часть 2).
  */
 
+import * as DocumentPicker from 'expo-document-picker';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, ProgressBar } from '@/components/atoms';
 import { DocumentCell } from '@/components/molecules';
+import { useUploadVaultCell, useVault } from '@/hooks/api/useVaults';
 import { useTheme } from '@/hooks/useTheme';
-import { DOCUMENT_SLOTS } from '@/mocks/fixtures';
-import { useMockStore } from '@/mocks/store';
 import { bodyFont, displayFont, navy, radius, spacing } from '@/theme';
 
 interface Props {
+  vaultId: string;
   title: string;
   /** Подпись под заголовком (дедлайн / «9 ячеек» и т.п.). */
   caption: string;
   onBack: () => void;
 }
 
-export function DocumentVaultScreen({ title, caption, onBack }: Props) {
+export function DocumentVaultScreen({ vaultId, title, caption, onBack }: Props) {
   const insets = useSafeAreaInsets();
   const { palette } = useTheme();
-  const cells = useMockStore((s) => s.vaultCells);
-  const toggleCell = useMockStore((s) => s.toggleVaultCell);
+  const vaultQ = useVault(vaultId);
+  const upload = useUploadVaultCell();
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
 
-  const filled = cells.filter(Boolean).length;
-  const total = DOCUMENT_SLOTS.length;
+  const cells = vaultQ.data?.cells ?? [];
+  const filled = vaultQ.data?.filled ?? cells.filter((c) => c.uploaded).length;
+  const total = vaultQ.data?.cellsTotal ?? cells.length;
+
+  const pickAndUpload = async (index: number) => {
+    const result = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    if (!asset) return;
+
+    setPendingIndex(index);
+    try {
+      await upload.mutateAsync({
+        vaultId,
+        cellIndex: index,
+        file: { uri: asset.uri, name: asset.name, mimeType: asset.mimeType },
+      });
+    } finally {
+      setPendingIndex(null);
+    }
+  };
 
   return (
     <View style={[styles.root, { backgroundColor: palette.screen }]}>
@@ -60,15 +83,15 @@ export function DocumentVaultScreen({ title, caption, onBack }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 110 }]}>
-        {DOCUMENT_SLOTS.map((slot, i) => (
+        {cells.map((cell, i) => (
           <DocumentCell
-            key={slot.title}
-            title={slot.title}
-            sub={slot.filledSub}
-            filled={cells[i] ?? false}
-            onPress={() => toggleCell(i)}
-            actionFilledLabel="заменить"
-            actionEmptyLabel="загрузить"
+            key={cell.title}
+            title={cell.title}
+            sub={cell.sub}
+            filled={cell.uploaded}
+            onPress={() => void pickAndUpload(i)}
+            actionFilledLabel={pendingIndex === i ? 'загрузка…' : 'заменить'}
+            actionEmptyLabel={pendingIndex === i ? 'загрузка…' : 'загрузить'}
           />
         ))}
       </ScrollView>

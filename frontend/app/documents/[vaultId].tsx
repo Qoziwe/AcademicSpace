@@ -12,10 +12,12 @@ import { withGuard } from '@/navigation/withGuard';
  */
 function VaultDetailScreen() {
   const { vaultId } = useLocalSearchParams<{ vaultId: string }>();
-  const vaultQ = useVault(vaultId ?? 'bologna');
+  const id = vaultId ?? 'bologna';
+  const vaultQ = useVault(id);
 
   return (
     <DocumentVaultScreen
+      vaultId={id}
       title={vaultQ.data?.universityName ?? 'Копилка'}
       caption={vaultQ.data?.deadline ?? 'копилка вуза'}
       onBack={backOr('/documents')}
