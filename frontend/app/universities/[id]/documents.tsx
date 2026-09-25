@@ -12,14 +12,16 @@ import { withGuard } from '@/navigation/withGuard';
  * Назад → UNIVERSITY_DETAILS.
  */
 function RequiredDocumentsScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const vaultQ = useVault(id ?? 'bologna');
+  const { id: paramId } = useLocalSearchParams<{ id: string }>();
+  const id = paramId ?? 'bologna';
+  const vaultQ = useVault(id);
 
   return (
     <DocumentVaultScreen
+      vaultId={id}
       title="Документы для поступления"
       caption={vaultQ.data?.deadline ?? 'список документов вуза'}
-      onBack={backOr({ pathname: '/universities/[id]', params: { id: id ?? 'bologna' } })}
+      onBack={backOr({ pathname: '/universities/[id]', params: { id } })}
     />
   );
 }

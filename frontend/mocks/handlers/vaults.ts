@@ -39,15 +39,29 @@ export function getVaults(): Promise<ApiVault[]> {
   );
 }
 
+export interface ApiVaultCell {
+  title: string;
+  sub: string;
+  uploaded: boolean;
+}
+
 export interface ApiVaultDetail extends ApiVault {
-  cells: { title: string; sub: string; uploaded: boolean }[];
+  cells: ApiVaultCell[];
+}
+
+function cellsFor(seed: VaultSeed): ApiVaultCell[] {
+  const isFirst = seed.id === VAULTS[0]?.id;
+  const cellsState = useMockStore.getState().vaultCells;
+  return DOCUMENT_SLOTS.map((slot, i) => {
+    const uploaded = isFirst ? (cellsState[i] ?? false) : i < seed.filledFixed;
+    return { title: slot.title, sub: uploaded ? slot.filledSub : 'нужен файл', uploaded };
+  });
 }
 
 export function getVault(vaultId: string): Promise<ApiVaultDetail | null> {
   const seed = VAULTS.find((v) => v.id === vaultId) ?? VAULTS[0];
   if (!seed) return delay(null);
 
-  const cellsState = useMockStore.getState().vaultCells;
   return delay({
     id: seed.id,
     universityName: seed.name,
@@ -55,10 +69,18 @@ export function getVault(vaultId: string): Promise<ApiVaultDetail | null> {
     deadline: seed.deadline,
     filled: filledFor(seed),
     cellsTotal: seed.cellsTotal,
-    cells: DOCUMENT_SLOTS.map((slot, i) => ({
-      title: slot.title,
-      sub: slot.filledSub,
-      uploaded: cellsState[i] ?? false,
-    })),
+    cells: cellsFor(seed),
   });
+}
+
+export function uploadCell(vaultId: string, cellIndex: number): Promise<{ cell: ApiVaultCell }> {
+  const seed = VAULTS.find((v) => v.id === vaultId) ?? VAULTS[0];
+  const slot = DOCUMENT_SLOTS[cellIndex];
+  if (!seed || !slot) return Promise.reject(new Error('Ячейка не найдена.'));
+
+  if (seed.id === VAULTS[0]?.id) {
+    const cells = useMockStore.getState().vaultCells;
+    if (!cells[cellIndex]) useMockStore.getState().toggleVaultCell(cellIndex);
+  }
+  return delay({ cell: { title: slot.title, sub: slot.filledSub, uploaded: true } });
 }
