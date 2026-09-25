@@ -9,7 +9,7 @@ export function getChatMeta(): Promise<ChatMeta> {
 }
 
 interface ChatReplyResponse {
-  reply: { text: string; module: ChatModule | null };
+  reply: { id: string; text: string; module: ChatModule | null };
 }
 
 /**
@@ -17,6 +17,10 @@ interface ChatReplyResponse {
  * interests/filters, `CLAUDE.md` §5) даже на реальном бекенде: экран читает
  * её напрямую, а не через TanStack Query. Здесь она же используется как
  * единственное хранилище истории — совпадает с мок-веткой построчно.
+ *
+ * `reply.id` — настоящий id `ChatMessage` на бекенде (не клиентский
+ * `Date.now()`, как у эхо-реплики пользователя) — по нему `createChatModule`
+ * (`./tasks.ts`) находит на сервере, какой именно модуль подтверждать.
  */
 export async function sendMessage(text: string): Promise<void> {
   const store = useMockStore.getState();
@@ -26,7 +30,7 @@ export async function sendMessage(text: string): Promise<void> {
   try {
     const { reply } = await apiFetch<ChatReplyResponse>('POST', '/ai/chat/messages', { text });
     store.appendMessage({
-      id: `ai-${Date.now()}`,
+      id: reply.id,
       fromMe: false,
       text: reply.text,
       module: reply.module ?? undefined,

@@ -10,3 +10,7 @@ class SubmitPortfolioSchema(Schema):
 
 class ChatMessageSchema(Schema):
     text = fields.String(required=True, validate=validate.Length(min=1))
+
+
+class CreateChatModuleSchema(Schema):
+    messageId = fields.String(required=True, validate=validate.Length(min=1))

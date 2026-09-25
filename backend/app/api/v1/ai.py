@@ -2,11 +2,20 @@ import threading
 
 from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import Conflict, NotFound
 
+from app.api.v1.tasks import task_payload
 from app.extensions import db
-from app.models import ChatMessage, PortfolioAnalysis, Questionnaire, UniversityMatch, User
-from app.schemas.ai import ChatMessageSchema, SubmitPortfolioSchema
+from app.models import (
+    ChatMessage,
+    PortfolioAnalysis,
+    Questionnaire,
+    Task,
+    TaskItem,
+    UniversityMatch,
+    User,
+)
+from app.schemas.ai import ChatMessageSchema, CreateChatModuleSchema, SubmitPortfolioSchema
 from app.services.ai.parsing import extract_json_object, extract_module_suggestion
 from app.services.ai.router import get_provider
 
@@ -14,6 +23,13 @@ ai_bp = Blueprint("ai", __name__, url_prefix="/ai")
 
 submit_portfolio_schema = SubmitPortfolioSchema()
 chat_message_schema = ChatMessageSchema()
+create_chat_module_schema = CreateChatModuleSchema()
+
+# XP по типу модуля — 1:1 с `frontend/mocks/fixtures.ts` TASKS_SEED (КАРТА
+# 120 / ЧЕК-ЛИСТ 80 / ТАЙМЕР 40). Фиксированная шкала по kind, а не по
+# числу items — нейронка не должна уметь влиять на начисление XP размером
+# сгенерированного списка шагов.
+MODULE_KIND_XP = {"КАРТА": 120, "ЧЕК-ЛИСТ": 80, "ТАЙМЕР": 40}
 
 CHAT_QUICK_PROMPTS = [
     "Как усилить письмо?",
@@ -26,13 +42,18 @@ CHAT_SYSTEM_PROMPT = (
     "к поступлению в университет: стратегия подачи документов, мотивационные "
     "письма, подготовка к языковым экзаменам, тайм-менеджмент. Отвечай по-русски, "
     "дружелюбно и по делу, 2-5 предложений.\n\n"
-    "Если пользователю стоит завести отслеживаемый модуль (дорожную карту, "
-    "чек-лист из шагов или таймер фокус-сессии) для конкретной следующей задачи "
-    "— и только когда это действительно уместно, не в каждом ответе — добавь "
-    "ПОСЛЕДНЕЙ строкой маркер в точности такого вида (без markdown, одна строка):\n"
-    '<<MODULE>>{"title":"...","sub":"...","description":"..."}<<END>>\n'
+    "Если пользователю стоит завести отслеживаемый модуль для конкретной "
+    "следующей задачи — и только когда это действительно уместно, не в каждом "
+    "ответе — добавь ПОСЛЕДНЕЙ строкой маркер в точности такого вида (без "
+    "markdown, одна строка):\n"
+    '<<MODULE>>{"title":"...","sub":"...","description":"...",'
+    '"kind":"КАРТА|ЧЕК-ЛИСТ|ТАЙМЕР","items":["...","..."]}<<END>>\n'
     "title — короткое название модуля, sub — 3-6 слов уточнения, description — "
-    "1 предложение о том, что попадёт в модуль."
+    "1 предложение о том, что попадёт в модуль. kind — КАРТА для растянутой во "
+    "времени дорожной карты из нескольких этапов, ЧЕК-ЛИСТ для последовательных "
+    "шагов одной конкретной задачи, ТАЙМЕР для одной сфокусированной сессии "
+    "прямо сейчас. items — 2-5 конкретных пунктов, которые попадут в модуль "
+    "(шаги/подзадачи), коротко, по-русски, без нумерации и вводных слов."
 )
 
 PORTFOLIO_SYSTEM_PROMPT = (
@@ -199,7 +220,59 @@ def send_chat_message():
     raw = provider.generate_text(system=CHAT_SYSTEM_PROMPT, prompt=prompt, max_tokens=2048)
     reply_text, module = extract_module_suggestion(raw)
 
-    db.session.add(ChatMessage(user_id=user_id, from_me=False, text=reply_text, module=module))
+    assistant_message = ChatMessage(user_id=user_id, from_me=False, text=reply_text, module=module)
+    db.session.add(assistant_message)
     db.session.commit()
 
-    return jsonify({"reply": {"text": reply_text, "module": module}})
+    return jsonify(
+        {"reply": {"id": str(assistant_message.id), "text": reply_text, "module": module}}
+    )
+
+
+def _get_chat_message(user_id: int, message_id: str) -> ChatMessage | None:
+    try:
+        message_pk = int(message_id)
+    except ValueError:
+        return None
+    return db.session.execute(
+        db.select(ChatMessage).filter_by(id=message_pk, user_id=user_id)
+    ).scalar_one_or_none()
+
+
+@ai_bp.post("/chat/modules")
+@jwt_required()
+def create_chat_module():
+    """Превращает модуль, предложенный ассистентом (`<<MODULE>>` маркер в
+    `send_chat_message`), в настоящую задачу — `title`/`kind`/`items` уже
+    придуманы нейронкой и лежат в `message.module`, второй поход к ИИ не
+    нужен. Идемпотентно: повторный вызов на том же сообщении — 409."""
+    user_id = int(get_jwt_identity())
+    data = create_chat_module_schema.load(request.get_json(silent=True) or {})
+
+    message = _get_chat_message(user_id, data["messageId"])
+    if message is None or message.from_me or not message.module:
+        raise NotFound("Сообщение с предложенным модулем не найдено.")
+    if message.module.get("created"):
+        raise Conflict("Модуль уже создан.")
+
+    module = message.module
+    kind = module.get("kind") if module.get("kind") in MODULE_KIND_XP else "КАРТА"
+    items = module.get("items") or [module["title"]]
+
+    task = Task(
+        user_id=user_id,
+        kind=kind,
+        title=module["title"],
+        meta=f"создано ИИ-ментором · {module['sub']}",
+        xp=MODULE_KIND_XP[kind],
+        is_timer=kind == "ТАЙМЕР",
+    )
+    db.session.add(task)
+    db.session.flush()
+    for position, label in enumerate(items):
+        db.session.add(TaskItem(task_id=task.id, label=label, position=position))
+
+    message.module = {**module, "created": True}
+    db.session.commit()
+
+    return jsonify({"created": True, "task": task_payload(task)})
