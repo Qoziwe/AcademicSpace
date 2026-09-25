@@ -12,7 +12,10 @@ Questionnaire, Universities, Tasks, Vaults, Subscription, Achievement Log
 `local.py` на диске через `STORAGE_LOCAL_PATH`; облачный бекенд позже
 подключается одним файлом за тем же интерфейсом). Загрузка/выдача файла
 копилки — через хранилище; фото для умных карточек на фронте пока
-мок-file-picker, реальных байт не отправляет.
+мок-file-picker, реальных байт не отправляет. Оплата (Фаза 8.7,
+`app/services/payments/` — интерфейс `PaymentProvider`, `mock_provider.py`
+честно активирует Premium; реальный провайдер для Кыргызстана ещё не
+выбран — бизнес/юридический вопрос вне этого плана).
 
 Стек: Flask + Flask-SQLAlchemy + Flask-Migrate + Flask-JWT-Extended +
 Flask-CORS + marshmallow, PostgreSQL, пакетный менеджер [`uv`](https://docs.astral.sh/uv/).
