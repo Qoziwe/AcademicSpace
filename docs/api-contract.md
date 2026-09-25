@@ -25,14 +25,13 @@
 
 - **мок-ветка** — `mocks/handlers/*` (форма ответа = этот файл);
 - **HTTP-ветка** — `services/api/http/*`: реализована по этому контракту
-  для всех ресурсов Фаз 8.3–8.8 (Auth, Profile, Questionnaire,
-  Universities, Tasks, Document Vaults — включая загрузку/замену файла в
-  ячейку через реальный `expo-document-picker` + multipart,
-  `DocumentVaultScreen` перевязан на per-vault хук, Subscription,
-  Achievement Log, AI Mentor, Flashcards — включая генерацию по фото,
-  `expo-image-picker` + multipart). Остаётся `notImplemented()`: создание
-  задачи из карточки-предложения в чате (`POST /ai/chat/modules` — не
-  описан в этом контракте, вне плана бекенда).
+  для всех ресурсов Фаз 8.3–8.9 (Auth, Profile, Questionnaire,
+  Universities, Tasks — включая создание модуля из карточки-предложения
+  в чате, Document Vaults — включая загрузку/замену файла в ячейку через
+  реальный `expo-document-picker` + multipart, `DocumentVaultScreen`
+  перевязан на per-vault хук, Subscription, Achievement Log, AI Mentor,
+  Flashcards — включая генерацию по фото, `expo-image-picker` +
+  multipart). `notImplemented()` в `services/api/http/*` не осталось.
 
 Фаза 8 = дозаполнить `services/api/http/*` по этому контракту; ни хуки,
 ни `mocks/` при этом не меняются.
@@ -112,8 +111,32 @@
 *** Метод: POST
 *** URL: /api/v1/ai/chat/messages
 *** Отправляем: token, {text}
-*** Ожидаем получить: {reply: {text, module: {title, sub, desc, created} | null}}
+*** Ожидаем получить: {reply: {id, text, module: {title, sub, desc, created} | null}}
 ```
+`reply.id` — id сообщения-ответа ассистента на бекенде; фронт хранит его
+как id записи в локальной истории чата (мок-стор, см. ниже) и передаёт
+обратно в `POST /ai/chat/modules` при подтверждении модуля. Внутри
+`message.module` на бекенде рядом с `title/sub/desc/created` лежат ещё
+служебные `kind` (`КАРТА`/`ЧЕК-ЛИСТ`/`ТАЙМЕР`) и `items` (2-5 шагов) —
+их сгенерировала нейронка вместе с самим предложением; в ответе клиенту
+они не документируются отдельно, фронт их не читает (использует только
+`title/sub/desc/created` для карточки-предложения), но они приходят тем
+же JSON-объектом `module`.
+
+```
+*** Метод: POST
+*** URL: /api/v1/ai/chat/modules
+*** Отправляем: token, {messageId}
+*** Ожидаем получить: {created: true, task: {id, kind, title, meta, xp,
+    items: [{label, done}], isTimer}}
+```
+Превращает предложенный ассистентом модуль (сообщение `messageId` из
+`POST /ai/chat/messages`) в настоящую задачу — `title`/`kind`/`items`
+уже определены нейронкой в момент предложения, повторного похода к ИИ
+не требуется. XP — фиксированная шкала по `kind` (КАРТА 120 / ЧЕК-ЛИСТ
+80 / ТАЙМЕР 40), не зависит от числа `items`. Идемпотентно: повторный
+вызов на уже подтверждённом сообщении → 409. 404, если сообщение не
+найдено, принадлежит другому пользователю или не несёт модуль.
 
 Быстрые подсказки чата (`quickPrompts`) — отдельным лёгким запросом:
 ```

@@ -56,7 +56,8 @@ def test_chat_message_persists_and_parses_module_suggestion(client, monkeypatch)
     raw = (
         "Отличная идея, давайте составим план.\n"
         '<<MODULE>>{"title":"IELTS","sub":"8 недель",'
-        '"description":"План подготовки"}<<END>>'
+        '"description":"План подготовки","kind":"КАРТА",'
+        '"items":["Пробный тест","Разбор ошибок"]}<<END>>'
     )
     monkeypatch.setattr("app.api.v1.ai.get_provider", lambda feature: FakeProvider(raw))
 
@@ -66,13 +67,31 @@ def test_chat_message_persists_and_parses_module_suggestion(client, monkeypatch)
 
     assert res.status_code == 200
     body = res.get_json()
+    assert body["reply"]["id"]
     assert body["reply"]["text"] == "Отличная идея, давайте составим план."
     assert body["reply"]["module"] == {
         "title": "IELTS",
         "sub": "8 недель",
         "desc": "План подготовки",
+        "kind": "КАРТА",
+        "items": ["Пробный тест", "Разбор ошибок"],
         "created": False,
     }
+
+
+def test_chat_message_module_defaults_kind_and_items_when_missing(client, monkeypatch):
+    token = _signup(client)
+    raw = (
+        "Давайте так.\n"
+        '<<MODULE>>{"title":"Эссе","sub":"черновик","description":"План письма"}<<END>>'
+    )
+    monkeypatch.setattr("app.api.v1.ai.get_provider", lambda feature: FakeProvider(raw))
+
+    res = client.post("/api/v1/ai/chat/messages", json={"text": "Помоги"}, headers=_auth(token))
+
+    module = res.get_json()["reply"]["module"]
+    assert module["kind"] == "КАРТА"
+    assert module["items"] == ["Эссе"]
 
 
 def test_chat_message_without_module_marker(client, monkeypatch):
@@ -170,3 +189,127 @@ def test_portfolio_prompt_includes_questionnaire_and_matches(client, monkeypatch
     assert len(fake.calls) == 1
     assert "Физика" in fake.calls[0]
     assert "Мой резюме-текст" in fake.calls[0]
+
+
+def test_create_chat_module_creates_task_and_awards_kind_xp(client, monkeypatch):
+    token = _signup(client)
+    monkeypatch.setattr(
+        "app.api.v1.ai.get_provider",
+        lambda feature: FakeProvider(
+            "План.\n"
+            '<<MODULE>>{"title":"IELTS 6.5","sub":"8 недель","description":"План",'
+            '"kind":"ЧЕК-ЛИСТ","items":["Пробный тест","Разбор ошибок"]}<<END>>'
+        ),
+    )
+    msg_res = client.post(
+        "/api/v1/ai/chat/messages", json={"text": "Помоги с IELTS"}, headers=_auth(token)
+    )
+    message_id = msg_res.get_json()["reply"]["id"]
+
+    res = client.post(
+        "/api/v1/ai/chat/modules", json={"messageId": message_id}, headers=_auth(token)
+    )
+
+    assert res.status_code == 200
+    body = res.get_json()
+    assert body["created"] is True
+    assert body["task"]["kind"] == "ЧЕК-ЛИСТ"
+    assert body["task"]["title"] == "IELTS 6.5"
+    assert body["task"]["xp"] == 80
+    assert body["task"]["isTimer"] is False
+    assert [it["label"] for it in body["task"]["items"]] == ["Пробный тест", "Разбор ошибок"]
+
+    tasks = client.get("/api/v1/tasks", headers=_auth(token)).get_json()
+    assert any(t["title"] == "IELTS 6.5" for t in tasks)
+
+
+def test_create_chat_module_timer_kind_sets_is_timer_and_xp(client, monkeypatch):
+    token = _signup(client)
+    monkeypatch.setattr(
+        "app.api.v1.ai.get_provider",
+        lambda feature: FakeProvider(
+            "Ок.\n"
+            '<<MODULE>>{"title":"Фокус-сессия","sub":"25 минут","description":"Таймер",'
+            '"kind":"ТАЙМЕР","items":["Настроить таймер"]}<<END>>'
+        ),
+    )
+    message_id = client.post(
+        "/api/v1/ai/chat/messages", json={"text": "Хочу сфокусироваться"}, headers=_auth(token)
+    ).get_json()["reply"]["id"]
+
+    res = client.post(
+        "/api/v1/ai/chat/modules", json={"messageId": message_id}, headers=_auth(token)
+    )
+
+    body = res.get_json()["task"]
+    assert body["isTimer"] is True
+    assert body["xp"] == 40
+
+
+def test_create_chat_module_twice_conflicts(client, monkeypatch):
+    token = _signup(client)
+    monkeypatch.setattr(
+        "app.api.v1.ai.get_provider",
+        lambda feature: FakeProvider(
+            'Ок.\n<<MODULE>>{"title":"Эссе","sub":"черновик","description":"План",'
+            '"kind":"КАРТА","items":["Шаг 1"]}<<END>>'
+        ),
+    )
+    message_id = client.post(
+        "/api/v1/ai/chat/messages", json={"text": "Помоги с эссе"}, headers=_auth(token)
+    ).get_json()["reply"]["id"]
+
+    first = client.post(
+        "/api/v1/ai/chat/modules", json={"messageId": message_id}, headers=_auth(token)
+    )
+    second = client.post(
+        "/api/v1/ai/chat/modules", json={"messageId": message_id}, headers=_auth(token)
+    )
+
+    assert first.status_code == 200
+    assert second.status_code == 409
+
+
+def test_create_chat_module_404_for_message_without_module(client, monkeypatch):
+    token = _signup(client)
+    monkeypatch.setattr("app.api.v1.ai.get_provider", lambda feature: FakeProvider("Просто ответ."))
+    message_id = client.post(
+        "/api/v1/ai/chat/messages", json={"text": "Привет"}, headers=_auth(token)
+    ).get_json()["reply"]["id"]
+
+    res = client.post(
+        "/api/v1/ai/chat/modules", json={"messageId": message_id}, headers=_auth(token)
+    )
+
+    assert res.status_code == 404
+
+
+def test_create_chat_module_404_for_other_users_message(client, monkeypatch):
+    token = _signup(client)
+    monkeypatch.setattr(
+        "app.api.v1.ai.get_provider",
+        lambda feature: FakeProvider(
+            'Ок.\n<<MODULE>>{"title":"Эссе","sub":"черновик","description":"План",'
+            '"kind":"КАРТА","items":["Шаг 1"]}<<END>>'
+        ),
+    )
+    message_id = client.post(
+        "/api/v1/ai/chat/messages", json={"text": "Помоги"}, headers=_auth(token)
+    ).get_json()["reply"]["id"]
+
+    other_res = client.post(
+        "/api/v1/auth/signup",
+        json={
+            "email": "other-modules@mail.kz",
+            "password": "password123",
+            "name": "X",
+            "grade": "9",
+        },
+    )
+    other_token = other_res.get_json()["token"]
+
+    res = client.post(
+        "/api/v1/ai/chat/modules", json={"messageId": message_id}, headers=_auth(other_token)
+    )
+
+    assert res.status_code == 404

@@ -21,7 +21,7 @@ TASK_KIND_LOG = {
 }
 
 
-def _task_payload(task: Task) -> dict:
+def task_payload(task: Task) -> dict:
     return {
         "id": str(task.id),
         "kind": task.kind,
@@ -48,7 +48,7 @@ def _get_task(user_id: int, task_id: str) -> Task | None:
 def get_tasks():
     user_id = int(get_jwt_identity())
     tasks = db.session.execute(db.select(Task).filter_by(user_id=user_id)).scalars().all()
-    return jsonify([_task_payload(t) for t in tasks])
+    return jsonify([task_payload(t) for t in tasks])
 
 
 @tasks_bp.get("/<task_id>")
@@ -58,7 +58,7 @@ def get_task(task_id: str):
     task = _get_task(user_id, task_id)
     if task is None:
         raise NotFound("Задача не найдена.")
-    return jsonify(_task_payload(task))
+    return jsonify(task_payload(task))
 
 
 @tasks_bp.patch("/<task_id>/items/<int:item_index>")
@@ -81,7 +81,7 @@ def toggle_task_item(task_id: str, item_index: int):
     complete = len(task.items) > 0 and all(it.done for it in task.items)
     if not complete:
         db.session.commit()
-        return jsonify({"task": _task_payload(task), "completed": False, "xpAwarded": 0})
+        return jsonify({"task": task_payload(task), "completed": False, "xpAwarded": 0})
 
     profile = db.session.execute(db.select(Profile).filter_by(user_id=user_id)).scalar_one_or_none()
     log_map = TASK_KIND_LOG.get(task.kind, {"kind": task.kind, "dot": "blue"})
