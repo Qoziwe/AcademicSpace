@@ -25,13 +25,17 @@
 
 - **мок-ветка** — `mocks/handlers/*` (форма ответа = этот файл);
 - **HTTP-ветка** — `services/api/http/*`: реализована по этому контракту
-  для всех ресурсов Фаз 8.3–8.5 (Auth, Profile, Questionnaire,
+  для всех ресурсов Фаз 8.3–8.7 (Auth, Profile, Questionnaire,
   Universities, Tasks, Vaults-чтение, Subscription, Achievement Log,
-  AI Mentor, Flashcards). Остаются `notImplemented()`: загрузка файла в
-  ячейку копилки (`POST /vaults/:id/cells/:idx` — реальный
-  `StorageBackend` приходит в Фазе 8.6, см. `docs/00-roadmap.md`) и
-  создание задачи из карточки-предложения в чате (`POST /ai/chat/modules`
-  — не описан в этом контракте, вне плана бекенда).
+  AI Mentor, Flashcards — включая генерацию по фото, `expo-image-picker`
+  + multipart, Фаза 8.8). Остаётся `notImplemented()`: загрузка файла в
+  ячейку копилки (`POST /vaults/:id/cells/:idx` — на бекенде готово со
+  `StorageBackend` с Фазы 8.6, но `DocumentVaultScreen` на фронте всё ещё
+  держит состояние ячеек в общем мок-сторе на все копилки разом, а не
+  через реальный per-vault хук — честная перевязка экрана остаётся
+  отдельной задачей) и создание задачи из карточки-предложения в чате
+  (`POST /ai/chat/modules` — не описан в этом контракте, вне плана
+  бекенда).
 
 Фаза 8 = дозаполнить `services/api/http/*` по этому контракту; ни хуки,
 ни `mocks/` при этом не меняются.

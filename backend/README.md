@@ -11,11 +11,14 @@ Questionnaire, Universities, Tasks, Vaults, Subscription, Achievement Log
 `app/services/storage/` — интерфейс `StorageBackend`, реализация
 `local.py` на диске через `STORAGE_LOCAL_PATH`; облачный бекенд позже
 подключается одним файлом за тем же интерфейсом). Загрузка/выдача файла
-копилки — через хранилище; фото для умных карточек на фронте пока
-мок-file-picker, реальных байт не отправляет. Оплата (Фаза 8.7,
-`app/services/payments/` — интерфейс `PaymentProvider`, `mock_provider.py`
-честно активирует Premium; реальный провайдер для Кыргызстана ещё не
-выбран — бизнес/юридический вопрос вне этого плана).
+копилки — через хранилище на бекенде, но фронтовый `DocumentVaultScreen`
+ещё не перевязан на реальный per-vault хук (см. `docs/api-contract.md`
+§Адаптер-seam). Оплата (Фаза 8.7, `app/services/payments/` — интерфейс
+`PaymentProvider`, `mock_provider.py` честно активирует Premium; реальный
+провайдер для Кыргызстана ещё не выбран — бизнес/юридический вопрос вне
+этого плана). Умные карточки теперь генерируются и по фото (Фаза 8.8) —
+`POST /flashcards` принимает multipart с `images`, распознаёт через
+`AIProvider.generate_vision`.
 
 Стек: Flask + Flask-SQLAlchemy + Flask-Migrate + Flask-JWT-Extended +
 Flask-CORS + marshmallow, PostgreSQL, пакетный менеджер [`uv`](https://docs.astral.sh/uv/).

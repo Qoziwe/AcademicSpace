@@ -1,7 +1,9 @@
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,17 +18,18 @@ import { Icon, IconTile, TextField } from '@/components/atoms';
 import { HeaderBar } from '@/components/organisms';
 import { useCreateFlashcardDeck } from '@/hooks/api/useFlashcards';
 import { useTheme } from '@/hooks/useTheme';
-import { FLASHCARD_IMAGE_SLOTS } from '@/mocks/fixtures';
 import { backOr } from '@/navigation/back';
 import { withGuard } from '@/navigation/withGuard';
 import { accent, bodyFont, navy, radius, spacing } from '@/theme';
 
+/** Максимум фото за раз — тот же лимит слотов, что был у мок file-picker'а. */
+const MAX_IMAGES = 4;
+
 /**
  * FLASHCARDS_CREATE (`/flashcards/create`). Единый композер, как в чате с
  * ИИ-ментором: текст и фото — не взаимоисключающие вкладки, а один инпут —
- * можно описать тему словами, приложить фото конспекта (мок file-picker,
- * как `PORTFOLIO_UPLOAD`) или и то, и другое сразу (`docs/api-contract.md`
- * §Flashcards уже описывает `{text?, images?: file[]}` в одном запросе).
+ * можно описать тему словами, приложить фото конспекта (реальный
+ * `expo-image-picker`, до `MAX_IMAGES` штук) или и то, и другое сразу.
  * `source` для строки в списке колод — вычисляется: есть фото → `image`,
  * иначе `text`. Генерация (`useCreateFlashcardDeck`) — экран сам дожидается
  * результата и уводит на конкретную колоду; GENERATING между ними чисто
@@ -36,21 +39,27 @@ function FlashcardsCreateScreen() {
   const insets = useSafeAreaInsets();
   const { palette } = useTheme();
   const [text, setText] = useState('');
-  const [imageSlots, setImageSlots] = useState<boolean[]>(() =>
-    FLASHCARD_IMAGE_SLOTS.map(() => false),
-  );
+  const [images, setImages] = useState<string[]>([]);
   const create = useCreateFlashcardDeck();
 
-  const attachedCount = imageSlots.filter(Boolean).length;
-  const canAttachMore = attachedCount < FLASHCARD_IMAGE_SLOTS.length;
+  const attachedCount = images.length;
+  const canAttachMore = attachedCount < MAX_IMAGES;
 
-  const addPhoto = () => {
-    const next = imageSlots.findIndex((v) => !v);
-    if (next === -1) return;
-    setImageSlots((slots) => slots.map((v, i) => (i === next ? true : v)));
+  const addPhoto = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_IMAGES - attachedCount,
+    });
+    if (result.canceled) return;
+
+    setImages((prev) => [...prev, ...result.assets.map((a) => a.uri)].slice(0, MAX_IMAGES));
   };
-  const removePhoto = (i: number) =>
-    setImageSlots((slots) => slots.map((v, idx) => (idx === i ? false : v)));
+  const removePhoto = (i: number) => setImages((prev) => prev.filter((_, idx) => idx !== i));
 
   const canSubmit = text.trim().length > 0 || attachedCount > 0;
 
@@ -62,6 +71,7 @@ function FlashcardsCreateScreen() {
       const deck = await create.mutateAsync({
         source,
         text: text.trim() || undefined,
+        images: attachedCount > 0 ? images : undefined,
       });
       router.replace({ pathname: '/flashcards/[deckId]', params: { deckId: deck.id } });
     } catch {
@@ -105,45 +115,38 @@ function FlashcardsCreateScreen() {
           </Text>
           {attachedCount > 0 ? (
             <Text style={[bodyFont('600'), styles.attachCount, { color: palette.sub }]}>
-              {attachedCount} из {FLASHCARD_IMAGE_SLOTS.length}
+              {attachedCount} из {MAX_IMAGES}
             </Text>
           ) : null}
         </View>
 
         <View style={styles.attachRow}>
-          {imageSlots.map((attached, i) =>
-            attached ? (
-              <View
-                key={FLASHCARD_IMAGE_SLOTS[i]!.title}
-                style={[
-                  styles.chip,
-                  { backgroundColor: palette.card, borderColor: palette.border },
+          {images.map((uri, i) => (
+            <View
+              key={uri}
+              style={[styles.chip, { backgroundColor: palette.card, borderColor: palette.border }]}
+            >
+              <Image source={{ uri }} style={styles.chipThumb} />
+              <Text
+                numberOfLines={1}
+                style={[bodyFont('600'), styles.chipText, { color: palette.ink }]}
+              >
+                Фото {i + 1}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Убрать фото"
+                hitSlop={8}
+                onPress={() => removePhoto(i)}
+                style={({ pressed }) => [
+                  styles.chipRemove,
+                  { backgroundColor: palette.chip, opacity: pressed ? 0.6 : 1 },
                 ]}
               >
-                <IconTile size={30} radius={10} tone="blueSoft">
-                  <Icon name="image" size={14} color={accent.blue} />
-                </IconTile>
-                <Text
-                  numberOfLines={1}
-                  style={[bodyFont('600'), styles.chipText, { color: palette.ink }]}
-                >
-                  {FLASHCARD_IMAGE_SLOTS[i]!.title}
-                </Text>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Убрать фото"
-                  hitSlop={8}
-                  onPress={() => removePhoto(i)}
-                  style={({ pressed }) => [
-                    styles.chipRemove,
-                    { backgroundColor: palette.chip, opacity: pressed ? 0.6 : 1 },
-                  ]}
-                >
-                  <Icon name="x" size={12} color={palette.sub} strokeWidth={2} />
-                </Pressable>
-              </View>
-            ) : null,
-          )}
+                <Icon name="x" size={12} color={palette.sub} strokeWidth={2} />
+              </Pressable>
+            </View>
+          ))}
 
           {canAttachMore ? (
             <Pressable
@@ -213,6 +216,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     maxWidth: 190,
   },
+  chipThumb: { width: 30, height: 30, borderRadius: 10 },
   chipText: { fontSize: 11.5, flexShrink: 1 },
   chipRemove: {
     width: 22,

@@ -22,8 +22,13 @@ def _auth(token: str) -> dict:
 class FakeProvider:
     def __init__(self, raw: str):
         self.raw = raw
+        self.vision_calls: list[list] = []
 
     def generate_text(self, *, system, prompt, max_tokens=4096):
+        return self.raw
+
+    def generate_vision(self, *, system, prompt, images, max_tokens=4096):
+        self.vision_calls.append(images)
         return self.raw
 
 
@@ -58,6 +63,47 @@ def test_create_deck_without_text_is_bad_request(client):
     token, _ = _signup(client)
 
     res = client.post("/api/v1/flashcards", json={"source": "image"}, headers=_auth(token))
+
+    assert res.status_code == 400
+
+
+def test_create_deck_from_images_uses_vision(client, monkeypatch):
+    import io
+
+    token, _ = _signup(client)
+    fake = FakeProvider(GOOD_RAW)
+    monkeypatch.setattr("app.api.v1.flashcards.get_provider", lambda feature: fake)
+
+    res = client.post(
+        "/api/v1/flashcards",
+        data={
+            "source": "image",
+            "images": [
+                (io.BytesIO(b"\xff\xd8\xff\xe0fake-jpeg"), "note1.jpg"),
+                (io.BytesIO(b"\xff\xd8\xff\xe0fake-jpeg-2"), "note2.jpg"),
+            ],
+        },
+        headers=_auth(token),
+        content_type="multipart/form-data",
+    )
+
+    assert res.status_code == 201
+    body = res.get_json()
+    assert body["title"] == "Квадратные уравнения"
+    assert len(fake.vision_calls) == 1
+    assert len(fake.vision_calls[0]) == 2
+    assert fake.vision_calls[0][0].media_type == "image/jpeg"
+
+
+def test_create_deck_without_text_or_images_multipart_is_bad_request(client):
+    token, _ = _signup(client)
+
+    res = client.post(
+        "/api/v1/flashcards",
+        data={"source": "image"},
+        headers=_auth(token),
+        content_type="multipart/form-data",
+    )
 
     assert res.status_code == 400
 

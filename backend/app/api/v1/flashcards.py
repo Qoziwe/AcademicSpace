@@ -7,6 +7,7 @@ from werkzeug.exceptions import BadRequest, Conflict, NotFound
 from app.extensions import db
 from app.models import AchievementLogEntry, FlashcardCard, FlashcardDeck, Profile
 from app.schemas.flashcards import CreateFlashcardDeckSchema, MarkFlashcardKnownSchema
+from app.services.ai.base import ImageInput
 from app.services.ai.parsing import extract_json_object
 from app.services.ai.router import get_provider
 
@@ -23,6 +24,16 @@ FLASHCARDS_SYSTEM_PROMPT = (
     "На основе описанной учеником темы создай набор карточек. Ответь СТРОГО "
     "валидным JSON без markdown-обрамления, ровно в такой форме:\n"
     '{"title":"...","cards":[{"question":"...","answer":"..."}, ...]}\n'
+    "title — короткое название темы (2-5 слов). 5-8 карточек, вопросы "
+    "конкретные и проверяемые, ответы — 1-3 предложения, по-русски."
+)
+
+FLASHCARDS_VISION_SYSTEM_PROMPT = (
+    "Генератор карточек «вопрос → ответ» для повторения учебного материала. "
+    "На фото — страницы конспекта, учебника или доски. Разбери материал на "
+    "фото (и подпись ученика к нему, если есть) и создай набор карточек. "
+    "Ответь СТРОГО валидным JSON без markdown-обрамления, ровно в такой "
+    'форме:\n{"title":"...","cards":[{"question":"...","answer":"..."}, ...]}\n'
     "title — короткое название темы (2-5 слов). 5-8 карточек, вопросы "
     "конкретные и проверяемые, ответы — 1-3 предложения, по-русски."
 )
@@ -84,11 +95,27 @@ def get_deck(deck_id: str):
     return jsonify(_deck_payload(deck, with_cards=True))
 
 
+def _load_create_request() -> tuple[dict, list[ImageInput]]:
+    """Тело либо JSON (только текст), либо multipart (текст + фото) —
+    фронт шлёт multipart, когда есть хотя бы одно фото
+    (`services/api/http/flashcards.ts`)."""
+    if (request.content_type or "").startswith("multipart/form-data"):
+        raw = {"source": request.form.get("source"), "text": request.form.get("text")}
+        images = [
+            ImageInput(media_type=f.mimetype or "image/jpeg", data=f.read())
+            for f in request.files.getlist("images")
+            if f.filename
+        ]
+        return create_schema.load(raw), images
+
+    return create_schema.load(request.get_json(silent=True) or {}), []
+
+
 @flashcards_bp.post("")
 @jwt_required()
 def create_deck():
     user_id = int(get_jwt_identity())
-    data = create_schema.load(request.get_json(silent=True) or {})
+    data, images = _load_create_request()
 
     profile = db.session.execute(db.select(Profile).filter_by(user_id=user_id)).scalar_one_or_none()
     if profile is None:
@@ -101,14 +128,18 @@ def create_deck():
         raise Conflict("flashcards_quota_exceeded")
 
     text = (data.get("text") or "").strip()
-    if not text:
-        # Фото конспекта на фронте пока мок-file-picker — реальных байт не
-        # приходит (см. `frontend/app/flashcards/create.tsx`), генерация
-        # возможна только из текста.
-        raise BadRequest("Нужен текст темы — генерация по фото пока недоступна.")
+    if not text and not images:
+        raise BadRequest("Нужен текст темы или хотя бы одно фото конспекта.")
 
     provider = get_provider("flashcards")
-    raw = provider.generate_text(system=FLASHCARDS_SYSTEM_PROMPT, prompt=text, max_tokens=4096)
+    if images:
+        prompt = text or "Разбери материал на фото."
+        raw = provider.generate_vision(
+            system=FLASHCARDS_VISION_SYSTEM_PROMPT, prompt=prompt, images=images, max_tokens=4096
+        )
+    else:
+        raw = provider.generate_text(system=FLASHCARDS_SYSTEM_PROMPT, prompt=text, max_tokens=4096)
+
     parsed = extract_json_object(raw)
     cards_data = parsed.get("cards") if parsed else None
     if not parsed or not isinstance(cards_data, list) or not cards_data:
