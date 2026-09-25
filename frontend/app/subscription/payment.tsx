@@ -35,6 +35,7 @@ function PaymentFlowScreen() {
     setPayState('processing');
     subscribe.mutate(planChoice, {
       onSuccess: () => setPayState('success'),
+      // Тост об ошибке — глобально, `providers/query-client.ts` (MutationCache.onError).
       onError: () => setPayState('idle'),
     });
   };

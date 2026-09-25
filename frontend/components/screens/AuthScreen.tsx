@@ -25,7 +25,8 @@ import { Button, Icon, TextField } from '@/components/atoms';
 import { useSignIn, useSignUp } from '@/hooks/api/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { AUTH_PREFILL } from '@/mocks/fixtures';
-import { bodyFont, displayFont, radius, spacing } from '@/theme';
+import { toastMessage } from '@/stores/toast';
+import { accent, bodyFont, displayFont, radius, spacing } from '@/theme';
 
 export type AuthMode = 'signup' | 'signin';
 
@@ -43,17 +44,20 @@ export function AuthScreen({ mode }: Props) {
   const [email, setEmail] = useState<string>(AUTH_PREFILL.email);
   const [grade, setGrade] = useState<string>(AUTH_PREFILL.grade);
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isSignup = mode === 'signup';
   const pending = signUp.isPending || signIn.isPending;
 
   const submit = () => {
     if (pending) return;
+    setErrorMessage(null);
     const onSuccess = () => router.push('/auth/loading');
+    const onError = (error: unknown) => setErrorMessage(toastMessage(error));
     if (isSignup) {
-      signUp.mutate({ name, email, grade, password }, { onSuccess });
+      signUp.mutate({ name, email, grade, password }, { onSuccess, onError });
     } else {
-      signIn.mutate({ email, password }, { onSuccess });
+      signIn.mutate({ email, password }, { onSuccess, onError });
     }
   };
 
@@ -131,6 +135,11 @@ export function AuthScreen({ mode }: Props) {
         </View>
 
         <View style={styles.footer}>
+          {errorMessage ? (
+            <Text style={[bodyFont('600'), styles.error, { color: accent.rose }]}>
+              {errorMessage}
+            </Text>
+          ) : null}
           <Button
             label={isSignup ? 'Создать аккаунт' : 'Войти'}
             tone="navy"
@@ -205,5 +214,6 @@ const styles = StyleSheet.create({
   segmentText: { fontSize: 12.5 },
   fields: { gap: spacing.md },
   footer: { marginTop: 'auto', gap: spacing.md, paddingTop: spacing.lg },
+  error: { fontSize: 12, textAlign: 'center' },
   legal: { fontSize: 10.5, textAlign: 'center', lineHeight: 15 },
 });
