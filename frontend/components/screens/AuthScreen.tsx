@@ -21,11 +21,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Icon, TextField } from '@/components/atoms';
+import { Button, Icon, Select, TextField } from '@/components/atoms';
 import { useSignIn, useSignUp } from '@/hooks/api/useAuth';
 import { useTheme } from '@/hooks/useTheme';
-import { AUTH_PREFILL } from '@/mocks/fixtures';
-import { bodyFont, displayFont, radius, spacing } from '@/theme';
+import { GRADE_OPTIONS } from '@/mocks/fixtures';
+import { toastMessage } from '@/stores/toast';
+import { accent, bodyFont, displayFont, radius, spacing } from '@/theme';
 
 export type AuthMode = 'signup' | 'signin';
 
@@ -39,21 +40,27 @@ export function AuthScreen({ mode }: Props) {
   const signUp = useSignUp();
   const signIn = useSignIn();
 
-  const [name, setName] = useState<string>(AUTH_PREFILL.name);
-  const [email, setEmail] = useState<string>(AUTH_PREFILL.email);
-  const [grade, setGrade] = useState<string>(AUTH_PREFILL.grade);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [grade, setGrade] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isSignup = mode === 'signup';
   const pending = signUp.isPending || signIn.isPending;
+  const canSubmit = isSignup
+    ? name.trim().length > 0 && email.trim().length > 0 && grade.length > 0 && password.length > 0
+    : email.trim().length > 0 && password.length > 0;
 
   const submit = () => {
-    if (pending) return;
+    if (pending || !canSubmit) return;
+    setErrorMessage(null);
     const onSuccess = () => router.push('/auth/loading');
+    const onError = (error: unknown) => setErrorMessage(toastMessage(error));
     if (isSignup) {
-      signUp.mutate({ name, email, grade, password }, { onSuccess });
+      signUp.mutate({ name, email, grade, password }, { onSuccess, onError });
     } else {
-      signIn.mutate({ email, password }, { onSuccess });
+      signIn.mutate({ email, password }, { onSuccess, onError });
     }
   };
 
@@ -119,7 +126,9 @@ export function AuthScreen({ mode }: Props) {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          {isSignup ? <TextField label="Класс" value={grade} onChangeText={setGrade} /> : null}
+          {isSignup ? (
+            <Select label="Класс" value={grade} options={GRADE_OPTIONS} onChange={setGrade} />
+          ) : null}
           <TextField
             label="Пароль"
             value={password}
@@ -131,11 +140,17 @@ export function AuthScreen({ mode }: Props) {
         </View>
 
         <View style={styles.footer}>
+          {errorMessage ? (
+            <Text style={[bodyFont('600'), styles.error, { color: accent.rose }]}>
+              {errorMessage}
+            </Text>
+          ) : null}
           <Button
             label={isSignup ? 'Создать аккаунт' : 'Войти'}
             tone="navy"
             elevated
             loading={pending}
+            disabled={!canSubmit}
             onPress={submit}
           />
           <Text style={[bodyFont('400'), styles.legal, { color: palette.sub }]}>
@@ -205,5 +220,6 @@ const styles = StyleSheet.create({
   segmentText: { fontSize: 12.5 },
   fields: { gap: spacing.md },
   footer: { marginTop: 'auto', gap: spacing.md, paddingTop: spacing.lg },
+  error: { fontSize: 12, textAlign: 'center' },
   legal: { fontSize: 10.5, textAlign: 'center', lineHeight: 15 },
 });

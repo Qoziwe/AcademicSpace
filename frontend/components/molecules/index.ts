@@ -2,6 +2,7 @@
 
 export { BentoTile } from './BentoTile';
 export { ChatBubble } from './ChatBubble';
+export { CloseButton } from './CloseButton';
 export { DocumentCell } from './DocumentCell';
 export { FilterOptionRow } from './FilterOptionRow';
 export { FlashcardDeckRow } from './FlashcardDeckRow';

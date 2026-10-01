@@ -11,13 +11,16 @@ import * as http from './http/subscription';
 
 export type { PlanSeed };
 export type SubscribeResponse = mock.SubscribeResponse;
+export type CancelResponse = mock.CancelResponse;
 
 export interface SubscriptionApi {
   getPlans(): Promise<PlanSeed[]>;
   subscribe(planId: PlanSeed['id']): Promise<SubscribeResponse>;
+  cancel(): Promise<CancelResponse>;
 }
 
 export const subscriptionApi: SubscriptionApi = {
   getPlans: ENV.useMocks ? mock.getPlans : http.getPlans,
   subscribe: ENV.useMocks ? mock.subscribe : http.subscribe,
+  cancel: ENV.useMocks ? mock.cancel : http.cancel,
 };

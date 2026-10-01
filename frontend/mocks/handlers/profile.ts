@@ -8,13 +8,7 @@
  */
 
 import { delay } from '@/mocks/delay';
-import {
-  ACTIVE_PLAN_ID,
-  DASHBOARD,
-  PLANS,
-  PROFILE,
-  SUBSCRIPTION_RENEWS_AT,
-} from '@/mocks/fixtures';
+import { DASHBOARD, PLANS, PROFILE, SUBSCRIPTION_RENEWS_AT } from '@/mocks/fixtures';
 import { useMockStore } from '@/mocks/store';
 import type { Plan } from '@/stores/session';
 
@@ -25,6 +19,7 @@ export interface ProfileSubscription {
   renewsAt: string;
   /** Готовая строка «Месяц · 1 900 тг · продлится 12 мая» для карточек подписки. */
   summary: string;
+  cancelAtPeriodEnd: boolean;
 }
 
 export interface ProfileResponse {
@@ -49,8 +44,9 @@ export interface ProfileResponse {
 }
 
 export function getProfile(plan: Plan): Promise<ProfileResponse> {
-  const { xp, filters } = useMockStore.getState();
-  const activePlan = PLANS.find((p) => p.id === ACTIVE_PLAN_ID) ?? PLANS[1] ?? PLANS[0];
+  const { xp, filters, subscribedPlanId, subscriptionCancelPending } = useMockStore.getState();
+  const activePlan =
+    PLANS.find((p) => p.id === subscribedPlanId) ?? PLANS.find((p) => p.id === 'month');
   const weekPlan = PLANS.find((p) => p.id === 'week') ?? PLANS[0];
 
   const subscription: ProfileSubscription | null =
@@ -61,6 +57,7 @@ export function getProfile(plan: Plan): Promise<ProfileResponse> {
           price: activePlan.price,
           renewsAt: SUBSCRIPTION_RENEWS_AT,
           summary: `${activePlan.period} · ${activePlan.price} · продлится ${SUBSCRIPTION_RENEWS_AT}`,
+          cancelAtPeriodEnd: subscriptionCancelPending,
         }
       : null;
 
@@ -79,7 +76,9 @@ export function getProfile(plan: Plan): Promise<ProfileResponse> {
     subscription,
     subscriptionRowSub:
       plan === 'premium'
-        ? `Premium · продлится ${SUBSCRIPTION_RENEWS_AT}`
+        ? subscriptionCancelPending
+          ? `Premium · доступ до ${SUBSCRIPTION_RENEWS_AT}`
+          : `Premium · продлится ${SUBSCRIPTION_RENEWS_AT}`
         : `Базовый доступ · ${weekPlan?.price ?? ''} / неделя`,
     analysis: { country: filters.country, sinceLabel: DASHBOARD.analysisSinceLabel },
     dashboardStats: [

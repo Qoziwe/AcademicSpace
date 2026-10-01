@@ -37,12 +37,12 @@ export const DASHBOARD = {
   questionnaireFieldCount: 12,
 } as const;
 
-/** Предзаполнение формы регистрации/входа (в прототипе поля не пустые). */
-export const AUTH_PREFILL = {
-  name: 'Тінатін Батыркызы',
-  email: 'tinatin@mail.kz',
-  grade: '11 класс',
-} as const;
+/** Варианты «Класс» на AUTH_SIGNUP (`<Select>`) — школьники 9–11 классов. */
+export const GRADE_OPTIONS = [
+  { label: '9 класс', value: '9 класс' },
+  { label: '10 класс', value: '10 класс' },
+  { label: '11 класс', value: '11 класс' },
+] as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Анкета (QUESTIONNAIRE, шаг 1)
@@ -548,31 +548,32 @@ export interface PlanSeed {
   id: 'week' | 'month';
   period: string;
   price: string;
+  /** Числовая цена в тенге — сравнение тарифов (запрет даунгрейда). */
+  amount: number;
   sub: string;
   best: boolean;
 }
 
 export const PLANS: PlanSeed[] = [
-  { id: 'week', period: 'Неделя', price: '500 тг', sub: 'попробовать', best: false },
-  { id: 'month', period: 'Месяц', price: '1 900 тг', sub: '≈ 63 тг в день', best: true },
+  { id: 'week', period: 'Неделя', price: '500 тг', amount: 500, sub: 'попробовать', best: false },
+  {
+    id: 'month',
+    period: 'Месяц',
+    price: '1 900 тг',
+    amount: 1900,
+    sub: '≈ 63 тг в день',
+    best: true,
+  },
 ];
 
 /** Дата продления активной подписки (мок; в проде — с бекенда). */
 export const SUBSCRIPTION_RENEWS_AT = '12 мая';
-/** Тариф активной демо-подписки. */
-export const ACTIVE_PLAN_ID: PlanSeed['id'] = 'month';
 
 export const PREMIUM_PERKS = [
   'Полный ИИ-анализ портфолио и безлимитный чат с ментором',
   'Интерактивные модули: карты, чек-листы, таймеры, задания',
   'Список документов по каждому вузу + копилка',
   'Белый шум, дождь и трекеры продуктивности',
-] as const;
-
-export const PAYMENT_FIELDS = [
-  { label: 'Номер карты', value: '4400 •••• •••• 1265' },
-  { label: 'Срок / CVV', value: '09/28   •••' },
-  { label: 'Держатель', value: 'T BATYRKYZY' },
 ] as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -736,50 +737,6 @@ export const PROFILE_STATS = [
   { v: '620', k: 'XP всего' },
   { v: '14', k: 'подобрано вузов' },
 ] as const;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Настройки (SETTINGS) — `settingsGroups` прототипа
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface SettingsRowSeed {
-  title: string;
-  value?: string;
-  /** Навигация: 'profile' → PROFILE, иначе строка без перехода (пункт-заглушка). */
-  go?: 'profile';
-}
-
-export interface SettingsGroupSeed {
-  title: string;
-  rows: SettingsRowSeed[];
-}
-
-export const SETTINGS_GROUPS: SettingsGroupSeed[] = [
-  {
-    title: 'Аккаунт',
-    rows: [
-      { title: 'Профиль и класс', value: '11 класс', go: 'profile' },
-      { title: 'E-mail', value: 'tinatin@mail.kz' },
-      { title: 'Язык интерфейса', value: 'Русский' },
-    ],
-  },
-  {
-    title: 'Уведомления',
-    rows: [
-      { title: 'Дедлайны вузов', value: 'вкл' },
-      { title: 'Напоминания по задачам', value: 'вкл' },
-      { title: 'Новости и акции', value: 'выкл' },
-    ],
-  },
-  {
-    title: 'О приложении',
-    rows: [
-      { title: 'О нас', value: '' },
-      { title: 'Условия использования', value: '' },
-      { title: 'Политика конфиденциальности', value: '' },
-      { title: 'Версия', value: '1.0.0 (24)' },
-    ],
-  },
-];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Системные экраны (ERROR / OFFLINE / MAINTENANCE / UPDATE_REQUIRED)

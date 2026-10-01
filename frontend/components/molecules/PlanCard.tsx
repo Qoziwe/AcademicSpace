@@ -24,6 +24,8 @@ interface Props {
   onPress: () => void;
   /** Лента «ВЫГОДНЕЕ» слева сверху. */
   best?: boolean;
+  /** Даунгрейд недоступен, пока действует более дорогой тариф. */
+  disabled?: boolean;
   tone?: Tone;
   style?: StyleProp<ViewStyle>;
 }
@@ -35,6 +37,7 @@ export function PlanCard({
   selected,
   onPress,
   best = false,
+  disabled = false,
   tone = 'onNavy',
   style,
 }: Props) {
@@ -65,11 +68,12 @@ export function PlanCard({
   return (
     <Pressable
       accessibilityRole="radio"
-      accessibilityState={{ selected }}
+      accessibilityState={{ selected, disabled }}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: bg, borderColor: border, opacity: pressed ? 0.9 : 1 },
+        { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.4 : pressed ? 0.9 : 1 },
         style,
       ]}
     >

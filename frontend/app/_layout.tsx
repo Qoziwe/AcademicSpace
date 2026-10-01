@@ -8,6 +8,7 @@ import { DevMenu } from '@/components/dev/DevMenu';
 import { OfflineBanner } from '@/components/organisms/OfflineBanner';
 import { Sidebar } from '@/components/organisms/Sidebar';
 import { TabBarHost } from '@/components/organisms/TabBar';
+import { Toast } from '@/components/organisms/Toast';
 import { useAppFonts } from '@/hooks/useAppFonts';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { useTheme } from '@/hooks/useTheme';
@@ -109,6 +110,7 @@ function AppShell() {
         </View>
 
         <OfflineBanner />
+        <Toast />
         {/* native: только в dev. web: и в exported-превью (GitHub Pages) —
             это dev/preview-канал, а не сторовый релиз. */}
         {__DEV__ || Platform.OS === 'web' ? <DevMenu /> : null}

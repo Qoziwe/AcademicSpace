@@ -57,7 +57,7 @@
 *** Ожидаем получить: {id, name, email, grade, avatarUrl, level, xp,
     xpToNextLevel, matchesCount, rating,
     plan: "free"|"premium",
-    subscription: {period, periodLabel, price, renewsAt, summary} | null,
+    subscription: {period, periodLabel, price, renewsAt, summary, cancelAtPeriodEnd} | null,
     subscriptionRowSub: string,          // подпись строки «Подписка» в профиле
     analysis: {country, sinceLabel},     // подпись зоны анализа на дашборде
     dashboardStats: [{v, k}]}            // плитки-статы карточки профиля
@@ -201,12 +201,23 @@
 *** Метод: GET
 *** URL: /api/v1/subscription/plans
 *** Отправляем: token
-*** Ожидаем получить: [{id, period: "week"|"month", price, label}]
+*** Ожидаем получить: [{id, period: "week"|"month", price, amount, sub, best}]
 
 *** Метод: POST
 *** URL: /api/v1/subscription/subscribe
 *** Отправляем: token, {planId, paymentMethod}
 *** Ожидаем получить: {status: "success"|"failed", subscription: {...}}
+    409, если уже есть активная подписка дороже запрашиваемого тарифа
+    (запрет даунгрейда до конца оплаченного периода) — {error: {code, message}}
+
+*** Метод: POST
+*** URL: /api/v1/subscription/cancel
+*** Отправляем: token
+*** Ожидаем получить: {status: "success", endsAt: string}
+    Выключает автопродление — Premium остаётся до конца оплаченного
+    периода (subscription.cancelAtPeriodEnd → true в /profile/me), тариф
+    сразу не отбирается. 404, если активной подписки нет; 409, если
+    автопродление уже отменено.
 ```
 
 ## Achievement Log

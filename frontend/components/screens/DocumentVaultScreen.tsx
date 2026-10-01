@@ -52,6 +52,9 @@ export function DocumentVaultScreen({ vaultId, title, caption, onBack }: Props) 
         cellIndex: index,
         file: { uri: asset.uri, name: asset.name, mimeType: asset.mimeType },
       });
+    } catch {
+      // Тост уже показан глобально (`providers/query-client.ts`), тут
+      // только гасим unhandled rejection — экран просто остаётся как был.
     } finally {
       setPendingIndex(null);
     }

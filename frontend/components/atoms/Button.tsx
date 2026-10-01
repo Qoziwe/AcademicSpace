@@ -21,7 +21,6 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { useTheme } from '@/hooks/useTheme';
 import { accent, bodyFont, navy, radius } from '@/theme';
 
 type Variant = 'primary' | 'secondary' | 'ghost';
@@ -77,7 +76,6 @@ export function Button({
   borderColor,
   style,
 }: Props) {
-  const { palette } = useTheme();
   const s = SIZES[size];
   const isDisabled = disabled || loading;
 
@@ -87,7 +85,7 @@ export function Button({
 
   if (variant === 'primary') {
     bg = PRIMARY_BG[tone];
-    fg = tone === 'gold' ? '#221A00' : tone === 'contrast' ? palette.ink : '#FFFFFF';
+    fg = tone === 'gold' ? '#221A00' : tone === 'contrast' ? navy.primary : '#FFFFFF';
   } else if (variant === 'secondary') {
     bg = 'rgba(46,107,255,0.10)';
     fg = accent.blue;

@@ -164,8 +164,22 @@ VAULTS_SEED = [
 ]
 
 PLANS_SEED = [
-    {"id": "week", "period": "Неделя", "price": "500 тг", "sub": "попробовать", "best": False},
-    {"id": "month", "period": "Месяц", "price": "1 900 тг", "sub": "≈ 63 тг в день", "best": True},
+    {
+        "id": "week",
+        "period": "Неделя",
+        "price": "500 тг",
+        "amount": 500,
+        "sub": "попробовать",
+        "best": False,
+    },
+    {
+        "id": "month",
+        "period": "Месяц",
+        "price": "1 900 тг",
+        "amount": 1900,
+        "sub": "≈ 63 тг в день",
+        "best": True,
+    },
 ]
 
 ACHIEVEMENT_LOG_SEED = [

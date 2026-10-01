@@ -13,5 +13,6 @@ export { IconTile, type IconTileTone } from './IconTile';
 export { TileIcon, type TileIconName } from './TileIcon';
 export { ProgressBar } from './ProgressBar';
 export { ProgressRing } from './ProgressRing';
+export { Select, type SelectOption } from './Select';
 export { Switch } from './Switch';
 export { TextField, type TextFieldTone } from './TextField';

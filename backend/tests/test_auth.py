@@ -25,12 +25,18 @@ def test_signup_duplicate_email_is_conflict(client):
     res = client.post("/api/v1/auth/signup", json=SIGNUP_BODY)
 
     assert res.status_code == 409
+    assert res.get_json()["error"]["message"] == "Пользователь с таким email уже зарегистрирован."
 
 
 def test_signup_invalid_body_is_bad_request(client):
-    res = client.post("/api/v1/auth/signup", json={"email": "not-an-email"})
+    res = client.post("/api/v1/auth/signup", json={"email": "not-an-email", "password": "short"})
 
     assert res.status_code == 400
+    message = res.get_json()["error"]["message"]
+    # Плоская читаемая строка, а не str(dict) вида "{'password': [...]}"
+    assert "{" not in message and "'" not in message
+    assert "Некорректный email" in message
+    assert "Пароль должен быть не короче 8 символов" in message
 
 
 def test_signin_with_correct_password(client):

@@ -20,11 +20,18 @@ def _auth(token: str) -> dict:
 
 def _seed_plans() -> None:
     db.session.add(
-        SubscriptionPlan(id="week", period="Неделя", price="500 тг", sub="попробовать", best=False)
+        SubscriptionPlan(
+            id="week", period="Неделя", price="500 тг", amount=500, sub="попробовать", best=False
+        )
     )
     db.session.add(
         SubscriptionPlan(
-            id="month", period="Месяц", price="1 900 тг", sub="≈ 63 тг в день", best=True
+            id="month",
+            period="Месяц",
+            price="1 900 тг",
+            amount=1900,
+            sub="≈ 63 тг в день",
+            best=True,
         )
     )
     db.session.commit()
@@ -93,7 +100,7 @@ def test_subscribe_with_failing_provider_does_not_activate_premium(client, monke
         def charge(self, **kwargs):
             from app.services.payments.base import ChargeResult
 
-            return ChargeResult(status="failed", renews_at=None, summary=None)
+            return ChargeResult(status="failed", renews_at=None, ends_at=None, summary=None)
 
     monkeypatch.setattr("app.api.v1.subscription.get_payment_provider", lambda: FailingProvider())
 
@@ -106,3 +113,69 @@ def test_subscribe_with_failing_provider_does_not_activate_premium(client, monke
 
     profile_res = client.get("/api/v1/profile/me", headers=_auth(token))
     assert profile_res.get_json()["plan"] == "free"
+
+
+def test_cannot_downgrade_while_pricier_plan_active(client):
+    token = _signup(client)
+    _seed_plans()
+
+    client.post("/api/v1/subscription/subscribe", json={"planId": "month"}, headers=_auth(token))
+    res = client.post(
+        "/api/v1/subscription/subscribe", json={"planId": "week"}, headers=_auth(token)
+    )
+
+    assert res.status_code == 409
+    assert "дешёвый" in res.get_json()["error"]["message"]
+
+    profile_res = client.get("/api/v1/profile/me", headers=_auth(token))
+    assert profile_res.get_json()["subscription"]["period"] == "month"
+
+
+def test_cancel_subscription_keeps_premium_until_period_end(client):
+    token = _signup(client)
+    _seed_plans()
+
+    client.post("/api/v1/subscription/subscribe", json={"planId": "month"}, headers=_auth(token))
+    res = client.post("/api/v1/subscription/cancel", headers=_auth(token))
+
+    assert res.status_code == 200
+    assert res.get_json()["status"] == "success"
+
+    # Отмена выключает автопродление, но Premium остаётся до конца периода.
+    profile_res = client.get("/api/v1/profile/me", headers=_auth(token))
+    body = profile_res.get_json()
+    assert body["plan"] == "premium"
+    assert body["subscription"]["cancelAtPeriodEnd"] is True
+
+    # Повторная отмена уже отменённого автопродления — конфликт.
+    res_again = client.post("/api/v1/subscription/cancel", headers=_auth(token))
+    assert res_again.status_code == 409
+
+
+def test_cannot_downgrade_after_canceling_before_period_end(client):
+    token = _signup(client)
+    _seed_plans()
+
+    client.post("/api/v1/subscription/subscribe", json={"planId": "month"}, headers=_auth(token))
+    client.post("/api/v1/subscription/cancel", headers=_auth(token))
+
+    # Отмена не открывает лазейку для даунгрейда — доступ ещё оплачен.
+    res = client.post(
+        "/api/v1/subscription/subscribe", json={"planId": "week"}, headers=_auth(token)
+    )
+
+    assert res.status_code == 409
+
+
+def test_can_upgrade_after_canceling(client):
+    token = _signup(client)
+    _seed_plans()
+
+    client.post("/api/v1/subscription/subscribe", json={"planId": "week"}, headers=_auth(token))
+    client.post("/api/v1/subscription/cancel", headers=_auth(token))
+
+    res = client.post(
+        "/api/v1/subscription/subscribe", json={"planId": "month"}, headers=_auth(token)
+    )
+
+    assert res.status_code == 200
