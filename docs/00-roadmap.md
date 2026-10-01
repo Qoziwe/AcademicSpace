@@ -194,3 +194,43 @@ Achievement Log, AI Mentor (портфолио-анализ, чат, генер�
   контракт — `docs/api-contract.md` §Flashcards; "нейронка" на моках
   берёт готовый набор карточек (как `ANALYSIS_PREVIEW_BLOCKS`), реальная
   генерация — Фаза 8
+
+## Фаза 10 — Реальный алгоритм подбора вузов
+До этой фазы анкета (`QUESTIONNAIRE`) только показывала статичные демо-
+цифры (одинаковые для всех пользователей), а `UniversityMatch`
+(категория/chance%) была захардкожена в `seed.py` — подбор не зависел от
+реальных ответов. Разбор формулы, весов и порогов — отдельный документ
+`docs/matching-algorithm.md`; контракт эндпоинтов — `docs/api-contract.md`
+§Questionnaire/Universities.
+
+- `backend/app/services/matching/` — чистая математика (`scoring.py`,
+  `normalize.py`) + оркестрация с БД (`service.py`): логистическая кривая
+  вместо линейного обрыва на пороге, пороги Safety/Match/Reach сдвигаются
+  по избирательности конкретного вуза (`selectivity_tier`)
+- `University` получил структурные поля для скоринга (`country`,
+  `faculties`, `languages_offered`, `tuition_eur_per_year`,
+  `required_*_index`, `selectivity_tier`) — миграция
+  `cda290b5384e_university_matching_fields`
+- `Questionnaire.academics` — реальная форма (GPA%, профильный экзамен,
+  языковой сертификат, достижения), провалидирована `AcademicsSchema`,
+  вместо статичного дисплея на `QUESTIONNAIRE`
+- `POST /questionnaire` синхронно пересчитывает `UniversityMatch` +
+  агрегаты профиля (`rating`, `matchesCount`, зона анализа);
+  `POST /universities/search` остаётся чистым чтением кэша
+- `seed.py`: каталог из 20 вузов на 4 страны (Италия/Германия/Чехия/
+  Казахстан, те же страны, что в `FILTER_STEPS` фронтенда) с
+  правдоподобными (не скрейпинг) требованиями вместо 6 захардкоженных
+  Italy-only записей
+- Фронтенд: `app/universities/questionnaire.tsx` — настоящий ввод
+  (`<TextField>`/`<Select>`) вместо read-only витрины, черновик — в
+  `mocks/store.ts.academics`, бандлится в сабмит на последнем шаге
+  фильтров (`FilterStepScreen`)
+- Тесты: `backend/tests/test_matching_scoring.py` (монотонность по GPA,
+  вес=1.0, граница «ровно на среднем → reach, не safety»),
+  `test_matching_service.py` (анкета → реальная подборка через HTTP)
+
+Известное ограничение (см. `docs/matching-algorithm.md` §4): шаг фильтра
+«Университеты» — шорт-лист конкретных вузов — не используется алгоритмом
+как жёсткий фильтр, его опции на фронте статичные, не завязаны на
+реальный каталог по стране. Кандидат на отдельную доработку — динамический
+каталог вместо `FILTER_STEPS`.

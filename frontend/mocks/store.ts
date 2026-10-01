@@ -37,17 +37,30 @@ export type { ChatModuleSeed, ChatMsgSeed } from './fixtures';
 export type PlanChoice = 'week' | 'month';
 export type PayState = 'idle' | 'processing' | 'success';
 
+/** Черновик реальных академических данных анкеты (шаг 1 из 6) — вход
+ * алгоритма подбора на бэкенде (`docs/api-contract.md` §Questionnaire). */
+export interface AcademicsForm {
+  gpaPercent: number | null;
+  examSubject: string;
+  examScore: number | null;
+  languageTest: string;
+  languageScore: number | null;
+  achievementsCount: number;
+}
+
 interface MockState {
   hydrated: boolean;
 
   // анкета + фильтры (шаги 1–6 мастера)
   interests: string[];
+  academics: AcademicsForm;
   filters: {
     country: string;
     universities: string[];
     faculty: string;
     language: string;
     cost: string;
+    costMaxEur: number | null;
   };
   questionnaireFilled: boolean;
 
@@ -85,7 +98,9 @@ interface MockState {
 
   // ── сеттеры ────────────────────────────────────────────────
   toggleInterest: (label: string) => void;
+  setAcademicsField: <K extends keyof AcademicsForm>(key: K, value: AcademicsForm[K]) => void;
   setFilter: (key: SingleFilterKey, value: string) => void;
+  setCostFilter: (title: string, maxEur: number) => void;
   toggleUniversity: (name: string) => void;
   setQuestionnaireFilled: (filled: boolean) => void;
 
@@ -117,12 +132,21 @@ interface MockState {
 
 const INITIAL = {
   interests: ['Инженерия', 'Технологии'],
+  academics: {
+    gpaPercent: null,
+    examSubject: '',
+    examScore: null,
+    languageTest: '',
+    languageScore: null,
+    achievementsCount: 0,
+  } as AcademicsForm,
   filters: {
     country: 'Италия',
     universities: ['Università di Bologna', 'Università di Padova'],
     faculty: 'Инженерия',
     language: 'Английский',
     cost: 'до 3 000 € + стипендия',
+    costMaxEur: 3000 as number | null,
   },
   questionnaireFilled: false,
   tasks: TASKS_SEED,
@@ -145,6 +169,7 @@ const INITIAL = {
 type MockPersisted = Pick<
   MockState,
   | 'interests'
+  | 'academics'
   | 'filters'
   | 'questionnaireFilled'
   | 'tasks'
@@ -177,7 +202,13 @@ export const useMockStore = create<MockState>()(
             : [...s.interests, label],
         })),
 
+      setAcademicsField: (key, value) =>
+        set((s) => ({ academics: { ...s.academics, [key]: value } })),
+
       setFilter: (key, value) => set((s) => ({ filters: { ...s.filters, [key]: value } })),
+
+      setCostFilter: (title, maxEur) =>
+        set((s) => ({ filters: { ...s.filters, cost: title, costMaxEur: maxEur } })),
 
       toggleUniversity: (name) =>
         set((s) => ({
@@ -319,19 +350,30 @@ export const useMockStore = create<MockState>()(
     }),
     {
       name: 'academicspace.mock',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persisted, from) => {
         // v1 → v2: добавились xp / journalEntries.
-        // v2 → v3: добавились flashcardDecks. Остальной прогресс демо
-        // (задачи, фильтры, чат) сохраняем как есть.
+        // v2 → v3: добавились flashcardDecks.
+        // v3 → v4: добавились academics (реальная анкета) и filters.costMaxEur.
+        // Остальной прогресс демо (задачи, фильтры, чат) сохраняем как есть.
         const p = (persisted ?? {}) as Partial<MockPersisted>;
         const v2 =
           from >= 2 ? p : { ...p, xp: p.xp ?? INITIAL.xp, journalEntries: p.journalEntries ?? [] };
-        return { ...v2, flashcardDecks: v2.flashcardDecks ?? [] } as MockPersisted;
+        const v3 = { ...v2, flashcardDecks: v2.flashcardDecks ?? [] };
+        const v4 =
+          from >= 4
+            ? v3
+            : {
+                ...v3,
+                academics: v3.academics ?? clone(INITIAL.academics),
+                filters: { ...INITIAL.filters, ...v3.filters },
+              };
+        return v4 as MockPersisted;
       },
       partialize: (s): MockPersisted => ({
         interests: s.interests,
+        academics: s.academics,
         filters: s.filters,
         questionnaireFilled: s.questionnaireFilled,
         tasks: s.tasks,

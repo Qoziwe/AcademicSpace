@@ -30,7 +30,7 @@ def test_get_questionnaire_creates_empty_record(client):
     body = res.get_json()
     assert body["filled"] is False
     assert body["interests"] == []
-    assert len(body["groups"]) == 2
+    assert body["academics"] == {}
 
 
 def test_submit_questionnaire_marks_filled_and_saves_interests(client):

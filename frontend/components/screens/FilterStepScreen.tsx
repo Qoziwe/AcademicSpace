@@ -41,8 +41,10 @@ export function FilterStepScreen({ stepIndex }: Props) {
   const insets = useSafeAreaInsets();
   const { palette } = useTheme();
   const interests = useMockStore((s) => s.interests);
+  const academics = useMockStore((s) => s.academics);
   const filters = useMockStore((s) => s.filters);
   const setFilter = useMockStore((s) => s.setFilter);
+  const setCostFilter = useMockStore((s) => s.setCostFilter);
   const toggleUniversity = useMockStore((s) => s.toggleUniversity);
   const submit = useSubmitQuestionnaire();
 
@@ -57,14 +59,36 @@ export function FilterStepScreen({ stepIndex }: Props) {
     def.multi ? filters.universities.includes(title) : filters[def.key] === title;
 
   const pick = (title: string) => {
-    if (def.multi) toggleUniversity(title);
-    else setFilter(def.key, title);
+    if (def.multi) {
+      toggleUniversity(title);
+      return;
+    }
+    if (def.key === 'cost') {
+      const option = def.options.find((o) => o.title === title);
+      setCostFilter(title, option?.value ?? 0);
+      return;
+    }
+    setFilter(def.key, title);
   };
 
   const next = () => {
     if (isLast) {
       submit.mutate(
-        { interests, preferences: filters },
+        {
+          interests,
+          // Шаг 1 блокирует «Далее» без заполненных полей — нули здесь
+          // только защита от прямого deep-link на шаг фильтров в вебе,
+          // минуя анкету.
+          academics: {
+            gpaPercent: academics.gpaPercent ?? 0,
+            examSubject: academics.examSubject || 'Математика',
+            examScore: academics.examScore ?? 0,
+            languageTest: academics.languageTest || 'Не сдавал',
+            languageScore: academics.languageScore,
+            achievementsCount: academics.achievementsCount,
+          },
+          preferences: filters,
+        },
         { onSuccess: () => router.replace('/universities/results') },
       );
     } else {

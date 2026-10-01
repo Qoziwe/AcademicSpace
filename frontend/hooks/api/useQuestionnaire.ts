@@ -7,7 +7,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { qk } from '@/hooks/api/keys';
-import { questionnaireApi } from '@/services/api/questionnaire';
+import { questionnaireApi, type SubmitQuestionnairePayload } from '@/services/api/questionnaire';
 
 export function useQuestionnaireStatus() {
   return useQuery({
@@ -19,11 +19,15 @@ export function useQuestionnaireStatus() {
 export function useSubmitQuestionnaire() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { interests: string[]; preferences: Record<string, unknown> }) =>
+    mutationFn: (payload: SubmitQuestionnairePayload) =>
       questionnaireApi.submitQuestionnaire(payload),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: qk.questionnaire() });
       void qc.invalidateQueries({ queryKey: qk.universitySearch() });
+      // `qk.profile` ключуется по тарифу (`Plan`) — инвалидируем по
+      // общему префиксу, не зная тариф здесь (rating/matchesCount меняются
+      // пересчётом подборки на бэкенде).
+      void qc.invalidateQueries({ queryKey: ['profile'] });
     },
   });
 }

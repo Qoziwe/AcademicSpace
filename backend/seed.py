@@ -21,11 +21,11 @@ from app.models import (
     Task,
     TaskItem,
     University,
-    UniversityMatch,
     User,
     Vault,
     VaultCell,
 )
+from app.services.matching import rebuild_matches_for_user
 
 DEMO_EMAIL = "tinatin@mail.kz"
 
@@ -67,30 +67,55 @@ TASKS_SEED = [
     },
 ]
 
-UNIVERSITIES_SEED = {
-    "padova": {
+# Каталог вузов — вход алгоритма подбора (`app/services/matching`). Числовые
+# требования (`required_*_index`, 0–100) подобраны вручную как правдоподобное
+# приближение (не скрейпинг реальных приёмных комиссий) — калибровка весов и
+# порогов сама по себе в `app/services/matching/config.py`.
+#
+# Страны/факультеты/языки — те же строки, что в `FILTER_STEPS` фронтенда
+# (`frontend/mocks/fixtures.ts`), иначе фильтр молча не найдёт совпадений.
+UNIVERSITIES_SEED = [
+    # ── Италия ──────────────────────────────────────────────────────────
+    {
         "name": "Università di Padova",
         "city": "Падова",
-        "category": "safety",
-        "chance": "92%",
-        "tags": ["2 500 €/год", "стипендия до 100%", "IELTS 5.5"],
+        "country": "Италия",
+        "faculties": ["Инженерия", "Информатика"],
+        "languages_offered": ["Английский", "Итальянский"],
+        "tuition_eur_per_year": 2500,
+        "scholarship_coverage_pct": 100,
+        "selectivity_tier": 5,
+        "required_gpa_index": 45,
+        "required_profile_score_index": 45,
+        "required_language_index": 45,
     },
-    "torino": {
+    {
         "name": "Politecnico di Torino",
         "city": "Турин",
-        "category": "safety",
-        "chance": "88%",
-        "tags": ["2 800 €/год", "грант региона", "IELTS 5.5"],
+        "country": "Италия",
+        "faculties": ["Инженерия", "Архитектура"],
+        "languages_offered": ["Английский", "Итальянский"],
+        "tuition_eur_per_year": 2800,
+        "scholarship_coverage_pct": 70,
+        "selectivity_tier": 4,
+        "required_gpa_index": 55,
+        "required_profile_score_index": 55,
+        "required_language_index": 50,
     },
-    "bologna": {
+    {
         "name": "Università di Bologna",
         "city": "Болонья",
-        "category": "match",
-        "chance": "71%",
-        "tags": ["3 000 €/год", "стипендия ER-GO", "IELTS 6.0"],
+        "country": "Италия",
+        "faculties": ["Инженерия", "Экономика"],
+        "languages_offered": ["Английский"],
+        "tuition_eur_per_year": 3000,
+        "scholarship_coverage_pct": 60,
+        "selectivity_tier": 3,
+        "required_gpa_index": 65,
+        "required_profile_score_index": 65,
+        "required_language_index": 60,
         "admissions_url": "https://www.unibo.it",
         "stats": [
-            {"k": "вероятность", "v": "71%"},
             {"k": "в год", "v": "3 000 €"},
             {"k": "QS World", "v": "#154"},
         ],
@@ -98,7 +123,7 @@ UNIVERSITIES_SEED = {
             {"k": "Направление", "v": "Инженерия · бакалавриат"},
             {"k": "Язык", "v": "Английский"},
             {"k": "Дедлайн заявки", "v": "12 мая"},
-            {"k": "Стипендия", "v": "ER-GO, до 100 %"},
+            {"k": "Стипендия", "v": "ER-GO, до 60 %"},
             {"k": "Требуемый IELTS", "v": "6.0"},
         ],
         "required_documents": [
@@ -115,28 +140,231 @@ UNIVERSITIES_SEED = {
             "2 рекомендации, dichiarazione di valore и др. Копилка уже создана."
         ),
     },
-    "trento": {
+    {
         "name": "Università di Trento",
         "city": "Тренто",
-        "category": "match",
-        "chance": "66%",
-        "tags": ["3 400 €/год", "опекунский грант", "IELTS 6.0"],
+        "country": "Италия",
+        "faculties": ["Информатика", "Инженерия"],
+        "languages_offered": ["Итальянский", "Английский"],
+        "tuition_eur_per_year": 3400,
+        "scholarship_coverage_pct": 50,
+        "selectivity_tier": 3,
+        "required_gpa_index": 68,
+        "required_profile_score_index": 68,
+        "required_language_index": 62,
     },
-    "polimi": {
+    {
         "name": "Politecnico di Milano",
         "city": "Милан",
-        "category": "reach",
-        "chance": "34%",
-        "tags": ["+9 баллов рейтинга", "портфолио", "IELTS 6.5"],
+        "country": "Италия",
+        "faculties": ["Инженерия", "Архитектура", "Информатика"],
+        "languages_offered": ["Английский", "Итальянский"],
+        "tuition_eur_per_year": 4000,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 2,
+        "required_gpa_index": 82,
+        "required_profile_score_index": 85,
+        "required_language_index": 75,
     },
-    "bocconi": {
+    {
         "name": "Università Bocconi",
         "city": "Милан",
-        "category": "reach",
-        "chance": "21%",
-        "tags": ["+14 баллов", "эссе", "IELTS 7.0"],
+        "country": "Италия",
+        "faculties": ["Экономика"],
+        "languages_offered": ["Английский"],
+        "tuition_eur_per_year": 15000,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 1,
+        "required_gpa_index": 90,
+        "required_profile_score_index": 90,
+        "required_language_index": 80,
     },
-}
+    # ── Германия ────────────────────────────────────────────────────────
+    {
+        "name": "TU Dresden",
+        "city": "Дрезден",
+        "country": "Германия",
+        "faculties": ["Инженерия", "Информатика"],
+        "languages_offered": ["Немецкий", "Английский"],
+        "tuition_eur_per_year": 500,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 4,
+        "required_gpa_index": 55,
+        "required_profile_score_index": 55,
+        "required_language_index": 55,
+    },
+    {
+        "name": "RWTH Aachen",
+        "city": "Аахен",
+        "country": "Германия",
+        "faculties": ["Инженерия", "Информатика"],
+        "languages_offered": ["Немецкий", "Английский"],
+        "tuition_eur_per_year": 600,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 2,
+        "required_gpa_index": 78,
+        "required_profile_score_index": 80,
+        "required_language_index": 70,
+    },
+    {
+        "name": "Technical University of Munich",
+        "city": "Мюнхен",
+        "country": "Германия",
+        "faculties": ["Инженерия", "Информатика", "Экономика"],
+        "languages_offered": ["Английский", "Немецкий"],
+        "tuition_eur_per_year": 300,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 1,
+        "required_gpa_index": 88,
+        "required_profile_score_index": 90,
+        "required_language_index": 78,
+    },
+    {
+        "name": "Freie Universität Berlin",
+        "city": "Берлин",
+        "country": "Германия",
+        "faculties": ["Экономика", "Информатика"],
+        "languages_offered": ["Немецкий", "Английский"],
+        "tuition_eur_per_year": 400,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 3,
+        "required_gpa_index": 65,
+        "required_profile_score_index": 65,
+        "required_language_index": 62,
+    },
+    {
+        "name": "University of Stuttgart",
+        "city": "Штутгарт",
+        "country": "Германия",
+        "faculties": ["Инженерия"],
+        "languages_offered": ["Немецкий", "Английский"],
+        "tuition_eur_per_year": 500,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 4,
+        "required_gpa_index": 58,
+        "required_profile_score_index": 60,
+        "required_language_index": 55,
+    },
+    # ── Чехия ───────────────────────────────────────────────────────────
+    {
+        "name": "Charles University",
+        "city": "Прага",
+        "country": "Чехия",
+        "faculties": ["Информатика", "Экономика", "Инженерия"],
+        "languages_offered": ["Чешский", "Английский"],
+        "tuition_eur_per_year": 0,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 3,
+        "required_gpa_index": 60,
+        "required_profile_score_index": 62,
+        "required_language_index": 55,
+    },
+    {
+        "name": "Czech Technical University",
+        "city": "Прага",
+        "country": "Чехия",
+        "faculties": ["Инженерия", "Информатика"],
+        "languages_offered": ["Чешский", "Английский"],
+        "tuition_eur_per_year": 0,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 3,
+        "required_gpa_index": 58,
+        "required_profile_score_index": 60,
+        "required_language_index": 52,
+    },
+    {
+        "name": "Masaryk University",
+        "city": "Брно",
+        "country": "Чехия",
+        "faculties": ["Экономика", "Информатика"],
+        "languages_offered": ["Чешский", "Английский"],
+        "tuition_eur_per_year": 0,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 4,
+        "required_gpa_index": 50,
+        "required_profile_score_index": 50,
+        "required_language_index": 48,
+    },
+    {
+        "name": "University of Economics, Prague",
+        "city": "Прага",
+        "country": "Чехия",
+        "faculties": ["Экономика"],
+        "languages_offered": ["Английский", "Чешский"],
+        "tuition_eur_per_year": 2000,
+        "scholarship_coverage_pct": None,
+        "selectivity_tier": 3,
+        "required_gpa_index": 62,
+        "required_profile_score_index": 60,
+        "required_language_index": 58,
+    },
+    # ── Казахстан ───────────────────────────────────────────────────────
+    {
+        "name": "Назарбаев Университет",
+        "city": "Астана",
+        "country": "Казахстан",
+        "faculties": ["Инженерия", "Информатика", "Экономика"],
+        "languages_offered": ["Английский"],
+        "tuition_eur_per_year": 1500,
+        "scholarship_coverage_pct": 100,
+        "selectivity_tier": 2,
+        "required_gpa_index": 80,
+        "required_profile_score_index": 82,
+        "required_language_index": 75,
+    },
+    {
+        "name": "КазНУ им. аль-Фараби",
+        "city": "Алматы",
+        "country": "Казахстан",
+        "faculties": ["Инженерия", "Экономика", "Информатика"],
+        "languages_offered": ["Русский", "Казахский", "Английский"],
+        "tuition_eur_per_year": 800,
+        "scholarship_coverage_pct": 80,
+        "selectivity_tier": 4,
+        "required_gpa_index": 50,
+        "required_profile_score_index": 50,
+        "required_language_index": 45,
+    },
+    {
+        "name": "Satbayev University",
+        "city": "Алматы",
+        "country": "Казахстан",
+        "faculties": ["Инженерия"],
+        "languages_offered": ["Русский", "Казахский"],
+        "tuition_eur_per_year": 700,
+        "scholarship_coverage_pct": 70,
+        "selectivity_tier": 4,
+        "required_gpa_index": 52,
+        "required_profile_score_index": 55,
+        "required_language_index": 42,
+    },
+    {
+        "name": "КИМЭП",
+        "city": "Алматы",
+        "country": "Казахстан",
+        "faculties": ["Экономика"],
+        "languages_offered": ["Английский"],
+        "tuition_eur_per_year": 2500,
+        "scholarship_coverage_pct": 40,
+        "selectivity_tier": 3,
+        "required_gpa_index": 65,
+        "required_profile_score_index": 60,
+        "required_language_index": 65,
+    },
+    {
+        "name": "Международный университет информационных технологий",
+        "city": "Алматы",
+        "country": "Казахстан",
+        "faculties": ["Информатика", "Инженерия"],
+        "languages_offered": ["Русский", "Английский"],
+        "tuition_eur_per_year": 900,
+        "scholarship_coverage_pct": 60,
+        "selectivity_tier": 3,
+        "required_gpa_index": 58,
+        "required_profile_score_index": 60,
+        "required_language_index": 55,
+    },
+]
 
 DOCUMENT_SLOTS = [
     "Аттестат с апостилем",
@@ -257,29 +485,30 @@ def seed() -> None:
             level=4,
             xp=620,
             xp_to_next_level=1000,
-            matches_count=14,
-            rating=78,
             plan="free",
-            analysis_country="Италия",
-            analysis_since_label="14 марта",
         )
     )
 
     db.session.add(
         Questionnaire(
             user_id=user.id,
-            filled=False,
+            filled=True,
             interests=["Инженерия", "Технологии"],
             academics={
-                "gpa": "4,7",
-                "mathScore": 86,
-                "english": "IELTS 5.5",
-                "grade": "11",
+                "gpaPercent": 82,
+                "examSubject": "Математика",
+                "examScore": 78,
+                "languageTest": "IELTS",
+                "languageScore": 6.0,
+                "achievementsCount": 1,
             },
             preferences={
-                "format": "Бакалавриат",
-                "readyToRelocate": True,
-                "budgetPerYear": "до 3 000 €",
+                "country": "Италия",
+                "universities": [],
+                "faculty": "Инженерия",
+                "language": "Английский",
+                "cost": "до 3 000 € + стипендия",
+                "costMaxEur": 3000,
             },
         )
     )
@@ -298,29 +527,25 @@ def seed() -> None:
         for position, (label, done) in enumerate(task_seed["items"]):
             db.session.add(TaskItem(task_id=task.id, label=label, done=done, position=position))
 
-    universities_by_key = {}
-    for key, uni_seed in UNIVERSITIES_SEED.items():
-        uni = University(
-            name=uni_seed["name"],
-            city=uni_seed["city"],
-            admissions_url=uni_seed.get("admissions_url"),
-            stats=uni_seed.get("stats", []),
-            rows=uni_seed.get("rows", []),
-            required_documents=uni_seed.get("required_documents"),
-            documents_note=uni_seed.get("documents_note"),
-        )
-        db.session.add(uni)
-        universities_by_key[key] = uni
-    db.session.flush()
-
-    for key, uni_seed in UNIVERSITIES_SEED.items():
+    for uni_seed in UNIVERSITIES_SEED:
         db.session.add(
-            UniversityMatch(
-                user_id=user.id,
-                university_id=universities_by_key[key].id,
-                category=uni_seed["category"],
-                chance=uni_seed["chance"],
-                tags=uni_seed["tags"],
+            University(
+                name=uni_seed["name"],
+                city=uni_seed["city"],
+                country=uni_seed["country"],
+                faculties=uni_seed["faculties"],
+                languages_offered=uni_seed["languages_offered"],
+                tuition_eur_per_year=uni_seed["tuition_eur_per_year"],
+                scholarship_coverage_pct=uni_seed.get("scholarship_coverage_pct"),
+                selectivity_tier=uni_seed["selectivity_tier"],
+                required_gpa_index=uni_seed["required_gpa_index"],
+                required_profile_score_index=uni_seed["required_profile_score_index"],
+                required_language_index=uni_seed["required_language_index"],
+                admissions_url=uni_seed.get("admissions_url"),
+                stats=uni_seed.get("stats", []),
+                rows=uni_seed.get("rows", []),
+                required_documents=uni_seed.get("required_documents"),
+                documents_note=uni_seed.get("documents_note"),
             )
         )
 
@@ -368,7 +593,13 @@ def seed() -> None:
         )
 
     db.session.commit()
-    print(f"Засеяно: {DEMO_EMAIL} + профиль/анкета/задачи/вузы/копилки/чат/журнал")
+
+    matches_count = rebuild_matches_for_user(user.id)
+
+    print(
+        f"Засеяно: {DEMO_EMAIL} + профиль/анкета/задачи/вузы/копилки/чат/журнал "
+        f"({matches_count} подобранных вузов по реальному алгоритму)"
+    )
 
 
 def main() -> None:
