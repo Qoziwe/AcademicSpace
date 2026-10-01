@@ -67,21 +67,37 @@
 — готовая строка вида «Месяц · 1 900 тг · продлится 12 мая».
 
 ## Questionnaire / Universities
+
+Реальный алгоритм подбора — `backend/app/services/matching` (подробный
+разбор формулы, весов и порогов — `docs/matching-algorithm.md`).
+`academics` — вход алгоритма, сравнивается с требованиями вузов из
+каталога; `groups`/статичные демо-цифры (были до Фазы 10) убраны.
+
 ```
 *** Метод: GET
 *** URL: /api/v1/questionnaire
 *** Отправляем: token
 *** Ожидаем получить: {filled: boolean, interests: [...],
-    groups: [{title, fields: [{label, value}]}]}
+    academics: {gpaPercent, examSubject, examScore, languageTest,
+    languageScore, achievementsCount} | {}}   // {} — анкета ещё не заполнялась
 
 *** Метод: POST
 *** URL: /api/v1/questionnaire
-*** Отправляем: token, {academics: {...}, interests: [...], preferences: {...}}
-*** Ожидаем получить: {questionnaireId, filled: true}
+*** Отправляем: token, {interests: [...],
+    academics: {gpaPercent: 0-100, examSubject: string,
+    examScore: 0-100, languageTest: "IELTS"|"TOEFL"|"Duolingo"|"Не сдавал",
+    languageScore: number | null, achievementsCount: number},
+    preferences: {country, universities: [...], faculty, language,
+    cost, costMaxEur: number}}
+*** Ожидаем получить: {questionnaireId, filled: true, matchesCount}
+    Пересчитывает подборку (`UniversityMatch`) и агрегаты профиля
+    (`rating`, `matchesCount`, `analysis.country/sinceLabel`) синхронно,
+    в рамках этого запроса — `POST /universities/search` ниже только
+    читает уже посчитанный кэш, сам ничего не пересчитывает.
 
 *** Метод: POST
 *** URL: /api/v1/universities/search
-*** Отправляем: token, {country, universities: [...], faculty, language, costRange}
+*** Отправляем: token
 *** Ожидаем получить: {country, matchesCount, rating,
     groups: [{category: "safety"|"match"|"reach",
     items: [{id, name, city, chance, tags: []}]}]}
@@ -94,6 +110,12 @@
     requiredDocuments: [...] | null,   // null для Free — lock-тизер
     documentsNote: string}             // текст блока документов: разбор (Premium) / тизер (Free)
 ```
+
+Известное ограничение v1: шаг фильтра «Университеты» (шорт-лист конкретных
+вузов) не используется алгоритмом как жёсткий фильтр — опции шага пока
+статичные на фронте и не перезапрашиваются по выбранной стране/вузам
+(кандидат на отдельную доработку — динамический каталог вместо
+`FILTER_STEPS`).
 
 ## AI Mentor
 ```

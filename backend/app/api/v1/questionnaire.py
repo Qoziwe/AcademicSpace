@@ -4,33 +4,11 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.extensions import db
 from app.models import Questionnaire
 from app.schemas.questionnaire import SubmitQuestionnaireSchema
+from app.services.matching import rebuild_matches_for_user
 
 questionnaire_bp = Blueprint("questionnaire", __name__, url_prefix="/questionnaire")
 
 submit_schema = SubmitQuestionnaireSchema()
-
-# Статичная витрина анкеты (`QUESTIONNAIRE_GROUPS` дизайн-референса) — те же
-# поля показываются всем пользователям, реальные ответы не редактируются
-# через этот экран напрямую (см. docs/api-contract.md §Questionnaire).
-QUESTIONNAIRE_GROUPS = [
-    {
-        "title": "Академические результаты",
-        "fields": [
-            {"label": "Средний балл", "value": "4,7"},
-            {"label": "Профильная математика", "value": "86"},
-            {"label": "Английский", "value": "IELTS 5.5"},
-            {"label": "Класс", "value": "11"},
-        ],
-    },
-    {
-        "title": "Предпочтения по вузам",
-        "fields": [
-            {"label": "Формат", "value": "Бакалавриат"},
-            {"label": "Готовность к переезду", "value": "Да"},
-            {"label": "Бюджет в год", "value": "до 3 000 €"},
-        ],
-    },
-]
 
 
 def _get_or_create(user_id: int) -> Questionnaire:
@@ -48,7 +26,7 @@ def get_questionnaire():
     q = _get_or_create(user_id)
     db.session.commit()
 
-    return jsonify({"filled": q.filled, "interests": q.interests, "groups": QUESTIONNAIRE_GROUPS})
+    return jsonify({"filled": q.filled, "interests": q.interests, "academics": q.academics})
 
 
 @questionnaire_bp.post("")
@@ -67,4 +45,6 @@ def submit_questionnaire():
     q.filled = True
     db.session.commit()
 
-    return jsonify({"questionnaireId": str(q.id), "filled": True})
+    matches_count = rebuild_matches_for_user(user_id)
+
+    return jsonify({"questionnaireId": str(q.id), "filled": True, "matchesCount": matches_count})

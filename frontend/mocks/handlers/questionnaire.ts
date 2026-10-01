@@ -2,18 +2,21 @@
  * Мок-хендлер анкеты. Контракт — `docs/api-contract.md` §Questionnaire
  * (`POST /api/v1/questionnaire`).
  *
- * Форму «в моменте» (интересы, выбор фильтров) экраны держат в
- * `mocks/store.ts`; сабмит фиксирует `filled: true`.
+ * Форму «в моменте» (интересы, академические данные, выбор фильтров)
+ * экраны держат в `mocks/store.ts`; сабмит фиксирует `filled: true`.
+ * В отличие от реального бекенда (`app/services/matching`) мок не
+ * пересчитывает подборку по формуле — просто возвращает статичный
+ * `PROFILE.matchesCount` для правдоподобия демо-режима без бекенда.
  */
 
 import { delay } from '@/mocks/delay';
-import { QUESTIONNAIRE_GROUPS } from '@/mocks/fixtures';
-import { useMockStore } from '@/mocks/store';
+import { PROFILE } from '@/mocks/fixtures';
+import { type AcademicsForm, useMockStore } from '@/mocks/store';
 
 export interface QuestionnaireStatus {
   filled: boolean;
   interests: string[];
-  groups: typeof QUESTIONNAIRE_GROUPS;
+  academics: AcademicsForm;
 }
 
 export function getQuestionnaire(): Promise<QuestionnaireStatus> {
@@ -21,13 +24,17 @@ export function getQuestionnaire(): Promise<QuestionnaireStatus> {
   return delay({
     filled: s.questionnaireFilled,
     interests: s.interests,
-    groups: QUESTIONNAIRE_GROUPS,
+    academics: s.academics,
   });
 }
 
-export function submitQuestionnaire(): Promise<{ questionnaireId: string; filled: true }> {
-  // Мок уже держит interests/filters в `mocks/store.ts` — сабмит просто
-  // фиксирует флаг, тело запроса (интересы/предпочтения) ему не нужно.
+export function submitQuestionnaire(): Promise<{
+  questionnaireId: string;
+  filled: true;
+  matchesCount: number;
+}> {
+  // Мок уже держит interests/academics/filters в `mocks/store.ts` — сабмит
+  // просто фиксирует флаг, тело запроса ему не нужно.
   useMockStore.getState().setQuestionnaireFilled(true);
-  return delay({ questionnaireId: 'q_demo', filled: true });
+  return delay({ questionnaireId: 'q_demo', filled: true, matchesCount: PROFILE.matchesCount });
 }

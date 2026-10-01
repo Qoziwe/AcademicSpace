@@ -48,24 +48,23 @@ export const GRADE_OPTIONS = [
 // Анкета (QUESTIONNAIRE, шаг 1)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const QUESTIONNAIRE_GROUPS = [
-  {
-    title: 'Академические результаты',
-    fields: [
-      { label: 'Средний балл', value: '4,7' },
-      { label: 'Профильная математика', value: '86' },
-      { label: 'Английский', value: 'IELTS 5.5' },
-      { label: 'Класс', value: '11' },
-    ],
-  },
-  {
-    title: 'Предпочтения по вузам',
-    fields: [
-      { label: 'Формат', value: 'Бакалавриат' },
-      { label: 'Готовность к переезду', value: 'Да' },
-      { label: 'Бюджет в год', value: 'до 3 000 €' },
-    ],
-  },
+/** Варианты «Профильный экзамен» на QUESTIONNAIRE (`<Select>`). */
+export const EXAM_SUBJECT_OPTIONS = [
+  { label: 'Математика', value: 'Математика' },
+  { label: 'Физика', value: 'Физика' },
+  { label: 'Информатика', value: 'Информатика' },
+  { label: 'Экономика', value: 'Экономика' },
+  { label: 'Обществознание', value: 'Обществознание' },
+  { label: 'Биология', value: 'Биология' },
+  { label: 'Литература', value: 'Литература' },
+] as const;
+
+/** Варианты «Языковой сертификат» на QUESTIONNAIRE (`<Select>`). */
+export const LANGUAGE_TEST_OPTIONS = [
+  { label: 'IELTS', value: 'IELTS' },
+  { label: 'TOEFL', value: 'TOEFL' },
+  { label: 'Duolingo English Test', value: 'Duolingo' },
+  { label: 'Не сдавал(а)', value: 'Не сдавал' },
 ] as const;
 
 export const INTERESTS = [
@@ -87,6 +86,8 @@ export interface FilterOption {
   title: string;
   sub: string;
   badge?: string;
+  /** Только у шага "cost" — потолок бюджета в евро/год для жёсткого фильтра подбора. */
+  value?: number;
 }
 
 /** Ключ одиночного выбора в `mocks/store.ts.filters`. */
@@ -150,9 +151,11 @@ export const FILTER_STEPS = [
     hint: 'Проверяем, доступно ли выбранное направление на этом языке.',
     multi: false,
     options: [
-      { title: 'Английский', sub: '9 программ из 14' },
-      { title: 'Итальянский', sub: '14 программ' },
-      { title: 'Смешанный', sub: '4 программы' },
+      { title: 'Английский', sub: 'международные программы' },
+      { title: 'Немецкий', sub: 'для вузов Германии' },
+      { title: 'Чешский', sub: 'бесплатное обучение' },
+      { title: 'Русский', sub: 'для вузов Казахстана' },
+      { title: 'Итальянский', sub: 'для вузов Италии' },
     ],
   },
   {
@@ -162,10 +165,10 @@ export const FILTER_STEPS = [
     hint: 'Условия сильно различаются от страны к стране: в Италии стипендии преимущественно государственные и весьма щедрые.',
     multi: false,
     options: [
-      { title: 'до 1 000 € в год', sub: '+ полная стипендия' },
-      { title: 'до 3 000 € + стипендия', sub: 'покрытие до 100 %' },
-      { title: 'до 8 000 €', sub: 'частичные гранты' },
-      { title: 'без ограничений', sub: 'все программы' },
+      { title: 'до 1 000 € в год', sub: '+ полная стипендия', value: 1000 },
+      { title: 'до 3 000 € + стипендия', sub: 'покрытие до 100 %', value: 3000 },
+      { title: 'до 8 000 €', sub: 'частичные гранты', value: 8000 },
+      { title: 'без ограничений', sub: 'все программы', value: 1_000_000 },
     ],
   },
 ] satisfies readonly FilterStepDef[];
