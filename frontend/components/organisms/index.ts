@@ -7,6 +7,7 @@ export { FilterStepper } from './FilterStepper';
 export { FlashcardStack, type FlashcardStackCard } from './FlashcardStack';
 export { HeaderBar } from './HeaderBar';
 export { LiquidGlass } from './LiquidGlass';
+export { NavyModalFrame } from './NavyModalFrame';
 export { OfflineBanner } from './OfflineBanner';
 export { ProfileHeaderWidget } from './ProfileHeaderWidget';
 export { ResultsGroupedList, type ResultGroup, type ResultUniversity } from './ResultsGroupedList';

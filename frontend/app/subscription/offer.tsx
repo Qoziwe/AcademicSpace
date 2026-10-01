@@ -1,20 +1,24 @@
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, CheckIcon } from '@/components/atoms';
-import { PlanCard } from '@/components/molecules';
+import { CloseButton, PlanCard } from '@/components/molecules';
+import { NavyModalFrame } from '@/components/organisms';
 import { usePlans } from '@/hooks/api/useSubscription';
 import { PREMIUM_PERKS } from '@/mocks/fixtures';
 import { useMockStore } from '@/mocks/store';
+import { backOr } from '@/navigation/back';
 import { withGuard } from '@/navigation/withGuard';
 import { accent, bodyFont, displayFont, navy, spacing } from '@/theme';
 
 /**
  * PAYWALL (`/subscription/offer`, `design-reference.html:589`). Модалка,
  * навy `navy.deep` (вне темы). Маркетинг + inline выбор тарифа
- * (`<PlanCard>`), «Оформить» → PAYMENT_FLOW (`CLAUDE.md` §7). Свайп-вниз /
- * тап по ручке — dismiss.
+ * (`<PlanCard>`), «Оформить» → PAYMENT_FLOW (`CLAUDE.md` §7). Закрывается
+ * крестиком (`<CloseButton>`) — свайп-вниз убрали, на вебе он не работал.
+ * `<NavyModalFrame>` — на вебе не даёт растянуться на всё высокое окно
+ * браузера (см. её комментарий).
  */
 function PaywallScreen() {
   const insets = useSafeAreaInsets();
@@ -26,65 +30,66 @@ function PaywallScreen() {
   const chosen = plans.find((p) => p.id === planChoice);
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
-      <Pressable
-        accessibilityLabel="Закрыть"
-        onPress={() => router.back()}
-        hitSlop={10}
-        style={styles.grabWrap}
-      >
-        <View style={styles.grab} />
-      </Pressable>
+    <NavyModalFrame backgroundColor={navy.deep}>
+      <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.closeRow}>
+          <CloseButton onPress={backOr('/dashboard')} />
+        </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={[displayFont('600'), styles.title]}>AcademicSpace{'\n'}Premium</Text>
-        <Text style={[bodyFont('400'), styles.desc]}>
-          Полный ИИ-разбор, интерактивные модули, копилки документов и инструменты фокусировки.
-        </Text>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={[displayFont('600'), styles.title]}>AcademicSpace{'\n'}Premium</Text>
+          <Text style={[bodyFont('400'), styles.desc]}>
+            Полный ИИ-разбор, интерактивные модули, копилки документов и инструменты фокусировки.
+          </Text>
 
-        <View style={styles.perks}>
-          {PREMIUM_PERKS.map((perk) => (
-            <View key={perk} style={styles.perk}>
-              <View style={styles.perkIcon}>
-                <CheckIcon size={10} color={accent.gold} />
+          <View style={styles.perks}>
+            {PREMIUM_PERKS.map((perk) => (
+              <View key={perk} style={styles.perk}>
+                <View style={styles.perkIcon}>
+                  <CheckIcon size={10} color={accent.gold} />
+                </View>
+                <Text style={[bodyFont('500'), styles.perkText]}>{perk}</Text>
               </View>
-              <Text style={[bodyFont('500'), styles.perkText]}>{perk}</Text>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
 
-        <View style={styles.plans}>
-          {plans.map((p) => (
-            <PlanCard
-              key={p.id}
-              period={p.period}
-              price={p.price}
-              sub={p.sub}
-              best={p.best}
-              selected={planChoice === p.id}
-              onPress={() => setPlanChoice(p.id)}
-            />
-          ))}
-        </View>
-      </ScrollView>
+          <View style={styles.plans}>
+            {plans.map((p) => (
+              <PlanCard
+                key={p.id}
+                period={p.period}
+                price={p.price}
+                sub={p.sub}
+                best={p.best}
+                selected={planChoice === p.id}
+                onPress={() => setPlanChoice(p.id)}
+              />
+            ))}
+          </View>
+        </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
-        <Button
-          label={`Оформить · ${chosen?.price ?? ''}`}
-          tone="gold"
-          elevated
-          onPress={() => router.push('/subscription/payment')}
-        />
-        <Text style={[bodyFont('400'), styles.fine]}>Отмена в любой момент · оплата картой</Text>
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
+          <Button
+            label={`Оформить · ${chosen?.price ?? ''}`}
+            tone="gold"
+            elevated
+            onPress={() => router.push('/subscription/payment')}
+          />
+          <Text style={[bodyFont('400'), styles.fine]}>Отмена в любой момент · оплата картой</Text>
+        </View>
       </View>
-    </View>
+    </NavyModalFrame>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: navy.deep, paddingHorizontal: 22 },
-  grabWrap: { alignItems: 'center', paddingVertical: 10 },
-  grab: { width: 52, height: 5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.25)' },
+  closeRow: { flexDirection: 'row', justifyContent: 'flex-end' },
+  scroll: { flex: 1 },
   content: { flexGrow: 1, justifyContent: 'center', gap: 20, paddingVertical: spacing.xl },
   title: { fontSize: 25, lineHeight: 30, color: '#FFFFFF', letterSpacing: -0.7 },
   desc: { fontSize: 13, lineHeight: 20.8, color: 'rgba(255,255,255,0.6)' },

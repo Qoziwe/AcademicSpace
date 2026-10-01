@@ -1,5 +1,5 @@
 import type { PlanSeed } from '@/mocks/fixtures';
-import type { SubscribeResponse } from '@/mocks/handlers/subscription';
+import type { CancelResponse, SubscribeResponse } from '@/mocks/handlers/subscription';
 
 import { apiFetch } from './client';
 
@@ -9,4 +9,8 @@ export function getPlans(): Promise<PlanSeed[]> {
 
 export function subscribe(planId: PlanSeed['id']): Promise<SubscribeResponse> {
   return apiFetch<SubscribeResponse>('POST', '/subscription/subscribe', { planId });
+}
+
+export function cancel(): Promise<CancelResponse> {
+  return apiFetch<CancelResponse>('POST', '/subscription/cancel');
 }

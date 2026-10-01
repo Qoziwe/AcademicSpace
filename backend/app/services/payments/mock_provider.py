@@ -15,5 +15,8 @@ class MockPaymentProvider(PaymentProvider):
 
     def charge(self, *, plan_id: str, period: str, price: str, payment_method: str) -> ChargeResult:
         days = PLAN_DURATION_DAYS.get(plan_id, 30)
-        renews_at = ru_date(dt.date.today() + dt.timedelta(days=days))
-        return ChargeResult(status="success", renews_at=renews_at, summary=f"{period} · {price}")
+        ends_at = dt.datetime.now(dt.UTC).replace(tzinfo=None) + dt.timedelta(days=days)
+        renews_at = ru_date(ends_at.date())
+        return ChargeResult(
+            status="success", renews_at=renews_at, ends_at=ends_at, summary=f"{period} · {price}"
+        )

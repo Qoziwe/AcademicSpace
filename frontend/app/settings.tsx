@@ -8,21 +8,30 @@ import { SettingsRow } from '@/components/molecules';
 import { HeaderBar } from '@/components/organisms';
 import { useProfile } from '@/hooks/api/useProfile';
 import { useTheme } from '@/hooks/useTheme';
-import { SETTINGS_GROUPS } from '@/mocks/fixtures';
 import { backOr } from '@/navigation/back';
 import { withGuard } from '@/navigation/withGuard';
+import { useNotificationsStore } from '@/stores/notifications';
 import { bodyFont, radius } from '@/theme';
 
 /**
  * SETTINGS (`/settings`, `design-reference.html:911`). Карточка подписки +
  * переключатель темы (theme store) + 3 группы строк. Назад → PROFILE.
+ *
+ * «Аккаунт» и «Уведомления» — реальные данные (`useProfile()` /
+ * `stores/notifications.ts`), не статичный мок: раньше строки E-mail/класс
+ * были захардкожены фикстурой независимо от того, что реально ввёл
+ * пользователь при регистрации, а тумблеры уведомлений были просто
+ * текстом «вкл»/«выкл» без настоящего переключателя.
  */
 function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { palette, isDark, toggle } = useTheme();
   const profileQ = useProfile();
+  const profile = profileQ.data;
+  const notifications = useNotificationsStore();
 
-  const isPremium = profileQ.data?.plan === 'premium';
+  const isPremium = profile?.plan === 'premium';
+  const cancelAtPeriodEnd = profile?.subscription?.cancelAtPeriodEnd ?? false;
 
   return (
     <View style={[styles.root, { backgroundColor: palette.screen }]}>
@@ -39,7 +48,8 @@ function SettingsScreen() {
             <Text style={[bodyFont('800'), styles.subTagGold]}>ПОДПИСКА АКТИВНА</Text>
             <Text style={[bodyFont('800'), styles.subTitle]}>AcademicSpace Premium</Text>
             <Text style={[bodyFont('500'), styles.subText]}>
-              {profileQ.data?.subscription?.summary}. Отмена в любой момент.
+              {profile?.subscription?.summary}
+              {cancelAtPeriodEnd ? ' · автопродление отключено' : '. Отмена в любой момент'}
             </Text>
             <Button
               label="Управлять подпиской"
@@ -93,29 +103,87 @@ function SettingsScreen() {
           </View>
         </View>
 
-        {SETTINGS_GROUPS.map((group) => (
-          <View key={group.title} style={styles.group}>
-            <Text style={[bodyFont('700'), styles.groupTitle, { color: palette.sub }]}>
-              {group.title.toUpperCase()}
-            </Text>
-            <View
-              style={[
-                styles.groupCard,
-                { backgroundColor: palette.card, borderColor: palette.border },
-              ]}
-            >
-              {group.rows.map((r, i) => (
-                <SettingsRow
-                  key={r.title}
-                  title={r.title}
-                  value={r.value}
-                  last={i === group.rows.length - 1}
-                  onPress={r.go === 'profile' ? () => router.push('/profile') : undefined}
-                />
-              ))}
-            </View>
+        <View style={styles.group}>
+          <Text style={[bodyFont('700'), styles.groupTitle, { color: palette.sub }]}>АККАУНТ</Text>
+          <View
+            style={[
+              styles.groupCard,
+              { backgroundColor: palette.card, borderColor: palette.border },
+            ]}
+          >
+            <SettingsRow
+              title="Профиль и класс"
+              value={profile?.grade ?? '—'}
+              onPress={() => router.push('/profile')}
+            />
+            <SettingsRow title="E-mail" value={profile?.email ?? '—'} />
+            <SettingsRow title="Язык интерфейса" value="Русский" last />
           </View>
-        ))}
+        </View>
+
+        <View style={styles.group}>
+          <Text style={[bodyFont('700'), styles.groupTitle, { color: palette.sub }]}>
+            УВЕДОМЛЕНИЯ
+          </Text>
+          <View
+            style={[
+              styles.groupCard,
+              { backgroundColor: palette.card, borderColor: palette.border },
+            ]}
+          >
+            <SettingsRow
+              title="Дедлайны вузов"
+              rightSlot={
+                <Switch
+                  value={notifications.deadlines}
+                  onValueChange={notifications.setDeadlines}
+                />
+              }
+            />
+            <SettingsRow
+              title="Напоминания по задачам"
+              rightSlot={
+                <Switch
+                  value={notifications.taskReminders}
+                  onValueChange={notifications.setTaskReminders}
+                />
+              }
+            />
+            <SettingsRow
+              title="Новости и акции"
+              rightSlot={
+                <Switch
+                  value={notifications.newsPromo}
+                  onValueChange={notifications.setNewsPromo}
+                />
+              }
+              last
+            />
+          </View>
+        </View>
+
+        <View style={styles.group}>
+          <Text style={[bodyFont('700'), styles.groupTitle, { color: palette.sub }]}>
+            О ПРИЛОЖЕНИИ
+          </Text>
+          <View
+            style={[
+              styles.groupCard,
+              { backgroundColor: palette.card, borderColor: palette.border },
+            ]}
+          >
+            <SettingsRow title="О нас" onPress={() => router.push('/settings/about')} />
+            <SettingsRow
+              title="Условия использования"
+              onPress={() => router.push('/settings/terms')}
+            />
+            <SettingsRow
+              title="Политика конфиденциальности"
+              onPress={() => router.push('/settings/privacy')}
+            />
+            <SettingsRow title="Версия" value="1.0.0 (24)" last />
+          </View>
+        </View>
       </ScrollView>
     </View>
   );

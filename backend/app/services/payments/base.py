@@ -1,3 +1,4 @@
+import datetime as dt
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -6,6 +7,7 @@ from dataclasses import dataclass
 class ChargeResult:
     status: str  # "success" | "failed"
     renews_at: str | None  # человекочитаемая дата продления; None при failed
+    ends_at: dt.datetime | None  # настоящая дата/время окончания периода; None при failed
     summary: str | None  # готовая строка вида «Месяц · 1 900 тг»; None при failed
 
 

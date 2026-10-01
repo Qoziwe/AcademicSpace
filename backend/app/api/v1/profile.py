@@ -3,7 +3,8 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from werkzeug.exceptions import NotFound
 
 from app.extensions import db
-from app.models import Profile, Subscription, SubscriptionPlan, User
+from app.models import Profile, SubscriptionPlan, User
+from app.services.subscriptions import get_active_subscription
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/profile")
 
@@ -17,11 +18,7 @@ def me():
     if user is None or profile is None:
         raise NotFound("Профиль не найден.")
 
-    active_subscription = (
-        db.session.execute(db.select(Subscription).filter_by(user_id=user_id, status="active"))
-        .scalars()
-        .first()
-    )
+    active_subscription = get_active_subscription(user_id, profile)
 
     if active_subscription:
         subscription = {
@@ -30,8 +27,13 @@ def me():
             "price": active_subscription.price,
             "renewsAt": active_subscription.renews_at,
             "summary": active_subscription.summary,
+            "cancelAtPeriodEnd": active_subscription.cancel_at_period_end,
         }
-        subscription_row_sub = f"Premium · продлится {active_subscription.renews_at}"
+        subscription_row_sub = (
+            f"Premium · доступ до {active_subscription.renews_at}"
+            if active_subscription.cancel_at_period_end
+            else f"Premium · продлится {active_subscription.renews_at}"
+        )
     else:
         week_plan = db.session.get(SubscriptionPlan, "week")
         subscription = None

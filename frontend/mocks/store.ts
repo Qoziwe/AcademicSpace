@@ -27,6 +27,7 @@ import {
   type ChatMsgSeed,
   type FlashcardDeckSeed,
   type LogEntry,
+  type PlanSeed,
   type SingleFilterKey,
   type TaskSeed,
 } from './fixtures';
@@ -68,6 +69,10 @@ interface MockState {
   // подписка / оплата
   planChoice: PlanChoice;
   payState: PayState;
+  /** Тариф активной подписки (`null` — Free). Ставится при успешной оплате. */
+  subscribedPlanId: PlanSeed['id'] | null;
+  /** Автопродление отменено — Premium остаётся до конца периода (`CLAUDE.md` §11). */
+  subscriptionCancelPending: boolean;
 
   // копилка документов
   vaultCells: boolean[];
@@ -96,6 +101,8 @@ interface MockState {
 
   setPlanChoice: (plan: PlanChoice) => void;
   setPayState: (state: PayState) => void;
+  setSubscribedPlanId: (planId: PlanSeed['id'] | null) => void;
+  setSubscriptionCancelPending: (pending: boolean) => void;
 
   toggleVaultCell: (index: number) => void;
 
@@ -127,6 +134,8 @@ const INITIAL = {
   analysisDone: false,
   planChoice: 'month' as PlanChoice,
   payState: 'idle' as PayState,
+  subscribedPlanId: null as PlanSeed['id'] | null,
+  subscriptionCancelPending: false,
   vaultCells: [true, true, true, false, false, false, false],
   flashcardDecks: [] as FlashcardDeckSeed[],
   offline: false,
@@ -146,6 +155,8 @@ type MockPersisted = Pick<
   | 'analysisDone'
   | 'planChoice'
   | 'payState'
+  | 'subscribedPlanId'
+  | 'subscriptionCancelPending'
   | 'vaultCells'
   | 'flashcardDecks'
 >;
@@ -238,6 +249,9 @@ export const useMockStore = create<MockState>()(
 
       setPlanChoice: (plan) => set({ planChoice: plan }),
       setPayState: (state) => set({ payState: state }),
+      setSubscribedPlanId: (planId) =>
+        set({ subscribedPlanId: planId, subscriptionCancelPending: false }),
+      setSubscriptionCancelPending: (pending) => set({ subscriptionCancelPending: pending }),
 
       toggleVaultCell: (index) =>
         set((s) => ({ vaultCells: s.vaultCells.map((v, i) => (i === index ? !v : v)) })),
@@ -328,6 +342,8 @@ export const useMockStore = create<MockState>()(
         analysisDone: s.analysisDone,
         planChoice: s.planChoice,
         payState: s.payState,
+        subscribedPlanId: s.subscribedPlanId,
+        subscriptionCancelPending: s.subscriptionCancelPending,
         vaultCells: s.vaultCells,
         flashcardDecks: s.flashcardDecks,
       }),

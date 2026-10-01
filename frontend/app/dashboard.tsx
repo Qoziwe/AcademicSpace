@@ -173,9 +173,13 @@ function DesktopDashboard() {
                   onPress={goAnalysis}
                   style={[styles.bucket, { backgroundColor: palette.chip }]}
                 >
-                  <Text style={[displayFont('600'), styles.bucketN, { color }]}>
-                    {filled ? String(n) : '—'}
-                  </Text>
+                  {filled ? (
+                    <Text style={[displayFont('600'), styles.bucketN, { color }]}>{String(n)}</Text>
+                  ) : (
+                    <View style={styles.bucketLock}>
+                      <Icon name="lock" size={16} color={color} />
+                    </View>
+                  )}
                   <Text style={[bodyFont('600'), styles.bucketLabel, { color: palette.sub }]}>
                     {label}
                   </Text>
@@ -546,9 +550,15 @@ function MobileDashboard() {
                     onPress={goAnalysis}
                     style={[styles.bucket, { backgroundColor: palette.chip }]}
                   >
-                    <Text style={[displayFont('600'), styles.bucketN, { color }]}>
-                      {filled ? String(n) : '—'}
-                    </Text>
+                    {filled ? (
+                      <Text style={[displayFont('600'), styles.bucketN, { color }]}>
+                        {String(n)}
+                      </Text>
+                    ) : (
+                      <View style={styles.bucketLock}>
+                        <Icon name="lock" size={16} color={color} />
+                      </View>
+                    )}
                     <Text style={[bodyFont('600'), styles.bucketLabel, { color: palette.sub }]}>
                       {label}
                     </Text>
@@ -713,6 +723,7 @@ const styles = StyleSheet.create({
   buckets: { flexDirection: 'row', gap: 8, marginTop: 15 },
   bucket: { flex: 1, borderRadius: radius.md, padding: 12 },
   bucketN: { fontSize: 17 },
+  bucketLock: { height: 22, justifyContent: 'center', opacity: 0.6 },
   bucketLabel: { fontSize: 10.5, marginTop: 3 },
   editText: { fontSize: 12, lineHeight: 18, marginTop: 12 },
   stats: { flexDirection: 'row', gap: 16, marginTop: 14, paddingTop: 14, borderTopWidth: 1 },
